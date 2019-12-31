@@ -1,0 +1,7 @@
+.vscode
+.idea
+vendor
+*.exe
+*.exe~
+Gopkg.lock
+.env
