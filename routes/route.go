@@ -10,11 +10,14 @@ import (
 
 func New() (e *echo.Echo) {
 	e = echo.New()
+	e.Static("/static", "assets")
 	//Route group
-	api:=e.Group("/api")
-	v1:=api.Group("/v1")
+	api := e.Group("/api")
+	v1 := api.Group("/v1")
 	//DB
 	db := config.New()
+	config.AutoMigrate(db)
+
 	//Validation
 	e.Validator = NewValidator()
 
@@ -27,10 +30,12 @@ func New() (e *echo.Echo) {
 		AllowMethods: []string{echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
 	}))
 
-
-	userController:=handler.NewUserController(db)
+	userController := handler.NewUserController(db)
 	v1.POST("/user", userController.Store)
 	v1.GET("/user/:id", userController.GetByID)
+
+	digisignController := handler.NewDigisignController(db)
+	v1.POST("/digisign/register", digisignController.Register)
 
 	return e
 }

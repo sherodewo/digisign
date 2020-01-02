@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"kpdigisign/app/models"
 	"os"
 
 	"github.com/jinzhu/gorm"
@@ -33,4 +34,9 @@ func New() *gorm.DB {
 // GetLinkDb :
 func GetLinkDb() *gorm.DB {
 	return dataBase
+}
+
+// AutoMigrate : err check
+func AutoMigrate(db *gorm.DB) {
+	db.AutoMigrate(&models.User{},&models.LosRequest{})
 }

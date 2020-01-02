@@ -10,3 +10,7 @@ func NewUserController(db *gorm.DB) *api.UserController {
 	userService:=service.NewUserService(db)
 	return &api.UserController{UserRepository: userService}
 }
+func NewDigisignController(db *gorm.DB) *api.DigisignController {
+	losService:=service.NewLosRequestService(db)
+	return &api.DigisignController{LosRepository: losService}
+}
