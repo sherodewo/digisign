@@ -118,3 +118,19 @@ func (us *LosRequestService) Destroy(id string) error {
 	}
 	return nil
 }
+
+func (us *LosRequestService) SaveResult(result string, info string, emailRegistered string, name bool, birthplace bool,
+	birthdate bool, address string, selfieMatch bool) (losResult models.DigisignRegistrationResult, err error) {
+	losResult.Name = name
+	losResult.Address = address
+	losResult.Result = result
+	losResult.Info = info
+	losResult.BirthDate = birthdate
+	losResult.BirthPlace = birthplace
+	losResult.EmailRegistered = emailRegistered
+	losResult.SelfieMatch = selfieMatch
+	if err := us.db.Create(&losResult).Error; err != nil {
+		return losResult, err
+	}
+	return losResult, err
+	}

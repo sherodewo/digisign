@@ -19,6 +19,8 @@ type DigisignRegistrationResult struct {
 	BirthDate  	bool    	`gorm:"column:birth_date"`
 	Address  	string    	`gorm:"type:varchar(100);column:address"`
 	Info  		string    	`gorm:"type:varchar(100);column:info"`
+	EmailRegistered  string    	`gorm:"type:varchar(100);column:email_registered"`
+	SelfieMatch  	bool    	`gorm:"type:varchar(100);column:selfie_match"`
 	CreatedAt 	time.Time 	`gorm:"column:created_at"`
 	UpdatedAt 	time.Time 	`gorm:"column:updated_at"`
 }

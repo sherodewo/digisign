@@ -11,4 +11,6 @@ type LosRequestRepository interface {
 	GetByEmail(string) (*models.LosRequest, error)
 	Destroy(string) error
 	Create(request request.LosRequest) (models.LosRequest, error)
+	SaveResult(result string,info string, emailRegistered string, name bool, birthplace bool,
+		birthdate bool, Addres string, selfieMatch bool ) (models.DigisignRegistrationResult, error)
 }
