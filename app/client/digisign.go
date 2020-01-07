@@ -57,7 +57,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
-	client.SetDebug(true)
+	//client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
@@ -74,7 +74,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			"jsonfield": string(drJson),
 		}).
 		Post("https://api.tandatanganku.com/REG-MITRA.html")
-
+		println(resp.RawResponse)
 	//resultJson = jsoniter.Get(resp.Body(), "JSONFile", 0).ToString()
 
 	return resp, err
