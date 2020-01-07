@@ -9,21 +9,21 @@ import (
 )
 
 // UserService :
-type LosRequestService struct {
+type LosService struct {
 	db *gorm.DB
 }
 
 // NewUserService :
-func NewLosRequestService(db *gorm.DB) repository.LosRequestRepository {
-	return &LosRequestService{
+func NewLosRequestService(db *gorm.DB) repository.LosRepository {
+	return &LosService{
 		db,
 	}
 }
 
 // GetByID :
-func (us *LosRequestService) GetByID(id string) (*models.LosRequest, error) {
-	var m models.LosRequest
-	if err := us.db.Where(&models.LosRequest{ID: id}).First(&m).Error; err != nil {
+func (us *LosService) GetByID(id string) (*models.Los, error) {
+	var m models.Los
+	if err := us.db.Where(&models.Los{ID: id}).First(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, err
 		}
@@ -32,9 +32,9 @@ func (us *LosRequestService) GetByID(id string) (*models.LosRequest, error) {
 }
 
 // GetByEmail :
-func (us *LosRequestService) GetByEmail(e string) (*models.LosRequest, error) {
-	var m models.LosRequest
-	if err := us.db.Where(&models.LosRequest{Email: e}).First(&m).Error; err != nil {
+func (us *LosService) GetByEmail(e string) (*models.Los, error) {
+	var m models.Los
+	if err := us.db.Where(&models.Los{Email: e}).First(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, err
 		}
@@ -44,7 +44,7 @@ func (us *LosRequestService) GetByEmail(e string) (*models.LosRequest, error) {
 }
 
 // Create :
-func (us *LosRequestService) Create(u request.LosRequest) (los models.LosRequest, err error) {
+func (us *LosService) Create(u request.LosRequest) (los models.Los, err error) {
 
 	los.ProspectID = u.ProspectID
 	los.UserID = u.UserID
@@ -78,7 +78,7 @@ func (us *LosRequestService) Create(u request.LosRequest) (los models.LosRequest
 	return los, err
 }
 
-func (us *LosRequestService) Update(id string, um request.LosRequest) (*models.LosRequest, error) {
+func (us *LosService) Update(id string, um request.LosRequest) (*models.Los, error) {
 	data, err := us.FindById(id)
 	if err != nil {
 		return &data, err
@@ -92,7 +92,7 @@ func (us *LosRequestService) Update(id string, um request.LosRequest) (*models.L
 	return &data, nil
 }
 
-func (us *LosRequestService) FindById(id string) (c models.LosRequest, err error) {
+func (us *LosService) FindById(id string) (c models.Los, err error) {
 	if err := us.db.Where("id = ?", id).First(&c).Error; err != nil {
 		log.Debug("ERROR", err)
 		return c, err
@@ -100,35 +100,31 @@ func (us *LosRequestService) FindById(id string) (c models.LosRequest, err error
 	return c, err
 }
 
-func (us *LosRequestService) FindAll() (user []models.LosRequest, err error) {
+func (us *LosService) FindAll() (user []models.Los, err error) {
 	err = us.db.Find(&user).Error
 	return user, err
 }
 
-func (us *LosRequestService) Destroy(id string) error {
-	var m models.LosRequest
-	if err := us.db.Where(&models.LosRequest{ID: id}).First(&m).Error; err != nil {
+func (us *LosService) Destroy(id string) error {
+	var m models.Los
+	if err := us.db.Where(&models.Los{ID: id}).First(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return err
 		}
 		return err
 	}
-	if err := us.db.Delete(&models.LosRequest{ID: id}).Error; err != nil {
+	if err := us.db.Delete(&models.Los{ID: id}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (us *LosRequestService) SaveResult(result string, info string, emailRegistered string, name bool, birthplace bool,
-	birthdate bool, address string, selfieMatch bool) (losResult models.DigisignRegistrationResult, err error) {
-	losResult.Name = name
-	losResult.Address = address
+func (us *LosService) SaveResult(result string, notif string,jsonResponse string) (losResult models.DigisignResult, err error) {
+
 	losResult.Result = result
-	losResult.Info = info
-	losResult.BirthDate = birthdate
-	losResult.BirthPlace = birthplace
-	losResult.EmailRegistered = emailRegistered
-	losResult.SelfieMatch = selfieMatch
+	losResult.Notif = result
+	losResult.JsonResponse = jsonResponse
+
 	if err := us.db.Create(&losResult).Error; err != nil {
 		return losResult, err
 	}

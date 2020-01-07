@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type LosRequest struct {
+type Los struct {
 	ID                     string    `gorm:"column:id;primary_key:true"`
 	ProspectID             string    `gorm:"type:varchar(100);column:prospect_id"`
 	UserID                 string    `gorm:"type:varchar(100);column:user_id"`
@@ -40,12 +40,12 @@ type LosRequest struct {
 	UpdatedAt              time.Time `gorm:"column:updated_at;"`
 }
 
-func (c LosRequest) TableName() string {
-	return "los_request"
+func (c Los) TableName() string {
+	return "los"
 }
 
 // BeforeCreate - Lifecycle callback - Generate UUID before persisting
-func (c *LosRequest) BeforeCreate(scope *gorm.Scope) error {
+func (c *Los) BeforeCreate(scope *gorm.Scope) error {
 	if err := scope.SetColumn("id", uuid.New().String()); err != nil {
 		log.Fatal("Error UUID Generate")
 	}

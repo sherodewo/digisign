@@ -7,13 +7,15 @@ import (
 	"kpdigisign/app/repository"
 	"kpdigisign/app/request"
 	"kpdigisign/app/response"
+	"kpdigisign/app/response/mapper"
 )
 
 type DigisignController struct {
-	LosRepository repository.LosRequestRepository
+	LosRepository repository.LosRepository
 }
 
 func (d *DigisignController) Register(c echo.Context) error {
+	resultMapper := mapper.NewDigisignResultMapper()
 
 	losRequest := request.LosRequest{}
 	if err := c.Bind(&losRequest); err != nil {
@@ -31,15 +33,23 @@ func (d *DigisignController) Register(c echo.Context) error {
 	}
 
 	register := client.NewDigisignRegistrationRequest()
-	resp, err := register.DigisignRegistration(bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
+	resp, err := register.DigisignRegistration(losRequest.KonsumenType, bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
 
 	if err != nil {
 		return response.BadRequest(c, "Bad Request", err.Error())
 	}
-	return response.SingleData(c, "Success Execute request", resp.String())
+
+	respDigisignRegister := response.NewDigisignResponse()
+	if err := respDigisignRegister.Bind(resp.Body()); err != nil {
+		return response.InternalServerError(c, err.Error(), nil)
+	}
+
+	resultData, err := d.LosRepository.SaveResult(respDigisignRegister.JsonFile.Result, respDigisignRegister.JsonFile.Notif, resp.String())
+
+	return response.SingleData(c, "Success execute resuest", resultMapper.Map(resultData))
 }
 
-func (d *DigisignController) Check(c echo.Context) error  {
+/*func (d *DigisignController) Check(c echo.Context) error {
 	losRequest := request.LosRequest{}
 	//resultMapper := mapper.NewDigisignRegistrationResultMapper()
 	if err := c.Bind(&losRequest); err != nil {
@@ -56,11 +66,11 @@ func (d *DigisignController) Check(c echo.Context) error  {
 	}
 	//Mapping Los
 	checkLosRequest := client.NewDigisignRegistrationRequest()
-	resLos,_ := checkLosRequest.DigisignRegistration(bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
+	resLos, _ := checkLosRequest.DigisignRegistration(bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
 	losRespone := response.NewLosRespone()
 
 	if err := losRespone.Bind(resLos.Body()); err != nil {
-		return response.BadRequest(c,"Bad Request", err)
+		return response.BadRequest(c, "Bad Request", err)
 	}
 
 	//Check Konsumen Type
@@ -70,21 +80,20 @@ func (d *DigisignController) Check(c echo.Context) error  {
 		if err != nil {
 			return response.BadRequest(c, "Bad Request", err.Error())
 		}
-		_, _ = d.LosRepository.SaveResult(losRespone.Result, losRespone.Info, losRespone.EmailRegistered, losRespone.Name,
-			losRespone.Birthplace, losRespone.Birthdate, losRespone.Address, losRespone.SelfieMatch)
+		_, _ = d.LosRepository.SaveResult(losRespone.JsonFile.Result, losRespone.JsonFile.Info, losRespone.JsonFile.EmailRegistered, losRespone.JsonFile.Name,
+			losRespone.JsonFile.Birthplace, losRespone.JsonFile.Birthdate, losRespone.JsonFile.Address, losRespone.JsonFile.SelfieMatch)
 		return response.SingleData(c, "Success Execute request", resp.String())
 
-	}else {
+	} else {
 		register := client.NewDigisignRegistrationRequestRoAo()
 		resp, err := register.DigisignRegistration(bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
 		if err != nil {
 			return response.BadRequest(c, "Bad Request", err.Error())
 		}
-		_, _ = d.LosRepository.SaveResult(losRespone.Result, losRespone.Info, losRespone.EmailRegistered, losRespone.Name,
-			losRespone.Birthplace, losRespone.Birthdate, losRespone.Address, losRespone.SelfieMatch)
+		_, _ = d.LosRepository.SaveResult(losRespone.JsonFile.Result, losRespone.JsonFile.Info, losRespone.JsonFile.EmailRegistered, losRespone.Name,
+			losRespone.JsonFile.Birthplace, losRespone.JsonFile.Birthdate, losRespone.JsonFile.Address, losRespone.JsonFile.SelfieMatch)
 		return response.SingleData(c, "Success Execute request", resp.String())
 	}
 
-
 	return nil
-}
+}*/

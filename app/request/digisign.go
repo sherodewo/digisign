@@ -21,13 +21,13 @@ type JsonFile struct {
 	Email                  string `json:"email"`
 	Npwp                   string `json:"npwp"`
 	RegNumber              string `json:"reg_number"`
-	AsliRiRegNumber        string `json:"asliri_reg_number"`
-	AsliRiRefVerifikasi    int    `json:"asliri_ref_verifikasi"`
-	AsliRiNama             bool   `json:"asliri_nama"`
-	AsliRiTempatLahir      bool   `json:"asliri_tempat_lahir"`
-	AsliRiTanggalLahir     bool   `json:"asliri_tanggal_lahir"`
-	AsliRiAlamat           string `json:"asliri_alamat"`
-	AsliRiSelfieSimilarity string `json:"asliri_selfie_similarity"`
+	AsliRiRegNumber        string `json:"asliri_reg_number,omitempty"`
+	AsliRiRefVerifikasi    int    `json:"asliri_ref_verifikasi,omitempty"`
+	AsliRiNama             bool   `json:"asliri_nama,omitempty"`
+	AsliRiTempatLahir      bool   `json:"asliri_tempat_lahir,omitempty"`
+	AsliRiTanggalLahir     bool   `json:"asliri_tanggal_lahir,omitempty"`
+	AsliRiAlamat           string `json:"asliri_alamat,omitempty"`
+	AsliRiSelfieSimilarity string `json:"asliri_selfie_similarity,omitempty"`
 	BranchID               string `json:"branch_id"`
 	EmailBm                string `json:"email_bm"`
 }
