@@ -74,7 +74,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			"jsonfield": string(drJson),
 		}).
 		Post("https://api.tandatanganku.com/REG-MITRA.html")
-		println(resp.RawResponse)
+		println(resp.String())
 	//resultJson = jsoniter.Get(resp.Body(), "JSONFile", 0).ToString()
 
 	return resp, err
