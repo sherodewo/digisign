@@ -4,6 +4,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 	"kpdigisign/routes"
+	"os"
 )
 
 func init()  {
@@ -14,7 +15,7 @@ func init()  {
 func main() {
 	e :=routes.New()
 
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":"+os.Getenv("APP_PORT")))
 }
 
 
