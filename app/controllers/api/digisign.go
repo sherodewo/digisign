@@ -11,7 +11,8 @@ import (
 )
 
 type DigisignController struct {
-	LosRepository repository.LosRepository
+	LosRepository      repository.LosRepository
+	DigisignRepository repository.DigisignRepository
 }
 
 func (d *DigisignController) Register(c echo.Context) error {
@@ -27,17 +28,17 @@ func (d *DigisignController) Register(c echo.Context) error {
 	if fileKtp == nil {
 		return response.BadRequest(c, "NOT FOUND KTP", nil)
 	}
-	bufKtp, err := helpers.GetImageByte("foto_ktp", c)
+	bufKtp, err := helpers.GetFileByte("foto_ktp", c)
 	//Check Selfie
 	fileSelfie, err := c.FormFile("foto_selfie")
 	if fileSelfie == nil {
 		return response.BadRequest(c, "NOT FOUND Selfie", nil)
 	}
-	bufSelfie, err := helpers.GetImageByte("foto_selfie", c)
+	bufSelfie, err := helpers.GetFileByte("foto_selfie", c)
 	//Get NPWP
-	bufNpwp, err = helpers.GetImageByte("foto_npwp", c)
+	bufNpwp, err = helpers.GetFileByte("foto_npwp", c)
 	//Get TTD
-	bufTtd, err = helpers.GetImageByte("tanda_tangan", c)
+	bufTtd, err = helpers.GetFileByte("tanda_tangan", c)
 
 	data, err := d.LosRepository.Create(losRequest)
 	if err != nil {
@@ -45,7 +46,6 @@ func (d *DigisignController) Register(c echo.Context) error {
 	}
 	register := client.NewDigisignRegistrationRequest()
 	resp, err := register.DigisignRegistration(losRequest.KonsumenType, bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
-
 	if err != nil {
 		return response.BadRequest(c, "Bad Request", err.Error())
 	}
@@ -55,56 +55,51 @@ func (d *DigisignController) Register(c echo.Context) error {
 		return response.InternalServerError(c, err.Error(), nil)
 	}
 
-	resultData, err := d.LosRepository.SaveResult(data.ID,respDigisignRegister.JsonFile.Result, respDigisignRegister.JsonFile.Notif, resp.String())
+	resultData, err := d.DigisignRepository.SaveResult(data.ID, respDigisignRegister.JsonFile.Result,
+		respDigisignRegister.JsonFile.Notif, resp.String())
 
 	return response.SingleData(c, "Success execute resuest", resultMapper.Map(resultData))
 }
 
-/*func (d *DigisignController) Check(c echo.Context) error {
-	losRequest := request.LosRequest{}
-	//resultMapper := mapper.NewDigisignRegistrationResultMapper()
-	if err := c.Bind(&losRequest); err != nil {
+func (d *DigisignController) SendDocument(c echo.Context) error {
+	resultMapper := mapper.NewDocumentResultMapper()
+
+	sendDocRequest := request.LosSendDocumentRequest{}
+	if err := c.Bind(&sendDocRequest); err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
-	bufKtp, err := helpers.GetImageByte("foto_ktp", c)
-	bufSelfie, err := helpers.GetImageByte("foto_selfie", c)
-	bufNpwp, err := helpers.GetImageByte("foto_npwp", c)
-	bufTtd, err := helpers.GetImageByte("tanda_tangan", c)
-
-	_, err = d.LosRepository.Create(losRequest)
+	//Check File Pdf
+	file, err := c.FormFile("file")
 	if err != nil {
-		return response.BadRequest(c, err.Error(), nil)
+		return response.BadRequest(c, "Bad Request", err.Error())
 	}
-	//Mapping Los
-	checkLosRequest := client.NewDigisignRegistrationRequest()
-	resLos, _ := checkLosRequest.DigisignRegistration(bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
-	losRespone := response.NewLosRespone()
-
-	if err := losRespone.Bind(resLos.Body()); err != nil {
-		return response.BadRequest(c, "Bad Request", err)
+	if file == nil {
+		return response.BadRequest(c, "NOT FOUND File", nil)
 	}
+	//===============
+	//Save Document Request
+	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest)
+	if err != nil {
+		return response.InternalServerError(c, err.Error(), nil)
+	}
+	//=====================
 
-	//Check Konsumen Type
-	if losRequest.KonsumenType == "NEW" {
-		register := client.NewDigisignRegistrationRequest()
-		resp, err := register.DigisignRegistration(bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
-		if err != nil {
-			return response.BadRequest(c, "Bad Request", err.Error())
-		}
-		_, _ = d.LosRepository.SaveResult(losRespone.JsonFile.Result, losRespone.JsonFile.Info, losRespone.JsonFile.EmailRegistered, losRespone.JsonFile.Name,
-			losRespone.JsonFile.Birthplace, losRespone.JsonFile.Birthdate, losRespone.JsonFile.Address, losRespone.JsonFile.SelfieMatch)
-		return response.SingleData(c, "Success Execute request", resp.String())
+	//Get
+	filePdf, err := helpers.GetFileByte("file", c)
+	send := client.NewDigisignSendDocRequest()
+	res, err := send.DigisignSendDoc(filePdf, sendDocRequest)
 
-	} else {
-		register := client.NewDigisignRegistrationRequestRoAo()
-		resp, err := register.DigisignRegistration(bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
-		if err != nil {
-			return response.BadRequest(c, "Bad Request", err.Error())
-		}
-		_, _ = d.LosRepository.SaveResult(losRespone.JsonFile.Result, losRespone.JsonFile.Info, losRespone.JsonFile.EmailRegistered, losRespone.Name,
-			losRespone.JsonFile.Birthplace, losRespone.JsonFile.Birthdate, losRespone.JsonFile.Address, losRespone.JsonFile.SelfieMatch)
-		return response.SingleData(c, "Success Execute request", resp.String())
+	if err != nil {
+		return response.BadRequest(c, "Bad Request", err.Error())
 	}
 
-	return nil
-}*/
+	respDigisignRegister := response.NewDigisignResponse()
+	if err := respDigisignRegister.Bind(res.Body()); err != nil {
+		return response.InternalServerError(c, err.Error(), nil)
+	}
+
+	resultData, err := d.DigisignRepository.SaveDocumentResult(data.ID, respDigisignRegister.JsonFile.Result,
+		respDigisignRegister.JsonFile.Notif, res.String())
+	return response.SingleData(c, "Success execute resuest", resultMapper.Map(resultData))
+
+}

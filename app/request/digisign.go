@@ -31,3 +31,34 @@ type JsonFile struct {
 	BranchID               string `json:"branch_id"`
 	EmailBm                string `json:"email_bm"`
 }
+
+type SendDocumentRequest struct {
+	JsonFile JsonFileDoc `json:"JSONFile"`
+}
+
+type JsonFileDoc struct {
+	UserID     string    `json:"userid"`
+	DocumentID string    `json:"document_id"`
+	Payment    string    `json:"payment"`
+	SendTo     []SendTo  `json:"send-to"`
+	ReqSign    []ReqSign `json:"req-sign"`
+}
+
+type SendTo struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type ReqSign struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	AksiTtd string `json:"aksi_ttd"`
+	Kuser   string `json:"kuser"`
+	User    string `json:"user"`
+	Page    string `json:"page"`
+	Llx     string `json:"llx"`
+	Lly     string `json:"lly"`
+	Urx     string `json:"urx"`
+	Ury     string `json:"ury"`
+	Visible string `json:"visible"`
+}

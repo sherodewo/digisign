@@ -13,10 +13,16 @@ type digisignRegistrationRequest struct {
 	request.DigisignRegistrationRequest
 }
 
+type digisignSendDocRequest struct {
+	request.SendDocumentRequest
+}
+
 func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
 	return &digisignRegistrationRequest{}
 }
-
+func NewDigisignSendDocRequest() *digisignSendDocRequest {
+	return &digisignSendDocRequest{}
+}
 func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byteKtp []byte, byteSelfie []byte, byteNpwp []byte, byteTtd []byte,
 	losRequest request.LosRequest) (result *resty.Response, err error) {
 
@@ -126,4 +132,28 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		return resp, err
 	}
 	//resultJson = jsoniter.Get(resp.Body(), "JSONFile", 0).ToString()
+}
+
+func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest request.LosSendDocumentRequest) (
+	result *resty.Response, err error) {
+	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com.com"
+	dr.JsonFile.DocumentID = losRequest.DocumentID
+	dr.JsonFile.Payment = losRequest.Payment
+	dr.JsonFile.SendTo = losRequest.SendTo
+	dr.JsonFile.ReqSign = losRequest.ReqSign
+	drJson, err := json.Marshal(dr)
+
+	client := resty.New()
+
+	resp, err := client.R().
+		SetHeader("Content-Type", "multipart/form-data").
+		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetFileReader("file", "file_"+losRequest.DocumentID+".pdf", bytes.NewReader(byteFile)).
+		SetFormData(map[string]string{
+			"jsonfield": string(drJson),
+		}).
+		Post("https://api.tandatanganku.com/SendDocMitraAT.html")
+	log.Info("Response :", resp.String())
+
+	return resp, err
 }

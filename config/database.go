@@ -38,5 +38,5 @@ func GetLinkDb() *gorm.DB {
 
 // AutoMigrate : err check
 func AutoMigrate(db *gorm.DB) {
-	db.AutoMigrate(&models.User{},&models.Los{},&models.DigisignResult{})
+	db.AutoMigrate(&models.User{},&models.Los{},&models.DigisignResult{},&models.Document{},&models.DocumentResult{})
 }

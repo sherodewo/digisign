@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GetImageByte(key string, c echo.Context) (byte []byte, err error) {
+func GetFileByte(key string, c echo.Context) (byte []byte, err error) {
 	// Source
 	file, err := c.FormFile(key)
 	if err != nil {

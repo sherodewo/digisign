@@ -19,6 +19,7 @@ func New() (e *echo.Echo) {
 	db := config.New()
 	config.AutoMigrate(db)
 	db.Model(&models.DigisignResult{}).AddForeignKey("los_id", "los(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.DocumentResult{}).AddForeignKey("document_id", "documents(id)", "CASCADE", "NO ACTION")
 
 	//Validation
 	e.Validator = NewValidator()
@@ -38,6 +39,7 @@ func New() (e *echo.Echo) {
 
 	digisignController := handler.NewDigisignController(db)
 	v1.POST("/digisign/register", digisignController.Register)
+	v1.POST("/digisign/send-document", digisignController.SendDocument)
 
 	return e
 }

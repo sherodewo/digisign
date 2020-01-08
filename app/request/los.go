@@ -1,9 +1,5 @@
 package request
 
-import (
-	"github.com/labstack/echo"
-)
-
 type LosRequest struct {
 	ProspectID             string `json:"prospect_id"`
 	UserID                 string `json:"user_id"`
@@ -34,9 +30,29 @@ type LosRequest struct {
 	EmailBm                string `json:"email_bm"`
 }
 
-func (cr *LosRequest) Bind(c echo.Context) (*LosRequest, error) {
-	if err := c.Bind(cr); err != nil {
-		return nil, err
-	}
-	return cr, nil
+type LosSendDocumentRequest struct {
+	UserID     string    `json:"user_id"`
+	DocumentID string    `json:"document_id"`
+	Payment    string    `json:"payment"`
+	SendTo     []SendTo  `json:"send_to"`
+	ReqSign    []ReqSign `json:"req_sign"`
 }
+
+/*type LosSendTo struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type LosReqSign struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	AksiTtd string `json:"aksi_ttd"`
+	Kuser   string `json:"kuser"`
+	User    string `json:"user"`
+	Page    string `json:"page"`
+	Llx     string `json:"llx"`
+	Lly     string `json:"lly"`
+	Urx     string `json:"urx"`
+	Ury     string `json:"ury"`
+	Visible string `json:"visible"`
+}*/
