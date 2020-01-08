@@ -119,8 +119,9 @@ func (us *LosService) Destroy(id string) error {
 	return nil
 }
 
-func (us *LosService) SaveResult(result string, notif string,jsonResponse string) (losResult models.DigisignResult, err error) {
+func (us *LosService) SaveResult(id string,result string, notif string,jsonResponse string) (losResult models.DigisignResult, err error) {
 
+	losResult.LosID = id
 	losResult.Result = result
 	losResult.Notif = result
 	losResult.JsonResponse = jsonResponse

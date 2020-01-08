@@ -11,5 +11,5 @@ type LosRepository interface {
 	GetByEmail(string) (*models.Los, error)
 	Destroy(string) error
 	Create(request request.LosRequest) (models.Los, error)
-	SaveResult(result string,notif string,jsonResponse string ) (models.DigisignResult, error)
+	SaveResult(id string,result string,notif string,jsonResponse string ) (models.DigisignResult, error)
 }

@@ -39,7 +39,7 @@ func (d *DigisignController) Register(c echo.Context) error {
 	//Get TTD
 	bufTtd, err = helpers.GetImageByte("tanda_tangan", c)
 
-	_, err = d.LosRepository.Create(losRequest)
+	data, err := d.LosRepository.Create(losRequest)
 	if err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
@@ -55,7 +55,7 @@ func (d *DigisignController) Register(c echo.Context) error {
 		return response.InternalServerError(c, err.Error(), nil)
 	}
 
-	resultData, err := d.LosRepository.SaveResult(respDigisignRegister.JsonFile.Result, respDigisignRegister.JsonFile.Notif, resp.String())
+	resultData, err := d.LosRepository.SaveResult(data.ID,respDigisignRegister.JsonFile.Result, respDigisignRegister.JsonFile.Notif, resp.String())
 
 	return response.SingleData(c, "Success execute resuest", resultMapper.Map(resultData))
 }
