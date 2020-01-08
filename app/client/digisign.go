@@ -24,7 +24,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	losRequest request.LosRequest) (result *resty.Response, err error) {
 
 	//Mapping request
-	dr.JsonFile.UserID = losRequest.UserID
+	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com.com"
 	dr.JsonFile.Alamat = losRequest.Alamat
 	dr.JsonFile.JenisKelamin = losRequest.JenisKelamin
 	dr.JsonFile.Kecamatan = losRequest.Kecamatan
