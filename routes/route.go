@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"kpdigisign/app/controllers/api/handler"
+	"kpdigisign/app/models"
 	"kpdigisign/config"
 )
 
@@ -17,6 +18,7 @@ func New() (e *echo.Echo) {
 	//DB
 	db := config.New()
 	config.AutoMigrate(db)
+	db.Model(&models.DigisignResult{}).AddForeignKey("los_id", "los(id)", "CASCADE", "NO ACTION")
 
 	//Validation
 	e.Validator = NewValidator()

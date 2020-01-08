@@ -11,7 +11,7 @@ import (
 type DigisignResult struct {
 	ID           string `gorm:"column:id;primary_key:true"`
 	Los          Los    `gorm:"forigenkey:LosID"`
-	LosID        string `gorm:"column:los_request_id"`
+	LosID        string `gorm:"column:los_id"`
 	Result       string `gorm:"type:varchar(100);column:result"`
 	Notif        string `gorm:"type:varchar(100);column:notif"`
 	JsonResponse string `gorm:"type:varchar(255);column:json_response"`
