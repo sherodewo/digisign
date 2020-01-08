@@ -123,7 +123,7 @@ func (us *LosService) SaveResult(id string,result string, notif string,jsonRespo
 
 	losResult.LosID = id
 	losResult.Result = result
-	losResult.Notif = result
+	losResult.Notif = notif
 	losResult.JsonResponse = jsonResponse
 
 	if err := us.db.Create(&losResult).Error; err != nil {

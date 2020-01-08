@@ -18,7 +18,7 @@ func NewDigisignResultMapper() *digisignResultMapper {
 	return &digisignResultMapper{}
 }
 func (us *digisignResultMapper) Map(digisignRegistrationResult models.DigisignResult) *digisignResultMapper {
-	//us.ID = digisignRegistrationResult.ID
+	us.ID = digisignRegistrationResult.ID
 	us.LosID = digisignRegistrationResult.LosID
 	us.Result = digisignRegistrationResult.Result
 	us.Notif = digisignRegistrationResult.Notif
