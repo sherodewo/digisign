@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/go-resty/resty"
+	"github.com/labstack/gommon/log"
 	"kpdigisign/app/helpers"
 	"kpdigisign/app/request"
 )
@@ -53,7 +54,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
-	client.SetDebug(true)
+	//client.SetDebug(true)
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -66,6 +67,8 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
+		log.Info("Response :", resp.String())
+
 		return resp, err
 	} else if byteNpwp == nil {
 		resp, err := client.R().
@@ -81,6 +84,8 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
+		log.Info("Response :", resp.String())
+
 		return resp, err
 	} else if byteTtd == nil {
 		resp, err := client.R().
@@ -96,6 +101,8 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
+		log.Info("Response :", resp.String())
+
 		return resp, err
 	} else {
 		resp, err := client.R().
@@ -114,6 +121,8 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
+		log.Info("Response :", resp.String())
+
 		return resp, err
 	}
 	//resultJson = jsoniter.Get(resp.Body(), "JSONFile", 0).ToString()
