@@ -16,22 +16,33 @@ type DigisignController struct {
 
 func (d *DigisignController) Register(c echo.Context) error {
 	resultMapper := mapper.NewDigisignResultMapper()
-
 	losRequest := request.LosRequest{}
 	if err := c.Bind(&losRequest); err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
+	var bufNpwp, bufTtd []byte
 
+	//Check KTP
+	fileKtp, err := c.FormFile("foto_ktp")
+	if fileKtp == nil {
+		return response.BadRequest(c, "NOT FOUND KTP", nil)
+	}
 	bufKtp, err := helpers.GetImageByte("foto_ktp", c)
+	//Check Selfie
+	fileSelfie, err := c.FormFile("foto_selfie")
+	if fileSelfie == nil {
+		return response.BadRequest(c, "NOT FOUND Selfie", nil)
+	}
 	bufSelfie, err := helpers.GetImageByte("foto_selfie", c)
-	bufNpwp, err := helpers.GetImageByte("foto_npwp", c)
-	bufTtd, err := helpers.GetImageByte("tanda_tangan", c)
+	//Get NPWP
+	bufNpwp, err = helpers.GetImageByte("foto_npwp", c)
+	//Get TTD
+	bufTtd, err = helpers.GetImageByte("tanda_tangan", c)
 
 	_, err = d.LosRepository.Create(losRequest)
 	if err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
-
 	register := client.NewDigisignRegistrationRequest()
 	resp, err := register.DigisignRegistration(losRequest.KonsumenType, bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
 
