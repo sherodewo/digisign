@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/go-resty/resty"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/labstack/gommon/log"
 	"kpdigisign/app/helpers"
 	"kpdigisign/app/request"
@@ -139,12 +140,16 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest re
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com.com"
 	dr.JsonFile.DocumentID = losRequest.DocumentID
 	dr.JsonFile.Payment = losRequest.Payment
-	dr.JsonFile.SendTo = losRequest.SendTo
-	dr.JsonFile.ReqSign = losRequest.ReqSign
+
+	sendTo := jsoniter.Get([]byte(losRequest.SendTo), "sendTo").GetInterface()
+	reqSign := jsoniter.Get([]byte(losRequest.ReqSign), "reqSign").GetInterface()
+
+	dr.JsonFile.SendTo =sendTo
+	dr.JsonFile.ReqSign = reqSign
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
-
+	client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/gommon/log"
 	"kpdigisign/app/models"
@@ -29,10 +28,8 @@ func (us *DigisignService) SaveDocumentRequest(request request.LosSendDocumentRe
 	doc.UserID = request.UserID
 	doc.DocumentID = request.DocumentID
 	doc.Payment = request.Payment
-	jsonSendTo, err := json.Marshal(request.SendTo)
-	jsonReqSign, err := json.Marshal(request.ReqSign)
-	doc.SendTo = string(jsonSendTo)
-	doc.ReqSign = string(jsonReqSign)
+	doc.SendTo = request.SendTo
+	doc.ReqSign = request.ReqSign
 	err = us.db.Create(&doc).Error
 	return doc, err
 }

@@ -37,11 +37,11 @@ type SendDocumentRequest struct {
 }
 
 type JsonFileDoc struct {
-	UserID     string    `json:"userid"`
-	DocumentID string    `json:"document_id"`
-	Payment    string    `json:"payment"`
-	SendTo     []SendTo  `json:"send-to"`
-	ReqSign    []ReqSign `json:"req-sign"`
+	UserID     string                 `json:"userid"`
+	DocumentID string                 `json:"document_id"`
+	Payment    string                 `json:"payment"`
+	SendTo     interface{} `json:"send-to"`
+	ReqSign    interface{} `json:"req-sign"`
 }
 
 type SendTo struct {
