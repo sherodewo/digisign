@@ -103,3 +103,22 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	return response.SingleData(c, "Success execute resuest", resultMapper.Map(resultData))
 
 }
+
+func (d DigisignController) Download(c echo.Context) error  {
+
+	downloadFileRequest := request.LosDownloadDocumentRequest{}
+	if err := c.Bind(&downloadFileRequest); err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+
+	requestDoc:=client.NewDownloadRequest()
+	res,err:=requestDoc.Download(downloadFileRequest)
+	if err != nil{
+		return response.BadRequest(c, err.Error(), nil)
+	}
+
+	_, err = c.Response().Write(res.Body())
+
+	return nil
+	//return response.SingleData(c, "Success execute resuest", resultMapper.Map(resultData))
+}

@@ -40,6 +40,8 @@ func New() (e *echo.Echo) {
 	digisignController := handler.NewDigisignController(db)
 	v1.POST("/digisign/register", digisignController.Register)
 	v1.POST("/digisign/send-document", digisignController.SendDocument)
+	v1.POST("/digisign/download", digisignController.Download)
+
 
 	return e
 }

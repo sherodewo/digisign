@@ -38,6 +38,10 @@ type LosSendDocumentRequest struct {
 	ReqSign    string `json:"req_sign"`
 }
 
+type LosDownloadDocumentRequest struct {
+	UserID     string `json:"user_id"`
+	DocumentID string `json:"document_id"`
+}
 /*type LosSendTo struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
