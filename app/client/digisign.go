@@ -149,7 +149,6 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest re
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
-	client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
