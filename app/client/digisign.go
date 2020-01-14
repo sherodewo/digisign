@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"kpdigisign/app/helpers"
 	"kpdigisign/app/request"
+	"strconv"
 )
 
 type digisignRegistrationRequest struct {
@@ -173,7 +174,7 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
-
+	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
 	client.SetDebug(true)
 	resp, err := client.R().
@@ -182,6 +183,7 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
+		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post("https://api.tandatanganku.com/DWMITRA64.html")
 	log.Info("Response :", resp.String())
 	base64File := jsoniter.Get(resp.Body(), "JSONFile", 0).Get("file").ToString()
