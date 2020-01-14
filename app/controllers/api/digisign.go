@@ -78,7 +78,8 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	}
 	//===============
 	//Save Document Request
-	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest)
+	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.UserId,sendDocRequest.DocumentId,
+		sendDocRequest.Payment,sendDocRequest.SendTo,sendDocRequest.ReqSign)
 	if err != nil {
 		return response.InternalServerError(c, err.Error(), nil)
 	}
@@ -87,7 +88,7 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	//Get
 	filePdf, err := helpers.GetFileByte("file", c)
 	send := client.NewDigisignSendDocRequest()
-	res, err := send.DigisignSendDoc(filePdf, sendDocRequest)
+	res, err := send.DigisignSendDoc(filePdf, c.FormValue("userId"),c.FormValue("documentId"),sendDocRequest)
 
 	if err != nil {
 		return response.BadRequest(c, "Bad Request", err.Error())

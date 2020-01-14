@@ -21,6 +21,7 @@ type digisignSendDocRequest struct {
 type downloadRequest struct {
 	request.DownloadRequest
 }
+
 func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
 	return &digisignRegistrationRequest{}
 }
@@ -141,16 +142,17 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	//resultJson = jsoniter.Get(resp.Body(), "JSONFile", 0).ToString()
 }
 
-func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest request.LosSendDocumentRequest) (
+func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, userId string, documentId string,
+	losRequest request.LosSendDocumentRequest) (
 	result *resty.Response, err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
-	dr.JsonFile.DocumentID = losRequest.DocumentId
+	dr.JsonFile.DocumentID = documentId
 	dr.JsonFile.Payment = losRequest.Payment
 
 	sendTo := jsoniter.Get([]byte(losRequest.SendTo), "sendTo").GetInterface()
 	reqSign := jsoniter.Get([]byte(losRequest.ReqSign), "reqSign").GetInterface()
 
-	dr.JsonFile.SendTo =sendTo
+	dr.JsonFile.SendTo = sendTo
 	dr.JsonFile.ReqSign = reqSign
 	drJson, err := json.Marshal(dr)
 
@@ -168,7 +170,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest re
 	return resp, err
 }
 
-func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) ( result *resty.Response, err error) {
+func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com.com"
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)

@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/gommon/log"
 	"kpdigisign/app/models"
 	"kpdigisign/app/repository"
-	"kpdigisign/app/request"
 )
 
 // DigisignRegistrationResultService :
@@ -24,12 +23,13 @@ func (us *DigisignService) SaveDocumentResult(id string, result string, notif st
 	return docResult, err
 }
 
-func (us *DigisignService) SaveDocumentRequest(request request.LosSendDocumentRequest) (doc models.Document, err error) {
-	doc.UserID = request.UserId
-	doc.DocumentID = request.DocumentId
-	doc.Payment = request.Payment
-	doc.SendTo = request.SendTo
-	doc.ReqSign = request.ReqSign
+func (us *DigisignService) SaveDocumentRequest(userId string, documentId string, payment string, sendTo string,
+	reqSign string) (doc models.Document, err error) {
+	doc.UserID = userId
+	doc.DocumentID = documentId
+	doc.Payment = payment
+	doc.SendTo = sendTo
+	doc.ReqSign = reqSign
 	err = us.db.Create(&doc).Error
 	return doc, err
 }
