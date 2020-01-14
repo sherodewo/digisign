@@ -124,8 +124,6 @@ func (d DigisignController) Download(c echo.Context) error  {
 		return response.BadRequest(c, err.Error(), nil)
 	}
 
-	_, err = c.Response().Write(res.Body())
 
-	return nil
-	//return response.SingleData(c, "Success execute resuest", resultMapper.Map(resultData))
+	return response.SingleData(c, "Success execute resuest", res.String())
 }
