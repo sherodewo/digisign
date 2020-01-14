@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"github.com/labstack/echo"
 	"kpdigisign/app/client"
 	"kpdigisign/app/helpers"
@@ -141,6 +142,6 @@ func (d DigisignController) DownloadFile(c echo.Context) error {
 	}
 
 
-	return c.Blob(200,"application/pdf",res.Body())
+	return c.Stream(200,"application/pdf",bytes.NewReader(res.Body()))
 	//return response.SingleData(c, "Success execute resuest", file)
 }
