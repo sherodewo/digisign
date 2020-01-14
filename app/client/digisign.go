@@ -145,7 +145,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte,losRequest request.LosSendDocumentRequest) (
 	result *resty.Response, err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
-	dr.JsonFile.DocumentID = losRequest.Documentid
+	dr.JsonFile.DocumentID = losRequest.DocumentID
 	dr.JsonFile.Payment = losRequest.Payment
 
 	sendTo := jsoniter.Get([]byte(losRequest.SendTo), "sendTo").GetInterface()
@@ -159,7 +159,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte,losRequest req
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
-		SetFileReader("file", "file_"+losRequest.Documentid+".pdf", bytes.NewReader(byteFile)).
+		SetFileReader("file", "file_"+losRequest.DocumentID+".pdf", bytes.NewReader(byteFile)).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).

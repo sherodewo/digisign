@@ -65,9 +65,15 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	resultMapper := mapper.NewDocumentResultMapper()
 
 	sendDocRequest := request.LosSendDocumentRequest{}
-	if err := c.Bind(&sendDocRequest); err != nil {
-		return response.BadRequest(c, err.Error(), nil)
-	}
+	sendDocRequest.UserID = c.FormValue("userId")
+	sendDocRequest.DocumentID = c.FormValue("documentId")
+	sendDocRequest.Payment = c.FormValue("payment")
+	sendDocRequest.SendTo = c.FormValue("sendTo")
+	sendDocRequest.ReqSign = c.FormValue("reqSign")
+	//if err := c.Bind(&sendDocRequest); err != nil {
+	//	return response.BadRequest(c, err.Error(), nil)
+	//}
+
 	//Check File Pdf
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -78,7 +84,7 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	}
 	//===============
 	//Save Document Request
-	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.Userid,sendDocRequest.Documentid,
+	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.UserID,sendDocRequest.DocumentID,
 		sendDocRequest.Payment,sendDocRequest.SendTo,sendDocRequest.ReqSign)
 	if err != nil {
 		return response.InternalServerError(c, err.Error(), nil)
