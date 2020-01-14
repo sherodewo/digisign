@@ -144,6 +144,6 @@ func (d DigisignController) DownloadFile(c echo.Context) error {
 	if err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
-	return nil
+	return c.Blob(200,"application/pdf",res.Body())
 	//return response.SingleData(c, "Success execute resuest", file)
 }
