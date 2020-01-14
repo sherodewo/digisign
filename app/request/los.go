@@ -31,8 +31,8 @@ type LosRequest struct {
 }
 
 type LosSendDocumentRequest struct {
-	UserId     string `form:"userId"`
-	DocumentId string `form:"documentId"`
+	Userid     string `form:"userid"`
+	Documentid string `form:"documentid"`
 	Payment    string `form:"payment"`
 	SendTo     string `form:"sendTo"`
 	ReqSign    string `form:"reqSign"`

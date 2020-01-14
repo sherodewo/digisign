@@ -78,7 +78,7 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	}
 	//===============
 	//Save Document Request
-	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.UserId,sendDocRequest.DocumentId,
+	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.Userid,sendDocRequest.Documentid,
 		sendDocRequest.Payment,sendDocRequest.SendTo,sendDocRequest.ReqSign)
 	if err != nil {
 		return response.InternalServerError(c, err.Error(), nil)
