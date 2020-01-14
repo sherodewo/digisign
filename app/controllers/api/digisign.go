@@ -140,10 +140,7 @@ func (d DigisignController) DownloadFile(c echo.Context) error {
 		return response.BadRequest(c, err.Error(), nil)
 	}
 
-	_, err = c.Response().Write(res.Body())
-	if err != nil {
-		return response.BadRequest(c, err.Error(), nil)
-	}
+
 	return c.Blob(200,"application/pdf",res.Body())
 	//return response.SingleData(c, "Success execute resuest", file)
 }

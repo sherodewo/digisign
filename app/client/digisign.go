@@ -204,7 +204,7 @@ func (dr *downloadRequest) DownloadFile(downloadRequest request.LosDownloadDocum
 		}).
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post("https://api.tandatanganku.com/DWMITRA.html")
-	log.Info("Response :", resp.String())
+	//log.Info("Response :", resp.String())
 	//base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
 
 	return resp,err
