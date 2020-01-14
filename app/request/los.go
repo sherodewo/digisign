@@ -31,11 +31,11 @@ type LosRequest struct {
 }
 
 type LosSendDocumentRequest struct {
-	UserId     string `json:"user_id"`
-	DocumentId string `json:"document_id"`
-	Payment    string `json:"payment"`
-	SendTo     string `json:"send_to"`
-	ReqSign    string `json:"req_sign"`
+	UserId     string
+	DocumentId string
+	Payment    string
+	SendTo     string
+	ReqSign    string
 }
 
 type LosDownloadDocumentRequest struct {
