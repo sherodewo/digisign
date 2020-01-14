@@ -181,7 +181,7 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
-		Post("https://api.tandatanganku.com/DWMITRA.html")
+		Post("https://api.tandatanganku.com/DWMITRA64.html")
 	log.Info("Response :", resp.String())
 
 	return resp, err
