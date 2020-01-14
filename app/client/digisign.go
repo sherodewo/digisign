@@ -176,7 +176,6 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 	drJson, err := json.Marshal(dr)
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
-	client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
