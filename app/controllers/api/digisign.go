@@ -88,7 +88,7 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	//Get
 	filePdf, err := helpers.GetFileByte("file", c)
 	send := client.NewDigisignSendDocRequest()
-	res, err := send.DigisignSendDoc(filePdf, c.FormValue("userId"),c.FormValue("documentId"),sendDocRequest)
+	res, err := send.DigisignSendDoc(filePdf,sendDocRequest)
 
 	if err != nil {
 		return response.BadRequest(c, "Bad Request", err.Error())

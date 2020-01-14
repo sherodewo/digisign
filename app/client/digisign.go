@@ -142,11 +142,10 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	//resultJson = jsoniter.Get(resp.Body(), "JSONFile", 0).ToString()
 }
 
-func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, userId string, documentId string,
-	losRequest request.LosSendDocumentRequest) (
+func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte,losRequest request.LosSendDocumentRequest) (
 	result *resty.Response, err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
-	dr.JsonFile.DocumentID = documentId
+	dr.JsonFile.DocumentID = losRequest.DocumentId
 	dr.JsonFile.Payment = losRequest.Payment
 
 	sendTo := jsoniter.Get([]byte(losRequest.SendTo), "sendTo").GetInterface()
