@@ -119,11 +119,11 @@ func (d DigisignController) Download(c echo.Context) error  {
 	}
 
 	requestDoc:=client.NewDownloadRequest()
-	res,err:=requestDoc.Download(downloadFileRequest)
+	_,file,err:=requestDoc.Download(downloadFileRequest)
 	if err != nil{
 		return response.BadRequest(c, err.Error(), nil)
 	}
 
 
-	return response.SingleData(c, "Success execute resuest", res.String())
+	return response.SingleData(c, "Success execute resuest", file)
 }

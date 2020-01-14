@@ -169,12 +169,13 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte,losRequest req
 	return resp, err
 }
 
-func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, err error) {
+func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, file string,err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
+	client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
@@ -183,6 +184,7 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 		}).
 		Post("https://api.tandatanganku.com/DWMITRA64.html")
 	log.Info("Response :", resp.String())
+	base64File := jsoniter.Get(resp.Body(), "JSONFile", 0).Get("file").ToString()
 
-	return resp, err
+	return resp, base64File,err
 }
