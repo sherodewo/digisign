@@ -170,7 +170,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte,losRequest req
 }
 
 func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, err error) {
-	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com.com"
+	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
 
