@@ -189,3 +189,23 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 
 	return resp, base64File,err
 }
+
+func (dr *downloadRequest) DownloadFile(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response,err error) {
+	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JsonFile.DocumentID = downloadRequest.DocumentID
+	drJson, err := json.Marshal(dr)
+	bs := []byte(strconv.Itoa(0))
+	client := resty.New()
+	resp, err := client.R().
+		SetHeader("Content-Type", "multipart/form-data").
+		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetFormData(map[string]string{
+			"jsonfield": string(drJson),
+		}).
+		SetFileReader("file", "file_", bytes.NewReader(bs)).
+		Post("https://api.tandatanganku.com/DWMITRA.html")
+	log.Info("Response :", resp.String())
+	//base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
+
+	return resp,err
+}

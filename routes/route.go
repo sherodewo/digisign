@@ -41,6 +41,7 @@ func New() (e *echo.Echo) {
 	v1.POST("/digisign/register", digisignController.Register)
 	v1.POST("/digisign/send-document", digisignController.SendDocument)
 	v1.POST("/digisign/download", digisignController.Download)
+	v1.POST("/digisign/download/file", digisignController.DownloadFile)
 
 
 	return e

@@ -84,8 +84,8 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	}
 	//===============
 	//Save Document Request
-	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.UserID,sendDocRequest.DocumentID,
-		sendDocRequest.Payment,sendDocRequest.SendTo,sendDocRequest.ReqSign)
+	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.UserID, sendDocRequest.DocumentID,
+		sendDocRequest.Payment, sendDocRequest.SendTo, sendDocRequest.ReqSign)
 	if err != nil {
 		return response.InternalServerError(c, err.Error(), nil)
 	}
@@ -94,7 +94,7 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	//Get
 	filePdf, err := helpers.GetFileByte("file", c)
 	send := client.NewDigisignSendDocRequest()
-	res, err := send.DigisignSendDoc(filePdf,sendDocRequest)
+	res, err := send.DigisignSendDoc(filePdf, sendDocRequest)
 
 	if err != nil {
 		return response.BadRequest(c, "Bad Request", err.Error())
@@ -111,19 +111,39 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 
 }
 
-func (d DigisignController) Download(c echo.Context) error  {
+func (d DigisignController) Download(c echo.Context) error {
 
 	downloadFileRequest := request.LosDownloadDocumentRequest{}
 	if err := c.Bind(&downloadFileRequest); err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
 
-	requestDoc:=client.NewDownloadRequest()
-	_,file,err:=requestDoc.Download(downloadFileRequest)
-	if err != nil{
+	requestDoc := client.NewDownloadRequest()
+	_, file, err := requestDoc.Download(downloadFileRequest)
+	if err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
 
-
 	return response.SingleData(c, "Success execute resuest", file)
+}
+
+func (d DigisignController) DownloadFile(c echo.Context) error {
+
+	downloadFileRequest := request.LosDownloadDocumentRequest{}
+	if err := c.Bind(&downloadFileRequest); err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+
+	requestDoc := client.NewDownloadRequest()
+	res, err := requestDoc.DownloadFile(downloadFileRequest)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+
+	_, err = c.Response().Write(res.Body())
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+	return nil
+	//return response.SingleData(c, "Success execute resuest", file)
 }
