@@ -143,7 +143,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 
 func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest request.LosSendDocumentRequest) (
 	result *resty.Response, err error) {
-	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com.com"
+	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
 	dr.JsonFile.DocumentID = losRequest.DocumentID
 	dr.JsonFile.Payment = losRequest.Payment
 
