@@ -25,8 +25,8 @@ func (us *DigisignService) SaveDocumentResult(id string, result string, notif st
 }
 
 func (us *DigisignService) SaveDocumentRequest(request request.LosSendDocumentRequest) (doc models.Document, err error) {
-	doc.UserID = request.UserID
-	doc.DocumentID = request.DocumentID
+	doc.UserID = request.UserId
+	doc.DocumentID = request.DocumentId
 	doc.Payment = request.Payment
 	doc.SendTo = request.SendTo
 	doc.ReqSign = request.ReqSign

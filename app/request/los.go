@@ -31,8 +31,8 @@ type LosRequest struct {
 }
 
 type LosSendDocumentRequest struct {
-	UserID     string `json:"user_id"`
-	DocumentID string `json:"document_id"`
+	UserId     string `json:"user_id"`
+	DocumentId string `json:"document_id"`
 	Payment    string `json:"payment"`
 	SendTo     string `json:"send_to"`
 	ReqSign    string `json:"req_sign"`
@@ -42,6 +42,7 @@ type LosDownloadDocumentRequest struct {
 	UserID     string `json:"user_id"`
 	DocumentID string `json:"document_id"`
 }
+
 /*type LosSendTo struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
