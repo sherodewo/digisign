@@ -36,10 +36,11 @@ type SendDocumentRequest struct {
 }
 
 type JsonFileDoc struct {
-	UserID     string      `json:"userid"`
-	DocumentID string      `json:"document_id"`
-	Payment    string      `json:"payment"`
-	SendTo     interface{} `json:"send-to"`
-	ReqSign    interface{} `json:"req-sign"`
-	Redirect   bool        `json:"redirect"`
+	UserID         string      `json:"userid"`
+	DocumentID     string      `json:"document_id"`
+	Payment        string      `json:"payment"`
+	SendTo         interface{} `json:"send-to"`
+	ReqSign        interface{} `json:"req-sign"`
+	Redirect       bool        `json:"redirect"`
+	SequenceOption bool        `json:"redirect"`
 }

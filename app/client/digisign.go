@@ -76,7 +76,6 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
-	client.SetDebug(true)
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -155,6 +154,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest re
 	dr.JsonFile.DocumentID = losRequest.DocumentID
 	dr.JsonFile.Payment = losRequest.Payment
 	dr.JsonFile.Redirect = true
+	dr.JsonFile.SequenceOption = false
 
 	sendTo := jsoniter.Get([]byte(losRequest.SendTo), "sendTo").GetInterface()
 	reqSign := jsoniter.Get([]byte(losRequest.ReqSign), "reqSign").GetInterface()
