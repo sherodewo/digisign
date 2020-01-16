@@ -42,5 +42,5 @@ type JsonFileDoc struct {
 	SendTo         interface{} `json:"send-to"`
 	ReqSign        interface{} `json:"req-sign"`
 	Redirect       bool        `json:"redirect"`
-	SequenceOption bool        `json:"redirect"`
+	SequenceOption bool        `json:"sequence_option"`
 }
