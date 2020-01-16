@@ -12,10 +12,10 @@ type DigisignResult struct {
 	ID           string `gorm:"column:id;primary_key:true"`
 	Los          Los    `gorm:"forigenkey:LosID"`
 	LosID        string `gorm:"column:los_id"`
-	Result       string `gorm:"type:varchar(100);column:result"`
-	Notif        string `gorm:"type:varchar(100);column:notif"`
-	RefTrx       string `gorm:"type:varchar(100);column:ref_trx"`
-	JsonResponse string `gorm:"type:varchar(100);column:json_response"`
+	Result       string `gorm:"type:varchar(5);column:result"`
+	Notif        string `gorm:"type:varchar(150);column:notif"`
+	RefTrx       string `gorm:"type:varchar(200);column:ref_trx"`
+	JsonResponse string `gorm:"type:varchar(255);column:json_response"`
 	CreatedAt time.Time `gorm:"column:created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at"`
 }

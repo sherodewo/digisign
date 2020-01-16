@@ -18,7 +18,7 @@ func (us *digisignResultMapper) Map(digisignRegistrationResult models.DigisignRe
 	us.LosID = digisignRegistrationResult.LosID
 	us.Result = digisignRegistrationResult.Result
 	us.Notif = digisignRegistrationResult.Notif
-	us.Notif = digisignRegistrationResult.RefTrx
+	us.RefTrx = digisignRegistrationResult.RefTrx
 
 	return us
 }
