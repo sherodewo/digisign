@@ -14,6 +14,7 @@ type DocumentResult struct {
 	Result       string    `gorm:"type:varchar(100);column:result"`
 	Notif        string    `gorm:"type:varchar(100);column:notif"`
 	JsonResponse string    `gorm:"type:varchar(255);column:json_response"`
+	RefTrx       string    `gorm:"type:varchar(100);column:ref_trx"`
 	CreatedAt    time.Time `gorm:"column:created_at"`
 	UpdatedAt    time.Time `gorm:"column:updated_at"`
 }

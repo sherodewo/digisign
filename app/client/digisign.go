@@ -32,8 +32,8 @@ func NewDigisignSendDocRequest() *digisignSendDocRequest {
 func NewDownloadRequest() *downloadRequest {
 	return &downloadRequest{}
 }
-func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byteKtp []byte, byteSelfie []byte, byteNpwp []byte, byteTtd []byte,
-	losRequest request.LosRequest) (result *resty.Response, err error) {
+func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byteKtp []byte, byteSelfie []byte,
+	byteNpwp []byte, byteTtd []byte, losRequest request.LosRequest) (result *resty.Response, err error) {
 
 	//Mapping request
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
@@ -52,24 +52,31 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	dr.JsonFile.Email = losRequest.Email
 	dr.JsonFile.Npwp = losRequest.Npwp
 	dr.JsonFile.RegNumber = losRequest.RegNumber
+	dr.JsonFile.Redirect = false
 
 	if userType == "NEW" {
 		//Data AsliRI
-		dr.JsonFile.AsliRiRegNumber = losRequest.AsliRiRegNumber
-		dr.JsonFile.AsliRiRefVerifikasi = losRequest.AsliRiRefVerifikasi
-		dr.JsonFile.AsliRiNama = losRequest.AsliRiNama
-		dr.JsonFile.AsliRiTempatLahir = losRequest.AsliRiTempatLahir
-		dr.JsonFile.AsliRiTanggalLahir = losRequest.AsliRiTanggalLahir
-		dr.JsonFile.AsliRiAlamat = losRequest.AsliRiAlamat
-		dr.JsonFile.AsliRiSelfieSimilarity = losRequest.AsliRiSelfieSimilarity
-		dr.JsonFile.BranchID = losRequest.BranchID
-		dr.JsonFile.EmailBm = losRequest.EmailBm
+		dr.JsonFile.AsliRiRefVerifikasi = *losRequest.AsliRiRefVerifikasi
+		var dataVerifikasi map[string]interface{}
+		dataVerifikasi = map[string]interface{}{
+			"name":       losRequest.AsliRiNama,
+			"birthplace": losRequest.AsliRiTempatLahir,
+			"birthdate":  losRequest.AsliRiTanggalLahir,
+			"address":    losRequest.AsliRiAlamat,
+		}
+		jsonDataVerifikasi, _ := json.Marshal(dataVerifikasi)
+		dr.JsonFile.DataVerifikasi = string(jsonDataVerifikasi)
+
+		dr.JsonFile.Vnik = *losRequest.Vnik
+		dr.JsonFile.Vnama = *losRequest.Vnama
+		dr.JsonFile.VtanggalLahir = *losRequest.VtanggalLahir
+		dr.JsonFile.VtempatLahir = *losRequest.VtempatLahir
 	}
 
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
-	//client.SetDebug(true)
+	client.SetDebug(true)
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -82,7 +89,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.String())
+		log.Info("Response :", resp.Body())
 
 		return resp, err
 	} else if byteNpwp == nil {
@@ -99,7 +106,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.String())
+		log.Info("Response :", resp.Body())
 
 		return resp, err
 	} else if byteTtd == nil {
@@ -116,7 +123,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.String())
+		log.Info("Response :", resp.Body())
 
 		return resp, err
 	} else {
@@ -136,18 +143,18 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				"jsonfield": string(drJson),
 			}).
 			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.String())
+		log.Info("Response :", resp.Body())
 
 		return resp, err
 	}
-	//resultJson = jsoniter.Get(resp.Body(), "JSONFile", 0).ToString()
 }
 
-func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte,losRequest request.LosSendDocumentRequest) (
+func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest request.LosSendDocumentRequest) (
 	result *resty.Response, err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
 	dr.JsonFile.DocumentID = losRequest.DocumentID
 	dr.JsonFile.Payment = losRequest.Payment
+	dr.JsonFile.Redirect = true
 
 	sendTo := jsoniter.Get([]byte(losRequest.SendTo), "sendTo").GetInterface()
 	reqSign := jsoniter.Get([]byte(losRequest.ReqSign), "reqSign").GetInterface()
@@ -170,7 +177,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte,losRequest req
 	return resp, err
 }
 
-func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, file string,err error) {
+func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, file string, err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
@@ -187,10 +194,10 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 	log.Info("Response :", resp.String())
 	base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
 
-	return resp, base64File,err
+	return resp, base64File, err
 }
 
-func (dr *downloadRequest) DownloadFile(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response,err error) {
+func (dr *downloadRequest) DownloadFile(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, err error) {
 	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
@@ -204,8 +211,5 @@ func (dr *downloadRequest) DownloadFile(downloadRequest request.LosDownloadDocum
 		}).
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post("https://api.tandatanganku.com/DWMITRA.html")
-	//log.Info("Response :", resp.String())
-	//base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
-
-	return resp,err
+	return resp, err
 }

@@ -12,28 +12,6 @@ type DigisignService struct {
 	db *gorm.DB
 }
 
-func (us *DigisignService) SaveDocumentResult(id string, result string, notif string, jsonResponse string) (
-	docResult models.DocumentResult, err error) {
-	docResult.DocumentID = id
-	docResult.Result = result
-	docResult.Notif = notif
-	docResult.JsonResponse = jsonResponse
-
-	err = us.db.Create(&docResult).Error
-	return docResult, err
-}
-
-func (us *DigisignService) SaveDocumentRequest(userId string, documentId string, payment string, sendTo string,
-	reqSign string) (doc models.Document, err error) {
-	doc.UserID = userId
-	doc.DocumentID = documentId
-	doc.Payment = payment
-	doc.SendTo = sendTo
-	doc.ReqSign = reqSign
-	err = us.db.Create(&doc).Error
-	return doc, err
-}
-
 // NewDigisignService :
 func NewDigisignService(db *gorm.DB) repository.DigisignRepository {
 	return &DigisignService{
@@ -53,19 +31,39 @@ func (us *DigisignService) GetByID(id string) (*models.DigisignResult, error) {
 }
 
 // Save Result :
-func (us *DigisignService) SaveResult(id string, result string, notif string, jsonResponse string) (digisignResult models.DigisignResult,
+func (us *DigisignService) SaveResult(id string, result string, notif string, jsonResponse string, refTrx string) (digisignResult models.DigisignResult,
 	err error) {
 	digisignResult.LosID = id
 	digisignResult.Result = result
 	digisignResult.Notif = notif
 	digisignResult.JsonResponse = jsonResponse
-	//digisignRegistrationResult.Name = name
-	//digisignRegistrationResult.BirthPlace = birthplace
-	//digisignRegistrationResult.BirthDate = birthdate
-	//digisignRegistrationResult.Address = address
-	//digisignRegistrationResult.Info = info
+	digisignResult.RefTrx = refTrx
+
 	err = us.db.Create(&digisignResult).Error
 	return digisignResult, err
+}
+
+func (us *DigisignService) SaveDocumentResult(id string, result string, notif string, jsonResponse string,refTrx string) (
+	docResult models.DocumentResult, err error) {
+	docResult.DocumentID = id
+	docResult.Result = result
+	docResult.Notif = notif
+	docResult.JsonResponse = jsonResponse
+	docResult.RefTrx = refTrx
+
+	err = us.db.Create(&docResult).Error
+	return docResult, err
+}
+
+func (us *DigisignService) SaveDocumentRequest(userId string, documentId string, payment string, sendTo string,
+	reqSign string) (doc models.Document, err error) {
+	doc.UserID = userId
+	doc.DocumentID = documentId
+	doc.Payment = payment
+	doc.SendTo = sendTo
+	doc.ReqSign = reqSign
+	err = us.db.Create(&doc).Error
+	return doc, err
 }
 
 func (us *DigisignService) FindById(id string) (c models.DigisignResult, err error) {

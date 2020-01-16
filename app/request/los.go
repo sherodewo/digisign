@@ -1,63 +1,48 @@
 package request
 
 type LosRequest struct {
-	ProspectID             string `json:"prospect_id"`
-	UserID                 string `json:"user_id"`
-	Alamat                 string `json:"alamat"`
-	JenisKelamin           string `json:"jenis_kelamin"`
-	Kecamatan              string `json:"kecamatan" `
-	Kelurahan              string `json:"kelurahan "`
-	KodePos                string `json:"kode_pos"`
-	Kota                   string `json:"kota"`
-	Nama                   string `json:"nama"`
-	NoTelepon              string `json:"no_telepon"`
-	TanggalLahir           string `json:"tanggal_lahir"`
-	Provinsi               string `json:"provinsi"`
-	Nik                    string `json:"nik" `
-	TempatLahir            string `json:"tempat_lahir"`
-	Email                  string `json:"email"`
-	Npwp                   string `json:"npwp"`
-	RegNumber              string `json:"reg_number"`
-	KonsumenType           string `json:"konsumen_type"`
-	AsliRiRegNumber        string `json:"asliri_reg_number"`
-	AsliRiRefVerifikasi    int    `json:"asliri_ref_verifikasi"`
-	AsliRiNama             bool   `json:"asliri_nama"`
-	AsliRiTempatLahir      bool   `json:"asliri_tempat_lahir"`
-	AsliRiTanggalLahir     bool   `json:"asliri_tanggal_lahir"`
-	AsliRiAlamat           string `json:"asliri_alamat"`
-	AsliRiSelfieSimilarity string `json:"asliri_selfie_similarity"`
-	BranchID               string `json:"branch_id"`
-	EmailBm                string `json:"email_bm"`
+	ProspectID          string  `json:"prospect_id" validate:"required"`
+	UserID              string  `json:"user_id" validate:"required"`
+	Alamat              string  `json:"alamat" validate:"required"`
+	JenisKelamin        string  `json:"jenis_kelamin" validate:"required"`
+	Kecamatan           string  `json:"kecamatan" validate:"required"`
+	Kelurahan           string  `json:"kelurahan" validate:"required"`
+	KodePos             string  `json:"kode_pos" validate:"required"`
+	Kota                string  `json:"kota" validate:"required"`
+	Nama                string  `json:"nama" validate:"required"`
+	NoTelepon           string  `json:"no_telepon" validate:"required"`
+	TanggalLahir        string  `json:"tanggal_lahir" validate:"required"`
+	Provinsi            string  `json:"provinsi" validate:"required"`
+	Nik                 string  `json:"nik" validate:"required"`
+	TempatLahir         string  `json:"tempat_lahir" validate:"required"`
+	Email               string  `json:"email" validate:"required"`
+	Npwp                string  `json:"npwp"`
+	RegNumber           string  `json:"reg_number" validate:"required"`
+	KonsumenType        string  `json:"konsumen_type" validate:"required"`
+	AsliRiRegNumber     *string `json:"asliri_reg_number"`
+	AsliRiRefVerifikasi *string `json:"asliri_ref_verifikasi"`
+	AsliRiNama          *bool   `json:"asliri_nama"`
+	AsliRiTempatLahir   *bool   `json:"asliri_tempat_lahir"`
+	AsliRiTanggalLahir  *bool   `json:"asliri_tanggal_lahir"`
+	AsliRiAlamat        *string `json:"asliri_alamat"`
+	ScoreSelfie         *string `json:"score_selfie"`
+	Vnik                *string `json:"vnik"`
+	Vnama               *string `json:"vnama"`
+	VtanggalLahir       *string `json:"vtanggal_lahir"`
+	VtempatLahir        *string `json:"vtempat_lahir"`
+	BranchID            string  `json:"branch_id" validate:"required"`
+	EmailBm             string  `json:"email_bm" validate:"required"`
 }
 
 type LosSendDocumentRequest struct {
-	UserID     string `form:"userId"`
-	DocumentID string `form:"documentId"`
-	Payment    string `form:"payment"`
-	SendTo     string `form:"sendTo"`
-	ReqSign    string `form:"reqSign"`
+	UserID     string `form:"userId" validate:"required"`
+	DocumentID string `form:"documentId" validate:"required"`
+	Payment    string `form:"payment" validate:"required"`
+	SendTo     string `form:"sendTo" validate:"required"`
+	ReqSign    string `form:"reqSign" validate:"required"`
 }
 
 type LosDownloadDocumentRequest struct {
-	UserID     string `json:"user_id"`
-	DocumentID string `json:"document_id"`
+	UserID     string `json:"user_id" validate:"required"`
+	DocumentID string `json:"document_id" validate:"required"`
 }
-
-/*type LosSendTo struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-type LosReqSign struct {
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	AksiTtd string `json:"aksi_ttd"`
-	Kuser   string `json:"kuser"`
-	User    string `json:"user"`
-	Page    string `json:"page"`
-	Llx     string `json:"llx"`
-	Lly     string `json:"lly"`
-	Urx     string `json:"urx"`
-	Ury     string `json:"ury"`
-	Visible string `json:"visible"`
-}*/

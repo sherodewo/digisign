@@ -14,14 +14,8 @@ type DigisignResult struct {
 	LosID        string `gorm:"column:los_id"`
 	Result       string `gorm:"type:varchar(100);column:result"`
 	Notif        string `gorm:"type:varchar(100);column:notif"`
-	JsonResponse string `gorm:"type:varchar(255);column:json_response"`
-	//Name            bool      `gorm:"column:name"`
-	//BirthPlace      bool      `gorm:"column:birth_place"`
-	//BirthDate       bool      `gorm:"column:birth_date"`
-	//Address         string    `gorm:"type:varchar(100);column:address"`
-	//Info            string    `gorm:"type:varchar(100);column:info"`
-	//EmailRegistered string    `gorm:"type:varchar(100);column:email_registered"`
-	//SelfieMatch     bool      `gorm:"type:varchar(100);column:selfie_match"`
+	RefTrx       string `gorm:"type:varchar(100);column:ref_trx"`
+	JsonResponse string `gorm:"type:varchar(100);column:json_response"`
 	CreatedAt time.Time `gorm:"column:created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at"`
 }

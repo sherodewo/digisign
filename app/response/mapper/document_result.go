@@ -7,6 +7,7 @@ type documentResultMapper struct {
 	DocumentID string `json:"document_id"`
 	Result     string `json:"result"`
 	Notif      string `json:"notif"`
+	RefTrx     string `json:"ref_trx"`
 }
 
 func NewDocumentResultMapper() *documentResultMapper {
@@ -17,6 +18,7 @@ func (us *documentResultMapper) Map(digisignDocumentResult models.DocumentResult
 	us.DocumentID = digisignDocumentResult.DocumentID
 	us.Result = digisignDocumentResult.Result
 	us.Notif = digisignDocumentResult.Notif
+	us.RefTrx = digisignDocumentResult.RefTrx
 	return us
 }
 
@@ -26,10 +28,11 @@ func (us *documentResultMapper) MapList(digisignDocumentResult []models.Document
 
 	for k, v := range digisignDocumentResult {
 		serialized[k] = documentResultMapper{
-			ID:     v.ID,
-			DocumentID:  v.DocumentID,
-			Result: v.Result,
-			Notif:  v.Notif,
+			ID:         v.ID,
+			DocumentID: v.DocumentID,
+			Result:     v.Result,
+			Notif:      v.Notif,
+			RefTrx:     v.RefTrx,
 		}
 	}
 	return serialized
