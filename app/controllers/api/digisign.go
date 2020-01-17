@@ -167,3 +167,80 @@ func (d DigisignController) DownloadFile(c echo.Context) error {
 	}
 	return c.Stream(200, "application/pdf", bytes.NewReader(res.Body()))
 }
+
+func (d DigisignController) Activation(c echo.Context) error {
+	activationRequest := request.LosActivationRequest{}
+	if err := c.Bind(&activationRequest); err != nil {
+		return response.InternalServerError(c, err.Error(), nil)
+	}
+	//Validate Request on Struct Los Request
+	if err := c.Validate(activationRequest); err != nil {
+		errorData := make(echo.Map)
+		for _, v := range err.(validator.ValidationErrors) {
+			errorData[v.Field()] = v.Tag()
+		}
+		return response.ValidationError(c, "Validation Error", errorData)
+	}
+	data, err := d.DigisignRepository.SaveActivationRequest(activationRequest.UserID, activationRequest.EmailUser)
+	if err != nil {
+		return response.InternalServerError(c, err.Error(), nil)
+	}
+	requestActivation := client.NewActivationRequest()
+	_, result, link, err := requestActivation.ActivationDigisign(activationRequest)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+	resultActivation, err := d.DigisignRepository.SaveActivationResult(data.ID, result, link)
+	return response.SingleData(c, "Success execute resuest", resultActivation)
+}
+
+func (d DigisignController) ActivationCallback(c echo.Context) error {
+	//query := c.QueryParam("msg")
+
+	//TODO : MUST DECRPT FROM QUERY PARAM
+
+	//TODO : SAVE CALLBACK
+
+	//TODO : SEND NOTIF TO LOS
+
+	return nil
+}
+
+func (d DigisignController) SignDocument(c echo.Context) error {
+	signDocumentRequest := request.LosSignDocumentRequest{}
+	if err := c.Bind(&signDocumentRequest); err != nil {
+		return response.InternalServerError(c, err.Error(), nil)
+	}
+	//Validate Request on Struct Los Request
+	if err := c.Validate(signDocumentRequest); err != nil {
+		errorData := make(echo.Map)
+		for _, v := range err.(validator.ValidationErrors) {
+			errorData[v.Field()] = v.Tag()
+		}
+		return response.ValidationError(c, "Validation Error", errorData)
+	}
+	data, err := d.DigisignRepository.SaveSignDocRequest(signDocumentRequest.UserID, signDocumentRequest.EmailUser,
+		signDocumentRequest.DocumentID)
+	if err != nil {
+		return response.InternalServerError(c, err.Error(), nil)
+	}
+	requestSignDoc := client.NewSignDocRequest()
+	_, result, link, err := requestSignDoc.DigisignSignDocumentRequest(signDocumentRequest)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+	resultSignDocument, err := d.DigisignRepository.SaveSignDocResult(data.ID, result, link)
+	return response.SingleData(c, "Success execute resuest", resultSignDocument)
+}
+
+func (d DigisignController) SignDocumentCallback(c echo.Context) error {
+	//query := c.QueryParam("msg")
+
+	//TODO : MUST DECRPT FROM QUERY PARAM
+
+	//TODO : SAVE CALLBACK
+
+	//TODO : SEND NOTIF TO LOS
+
+	return nil
+}

@@ -43,7 +43,7 @@ func (us *DigisignService) SaveResult(id string, result string, notif string, js
 	return digisignResult, err
 }
 
-func (us *DigisignService) SaveDocumentResult(id string, result string, notif string, jsonResponse string,refTrx string) (
+func (us *DigisignService) SaveDocumentResult(id string, result string, notif string, jsonResponse string, refTrx string) (
 	docResult models.DocumentResult, err error) {
 	docResult.DocumentID = id
 	docResult.Result = result
@@ -77,4 +77,58 @@ func (us *DigisignService) FindById(id string) (c models.DigisignResult, err err
 func (us *DigisignService) FindAll() (digisignRegistrationResult []models.DigisignResult, err error) {
 	err = us.db.Find(&digisignRegistrationResult).Error
 	return digisignRegistrationResult, err
+}
+
+func (us *DigisignService) SaveActivationRequest(userId string, emailUser string) (activation models.Activation, err error) {
+	activation.UserID = userId
+	activation.EmailUser = emailUser
+	err = us.db.Create(&activation).Error
+	return activation, err
+}
+
+func (us *DigisignService) SaveActivationResult(activationId string, result string, link string) (
+	activationResult models.ActivationResult, err error) {
+	activationResult.ActivationID = activationId
+	activationResult.Result = result
+	activationResult.Link = link
+	err = us.db.Create(&activationResult).Error
+	return activationResult, err
+}
+
+func (us *DigisignService) SaveActivationCallback(email string, result string, notif string) (
+	activationCallback models.ActivationCallback, err error) {
+	activationCallback.Result = result
+	activationCallback.Notif = notif
+	activationCallback.Email = email
+	err = us.db.Create(&activationCallback).Error
+	return activationCallback, err
+}
+
+func (us *DigisignService) SaveSignDocRequest(userId string, emailUser string, documentId string) (
+	signDocRequest models.SignDocument, err error) {
+	signDocRequest.EmailUser = emailUser
+	signDocRequest.UserID = userId
+	signDocRequest.DocumentID = documentId
+	err = us.db.Create(&signDocRequest).Error
+	return signDocRequest, err
+}
+
+func (us *DigisignService) SaveSignDocResult(signDocumentId string, result string, link string) (
+	signDocResult models.SignDocumentResult, err error) {
+	signDocResult.SignDocumentID = signDocumentId
+	signDocResult.Result = result
+	signDocResult.Link = link
+	err = us.db.Create(&signDocResult).Error
+	return signDocResult, err
+}
+
+func (us *DigisignService) SaveSignDocCallback(email string, result string, documentId string, statusDocument string) (
+	signDocCallback models.SignDocumentCallback, err error) {
+	signDocCallback.DocumentID = documentId
+	signDocCallback.Email = email
+	signDocCallback.Result = result
+	signDocCallback.StatusDocument = statusDocument
+
+	err = us.db.Create(&signDocCallback).Error
+	return signDocCallback, err
 }

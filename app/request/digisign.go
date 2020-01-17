@@ -44,3 +44,19 @@ type JsonFileDoc struct {
 	Redirect       bool        `json:"redirect"`
 	SequenceOption bool        `json:"sequence_option"`
 }
+
+type ActivationRequest struct {
+	JSONFile struct {
+		UserID    string `json:"userid"`
+		EmailUser string `json:"email_user"`
+	}
+}
+
+type SignDocumentRequest struct {
+	JSONFile struct {
+		UserID     string `json:"userid"`
+		DocumentID string `json:"document_id"`
+		EmailUser  string `json:"email_user"`
+		ViewOnly   bool `json:"view_only"`
+	}
+}

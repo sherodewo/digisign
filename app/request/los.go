@@ -46,3 +46,14 @@ type LosDownloadDocumentRequest struct {
 	UserID     string `json:"user_id" validate:"required"`
 	DocumentID string `json:"document_id" validate:"required"`
 }
+
+type LosActivationRequest struct {
+	UserID    string `json:"user_id" validate:"required"`
+	EmailUser string `json:"email_user" validate:"required"`
+}
+
+type LosSignDocumentRequest struct {
+	UserID     string `json:"user_id" validate:"required"`
+	EmailUser  string `json:"email_user" validate:"required"`
+	DocumentID string `json:"document_id" validate:"required"`
+}

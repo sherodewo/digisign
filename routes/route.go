@@ -42,7 +42,10 @@ func New() (e *echo.Echo) {
 	v1.POST("/digisign/send-document", digisignController.SendDocument)
 	v1.POST("/digisign/download", digisignController.Download)
 	v1.POST("/digisign/download/file", digisignController.DownloadFile)
-
+	v1.POST("/digisign/activation", digisignController.Activation)
+	v1.GET("/digisign/activation/callback", digisignController.ActivationCallback)
+	v1.POST("/digisign/sign-document", digisignController.SignDocument)
+	v1.GET("/digisign/sign-document/callback", digisignController.SignDocumentCallback)
 
 	return e
 }

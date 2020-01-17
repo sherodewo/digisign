@@ -23,6 +23,14 @@ type downloadRequest struct {
 	request.DownloadRequest
 }
 
+type activationRequest struct {
+	request.ActivationRequest
+}
+
+type signDocumentRequest struct {
+	request.SignDocumentRequest
+}
+
 func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
 	return &digisignRegistrationRequest{}
 }
@@ -32,6 +40,14 @@ func NewDigisignSendDocRequest() *digisignSendDocRequest {
 func NewDownloadRequest() *downloadRequest {
 	return &downloadRequest{}
 }
+func NewActivationRequest() *activationRequest {
+	return &activationRequest{}
+}
+
+func NewSignDocRequest() *signDocumentRequest {
+	return &signDocumentRequest{}
+}
+
 func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byteKtp []byte, byteSelfie []byte,
 	byteNpwp []byte, byteTtd []byte, losRequest request.LosRequest) (result *resty.Response, err error) {
 
@@ -212,4 +228,52 @@ func (dr *downloadRequest) DownloadFile(downloadRequest request.LosDownloadDocum
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post("https://api.tandatanganku.com/DWMITRA.html")
 	return resp, err
+}
+
+func (dr *activationRequest) ActivationDigisign(request request.LosActivationRequest) (
+	result *resty.Response, resultActivation string, link string, err error) {
+	dr.JSONFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JSONFile.EmailUser = request.EmailUser
+	drJson, err := json.Marshal(dr)
+	bs := []byte(strconv.Itoa(0))
+	client := resty.New()
+	resp, err := client.R().
+		SetHeader("Content-Type", "multipart/form-data").
+		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetFormData(map[string]string{
+			"jsonfield": string(drJson),
+		}).
+		SetFileReader("file", "file_", bytes.NewReader(bs)).
+		Post("https://api.tandatanganku.com/gen/genACTPage.html")
+
+	log.Info("Response :", resp.String())
+	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
+	link = jsoniter.Get(resp.Body(), "JSONFile").Get("link").ToString()
+
+	return resp, resultActivation, link, err
+}
+
+func (dr *signDocumentRequest) DigisignSignDocumentRequest(request request.LosSignDocumentRequest) (
+	result *resty.Response, resultActivation string, link string, err error) {
+	dr.JSONFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JSONFile.EmailUser = request.EmailUser
+	dr.JSONFile.DocumentID = request.DocumentID
+	dr.JSONFile.ViewOnly = false
+	drJson, err := json.Marshal(dr)
+	bs := []byte(strconv.Itoa(0))
+	client := resty.New()
+	resp, err := client.R().
+		SetHeader("Content-Type", "multipart/form-data").
+		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetFormData(map[string]string{
+			"jsonfield": string(drJson),
+		}).
+		SetFileReader("file", "file_", bytes.NewReader(bs)).
+		Post("https://api.tandatanganku.com/gen/genSignPage.html")
+
+	log.Info("Response :", resp.String())
+	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
+	link = jsoniter.Get(resp.Body(), "JSONFile").Get("link").ToString()
+
+	return resp, resultActivation, link, err
 }
