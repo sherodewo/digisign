@@ -13,7 +13,7 @@ type JsonFile struct {
 	KodePos             string `json:"kode-pos"`
 	Kota                string `json:"kota"`
 	Nama                string `json:"nama"`
-	NoTelepon           string `json:"no_telepon"`
+	NoTelepon           string `json:"tlp"`
 	TanggalLahir        string `json:"tgl_lahir"`
 	Provinsi            string `json:"provinci"`
 	Nik                 string `json:"idktp"`
@@ -27,8 +27,8 @@ type JsonFile struct {
 	ScoreSelfie         string `json:"score_selfie,omitempty"`
 	Vnik                string `json:"vnik,omitempty"`
 	Vnama               string `json:"vnama,omitempty"`
-	VtanggalLahir       string `json:"vtanggal_lahir,omitempty"`
-	VtempatLahir        string `json:"vtempat_lahir,omitempty"`
+	VtanggalLahir       string `json:"vtgl_lahir,omitempty"`
+	VtempatLahir        string `json:"vtmp_lahir,omitempty"`
 }
 
 type SendDocumentRequest struct {
