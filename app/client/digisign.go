@@ -68,7 +68,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	dr.JsonFile.Email = losRequest.Email
 	dr.JsonFile.Npwp = losRequest.Npwp
 	dr.JsonFile.RegNumber = losRequest.RegNumber
-	dr.JsonFile.Redirect = false
+	dr.JsonFile.Redirect = true
 
 	if userType == "NEW" {
 		//Data AsliRI
