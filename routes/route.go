@@ -20,6 +20,8 @@ func New() (e *echo.Echo) {
 	config.AutoMigrate(db)
 	db.Model(&models.DigisignResult{}).AddForeignKey("los_id", "los(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.DocumentResult{}).AddForeignKey("document_id", "documents(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.ActivationResult{}).AddForeignKey("activation_id", "activations(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.SignDocumentResult{}).AddForeignKey("sign_document_id", "sign_documents(id)", "CASCADE", "NO ACTION")
 
 	//Validation
 	e.Validator = NewValidator()
