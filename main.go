@@ -2,16 +2,20 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	"github.com/labstack/gommon/log"
 	"kpdigisign/routes"
 	"os"
+	"path/filepath"
 )
 
 func init()  {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+	fileExecutable, _ := os.Executable()
+	basePath, _ := filepath.Split(fileExecutable)
+	if os.Getenv("APP_ENV") != "production" {
+		basePath = ""
 	}
+	_ = godotenv.Load(basePath + ".env")
 }
+
 func main() {
 	e :=routes.New()
 

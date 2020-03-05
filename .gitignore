@@ -4,4 +4,4 @@ vendor
 *.exe
 *.exe~
 Gopkg.lock
-.env
+*.env

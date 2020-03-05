@@ -11,7 +11,6 @@ import (
 
 func New() (e *echo.Echo) {
 	e = echo.New()
-	e.Static("/static", "assets")
 	//Route group
 	api := e.Group("/api")
 	v1 := api.Group("/v1")
