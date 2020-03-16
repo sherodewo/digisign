@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"kpdigisign/app/helpers"
 	"kpdigisign/app/request"
+	"os"
 	"strconv"
 )
 
@@ -52,7 +53,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	byteNpwp []byte, byteTtd []byte, losRequest request.LosRequest) (result *resty.Response, err error) {
 
 	//Mapping request
-	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JsonFile.UserID = os.Getenv("DIGISIGN_USER_ID")
 	dr.JsonFile.Alamat = losRequest.Alamat
 	dr.JsonFile.JenisKelamin = losRequest.JenisKelamin
 	dr.JsonFile.Kecamatan = losRequest.Kecamatan
@@ -95,7 +96,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 			SetFileReader("fotoktp", "ktp_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteSelfie),
@@ -103,14 +104,14 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
 			}).
-			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.Body())
+			Post(os.Getenv("DIGISIGN_BASE_URL")+"/REG-MITRA.html")
+		log.Info("Response :", resp.String())
 
 		return resp, err
 	} else if byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 			SetFileReader("fotoktp", "ktp_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteSelfie),
@@ -120,14 +121,14 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
 			}).
-			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.Body())
+			Post(os.Getenv("DIGISIGN_BASE_URL")+"/REG-MITRA.html")
+		log.Info("Response :", resp.String())
 
 		return resp, err
 	} else if byteTtd == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 			SetFileReader("fotoktp", "ktp_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteSelfie),
@@ -137,14 +138,14 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
 			}).
-			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.Body())
+			Post(os.Getenv("DIGISIGN_BASE_URL")+"/REG-MITRA.html")
+		log.Info("Response :", resp.String())
 
 		return resp, err
 	} else {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 			SetFileReader("fotoktp", "ktp_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+losRequest.Nama+"."+helpers.GetExtensionImageFromByte(byteSelfie),
@@ -157,8 +158,8 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
 			}).
-			Post("https://api.tandatanganku.com/REG-MITRA.html")
-		log.Info("Response :", resp.Body())
+			Post(os.Getenv("DIGISIGN_BASE_URL")+"/REG-MITRA.html")
+		log.Info("Response :", resp.String())
 
 		return resp, err
 	}
@@ -166,7 +167,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 
 func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest request.LosSendDocumentRequest) (
 	result *resty.Response, err error) {
-	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JsonFile.UserID = os.Getenv("DIGISIGN_USER_ID")
 	dr.JsonFile.DocumentID = losRequest.DocumentID
 	dr.JsonFile.Payment = losRequest.Payment
 	dr.JsonFile.Redirect = true
@@ -182,31 +183,31 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest re
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 		SetFileReader("file", "file_"+losRequest.DocumentID+".pdf", bytes.NewReader(byteFile)).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
-		Post("https://api.tandatanganku.com/SendDocMitraAT.html")
+		Post(os.Getenv("DIGISIGN_BASE_URL")+"/SendDocMitraAT.html")
 	log.Info("Response :", resp.String())
 
 	return resp, err
 }
 
 func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, file string, err error) {
-	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JsonFile.UserID = os.Getenv("DIGISIGN_USER_ID")
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
-		Post("https://api.tandatanganku.com/DWMITRA64.html")
+		Post(os.Getenv("DIGISIGN_BASE_URL")+"/DWMITRA64.html")
 	log.Info("Response :", resp.String())
 	base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
 
@@ -214,37 +215,37 @@ func (dr *downloadRequest) Download(downloadRequest request.LosDownloadDocumentR
 }
 
 func (dr *downloadRequest) DownloadFile(downloadRequest request.LosDownloadDocumentRequest) (result *resty.Response, err error) {
-	dr.JsonFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JsonFile.UserID =os.Getenv("DIGISIGN_USER_ID")
 	dr.JsonFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
-		Post("https://api.tandatanganku.com/DWMITRA.html")
+		Post(os.Getenv("DIGISIGN_BASE_URL")+"/DWMITRA.html")
 	return resp, err
 }
 
 func (dr *activationRequest) ActivationDigisign(request request.LosActivationRequest) (
 	result *resty.Response, resultActivation string, link string, err error) {
-	dr.JSONFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
 	dr.JSONFile.EmailUser = request.EmailUser
 	drJson, err := json.Marshal(dr)
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
-		Post("https://api.tandatanganku.com/gen/genACTPage.html")
+		Post(os.Getenv("DIGISIGN_BASE_URL")+"/gen/genACTPage.html")
 
 	log.Info("Response :", resp.String())
 	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
@@ -255,7 +256,7 @@ func (dr *activationRequest) ActivationDigisign(request request.LosActivationReq
 
 func (dr *signDocumentRequest) DigisignSignDocumentRequest(request request.LosSignDocumentRequest) (
 	result *resty.Response, resultActivation string, link string, err error) {
-	dr.JSONFile.UserID = "adminkreditplus@tandatanganku.com"
+	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
 	dr.JSONFile.EmailUser = request.EmailUser
 	dr.JSONFile.DocumentID = request.DocumentID
 	dr.JSONFile.ViewOnly = false
@@ -264,12 +265,12 @@ func (dr *signDocumentRequest) DigisignSignDocumentRequest(request request.LosSi
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer WYm4d97LUaa7khMabTNJ9imwQEe87KDxRajcV8a3PvEonyAe14orOe4iGqpUYN").
+		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
-		Post("https://api.tandatanganku.com/gen/genSignPage.html")
+		Post(os.Getenv("DIGISIGN_BASE_URL")+"/gen/genSignPage.html")
 
 	log.Info("Response :", resp.String())
 	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()

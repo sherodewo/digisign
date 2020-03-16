@@ -2,7 +2,6 @@ package request
 
 type LosRequest struct {
 	ProspectID          string  `json:"prospect_id" validate:"required"`
-	UserID              string  `json:"user_id" validate:"required"`
 	Alamat              string  `json:"alamat" validate:"required"`
 	JenisKelamin        string  `json:"jenis_kelamin" validate:"required"`
 	Kecamatan           string  `json:"kecamatan" validate:"required"`

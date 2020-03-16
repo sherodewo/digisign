@@ -5,6 +5,7 @@ import (
 	"kpdigisign/app/models"
 	"kpdigisign/app/repository"
 	"kpdigisign/app/request"
+	"os"
 )
 
 // UserService :
@@ -46,7 +47,7 @@ func (us *LosService) GetByEmail(e string) (*models.Los, error) {
 func (us *LosService) Create(u *request.LosRequest) (los models.Los, err error) {
 
 	los.ProspectID = u.ProspectID
-	los.UserID = u.UserID
+	los.UserID = os.Getenv("DIGISIGN_USER_ID")
 	los.Alamat = u.Alamat
 	los.JenisKelamin = u.JenisKelamin
 	los.Kecamatan = u.Kecamatan
