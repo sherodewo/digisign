@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/labstack/echo"
+	"github.com/labstack/gommon/log"
 	"gopkg.in/go-playground/validator.v9"
 	"kpdigisign/app/client"
 	"kpdigisign/app/helpers"
@@ -11,6 +12,7 @@ import (
 	"kpdigisign/app/request"
 	"kpdigisign/app/response"
 	"kpdigisign/app/response/mapper"
+	"os"
 )
 
 type DigisignController struct {
@@ -95,7 +97,7 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 		return response.BadRequest(c, helpers.BadRequest, nil, err)
 	}
 	//Save Document Request
-	data, err := d.DigisignRepository.SaveDocumentRequest(sendDocRequest.UserID, sendDocRequest.DocumentID,
+	data, err := d.DigisignRepository.SaveDocumentRequest(os.Getenv("DIGISIGN_USER_ID"), sendDocRequest.DocumentID,
 		sendDocRequest.Payment, sendDocRequest.SendTo, sendDocRequest.ReqSign)
 	if err != nil {
 		return response.InternalServerError(c, helpers.InternalServerError, nil, err.Error())
@@ -183,7 +185,7 @@ func (d DigisignController) Activation(c echo.Context) error {
 		}
 		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
 	}
-	data, err := d.DigisignRepository.SaveActivationRequest(activationRequest.UserID, activationRequest.EmailUser)
+	data, err := d.DigisignRepository.SaveActivationRequest(os.Getenv("DIGISIGN_USER_ID"), activationRequest.EmailUser)
 	if err != nil {
 		return response.InternalServerError(c, helpers.InternalServerError, nil, err.Error())
 	}
@@ -198,6 +200,7 @@ func (d DigisignController) Activation(c echo.Context) error {
 
 func (d DigisignController) ActivationCallback(c echo.Context) error {
 	query := c.QueryParam("msg")
+	log.Info("Query ",query)
 
 	//TODO : MUST DECRPT FROM QUERY PARAM
 	decrypt, err := helpers.DecryptAes(query)
@@ -231,7 +234,7 @@ func (d DigisignController) SignDocument(c echo.Context) error {
 		}
 		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
 	}
-	data, err := d.DigisignRepository.SaveSignDocRequest(signDocumentRequest.UserID, signDocumentRequest.EmailUser,
+	data, err := d.DigisignRepository.SaveSignDocRequest(os.Getenv("DIGISIGN_USER_ID"), signDocumentRequest.EmailUser,
 		signDocumentRequest.DocumentID)
 	if err != nil {
 		return response.InternalServerError(c, helpers.InternalServerError, nil, err.Error())

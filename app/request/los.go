@@ -34,7 +34,6 @@ type LosRequest struct {
 }
 
 type LosSendDocumentRequest struct {
-	UserID     string `form:"userId" validate:"required"`
 	DocumentID string `form:"documentId" validate:"required"`
 	Payment    string `form:"payment" validate:"required"`
 	SendTo     string `form:"sendTo" validate:"required"`
@@ -42,17 +41,14 @@ type LosSendDocumentRequest struct {
 }
 
 type LosDownloadDocumentRequest struct {
-	UserID     string `json:"user_id" validate:"required"`
 	DocumentID string `json:"document_id" validate:"required"`
 }
 
 type LosActivationRequest struct {
-	UserID    string `json:"user_id" validate:"required"`
 	EmailUser string `json:"email_user" validate:"required"`
 }
 
 type LosSignDocumentRequest struct {
-	UserID     string `json:"user_id" validate:"required"`
 	EmailUser  string `json:"email_user" validate:"required"`
 	DocumentID string `json:"document_id" validate:"required"`
 }
