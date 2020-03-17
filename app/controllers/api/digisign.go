@@ -33,7 +33,7 @@ func (d *DigisignController) Register(c echo.Context) error {
 		for _, v := range err.(validator.ValidationErrors) {
 			errorData[v.Field()] = v.Tag()
 		}
-		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
+		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
 	}
 	//Check KTP from request
 	fileKtp, err := c.FormFile("foto_ktp")
@@ -86,7 +86,7 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 		for _, v := range err.(validator.ValidationErrors) {
 			errorData[v.Field()] = v.Tag()
 		}
-		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
+		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
 	}
 	//Check File Pdf
 	file, err := c.FormFile("file")
