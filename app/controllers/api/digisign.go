@@ -38,13 +38,13 @@ func (d *DigisignController) Register(c echo.Context) error {
 	//Check KTP from request
 	fileKtp, err := c.FormFile("foto_ktp")
 	if fileKtp == nil {
-		return response.ValidationError(c, helpers.ValidationError, nil, err)
+		return response.ValidationError(c, helpers.ValidationError, nil, "foto ktp required")
 	}
 	bufKtp, err := helpers.GetFileByte("foto_ktp", c)
 	//Check Selfie from request
 	fileSelfie, err := c.FormFile("foto_selfie")
 	if fileSelfie == nil {
-		return response.ValidationError(c, helpers.ValidationError, nil, err)
+		return response.ValidationError(c, helpers.ValidationError, nil, "foto selfie required")
 	}
 	bufSelfie, err := helpers.GetFileByte("foto_selfie", c)
 	//Get NPWP Byte file
