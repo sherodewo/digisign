@@ -57,6 +57,6 @@ type SignDocumentRequest struct {
 		UserID     string `json:"userid"`
 		DocumentID string `json:"document_id"`
 		EmailUser  string `json:"email_user"`
-		ViewOnly   bool `json:"view_only"`
+		ViewOnly   bool   `json:"view_only"`
 	}
 }

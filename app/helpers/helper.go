@@ -84,3 +84,14 @@ func DecryptAes(message string) (*string, error) {
 	decodedmess := string(cipherText)
 	return &decodedmess, nil
 }
+
+func Base64Decode(data string) ([]byte, error) {
+	if data == "" {
+		return nil, errors.New("String null")
+	}
+	decode, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return nil, err
+	}
+	return decode, nil
+}

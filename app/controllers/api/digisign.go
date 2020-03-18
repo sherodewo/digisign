@@ -3,9 +3,9 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
-	"gopkg.in/go-playground/validator.v9"
 	"kpdigisign/app/client"
 	"kpdigisign/app/helpers"
 	"kpdigisign/app/repository"
@@ -29,36 +29,21 @@ func (d *DigisignController) Register(c echo.Context) error {
 	}
 	//Validate Request on Struct Los Request
 	if err := c.Validate(losRequest); err != nil {
-		errorData := make(echo.Map)
-		for _, v := range err.(validator.ValidationErrors) {
-			errorData[v.Field()] = v.Tag()
-		}
-		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
+		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
 	}
-	//Check KTP from request
-	fileKtp, err := c.FormFile("foto_ktp")
-	if fileKtp == nil {
-		return response.ValidationError(c, helpers.ValidationError, nil, "foto ktp required")
-	}
-	bufKtp, err := helpers.GetFileByte("foto_ktp", c)
-	//Check Selfie from request
-	fileSelfie, err := c.FormFile("foto_selfie")
-	if fileSelfie == nil {
-		return response.ValidationError(c, helpers.ValidationError, nil, "foto selfie required")
-	}
-	bufSelfie, err := helpers.GetFileByte("foto_selfie", c)
-	//Get NPWP Byte file
-	bufNpwp, err := helpers.GetFileByte("foto_npwp", c)
-	//Get TTD Byte file
-	bufTtd, err := helpers.GetFileByte("tanda_tangan", c)
 	//Save request
 	data, err := d.LosRepository.Create(&losRequest)
 	if err != nil {
 		return response.BadRequest(c, helpers.BadRequest, nil, err.Error())
 	}
+	bufktp, err := helpers.Base64Decode(losRequest.FotoKtp)
+	bufSelfie, err := helpers.Base64Decode(losRequest.FotoSelfie)
+	bufNpwp, err := helpers.Base64Decode(losRequest.FotoNpwp)
+	bufTtd, err := helpers.Base64Decode(losRequest.FotoTandaTangan)
+
 	//Hit API Registration
 	register := client.NewDigisignRegistrationRequest()
-	resp, err := register.DigisignRegistration(losRequest.KonsumenType, bufKtp, bufSelfie, bufNpwp, bufTtd, losRequest)
+	resp, err := register.DigisignRegistration(losRequest.KonsumenType, bufktp, bufSelfie, bufNpwp, bufTtd, losRequest)
 	if err != nil {
 		return response.BadRequest(c, helpers.BadRequest, nil, err.Error())
 	}
@@ -82,31 +67,20 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	}
 	//Validate Request on Struct Los Request
 	if err := c.Validate(sendDocRequest); err != nil {
-		errorData := make(echo.Map)
-		for _, v := range err.(validator.ValidationErrors) {
-			errorData[v.Field()] = v.Tag()
-		}
-		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
+		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
 	}
-	//Check File Pdf
-	file, err := c.FormFile("file")
-	if err != nil {
-		return response.InternalServerError(c, helpers.InternalServerError, nil, err.Error())
-	}
-	if file == nil {
-		return response.BadRequest(c, helpers.BadRequest, nil, err)
-	}
+	reqSign, err := jsoniter.Marshal(sendDocRequest.ReqSign)
+	sendTo, err := jsoniter.Marshal(sendDocRequest.SendTo)
+
 	//Save Document Request
 	data, err := d.DigisignRepository.SaveDocumentRequest(os.Getenv("DIGISIGN_USER_ID"), sendDocRequest.DocumentID,
-		sendDocRequest.Payment, sendDocRequest.SendTo, sendDocRequest.ReqSign)
+		sendDocRequest.Payment, string(sendTo), string(reqSign))
 	if err != nil {
 		return response.InternalServerError(c, helpers.InternalServerError, nil, err.Error())
 	}
 	//Get Byte File
-	filePdf, err := helpers.GetFileByte("file", c)
-	if err != nil {
-		return response.InternalServerError(c, helpers.InternalServerError, nil, err.Error())
-	}
+	filePdf, err := helpers.Base64Decode(sendDocRequest.File)
+
 	//Hit API send document
 	send := client.NewDigisignSendDocRequest()
 	res, err := send.DigisignSendDoc(filePdf, sendDocRequest)
@@ -117,7 +91,6 @@ func (d *DigisignController) SendDocument(c echo.Context) error {
 	respDigisign := response.NewDigisignResponse()
 	if err := respDigisign.Bind(res.Body()); err != nil {
 		return response.InternalServerError(c, helpers.InternalServerError, nil, err.Error())
-
 	}
 	//Save Result
 	resultData, err := d.DigisignRepository.SaveDocumentResult(data.ID, respDigisign.JsonFile.Result,
@@ -133,11 +106,7 @@ func (d DigisignController) Download(c echo.Context) error {
 	}
 	//Validate Request on Struct Los Request
 	if err := c.Validate(downloadFileRequest); err != nil {
-		errorData := make(echo.Map)
-		for _, v := range err.(validator.ValidationErrors) {
-			errorData[v.Field()] = v.Tag()
-		}
-		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
+		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
 	}
 	//Hit API download doc
 	requestDoc := client.NewDownloadRequest()
@@ -157,11 +126,7 @@ func (d DigisignController) DownloadFile(c echo.Context) error {
 	}
 	//Validate Request on Struct Los Request
 	if err := c.Validate(downloadFileRequest); err != nil {
-		errorData := make(echo.Map)
-		for _, v := range err.(validator.ValidationErrors) {
-			errorData[v.Field()] = v.Tag()
-		}
-		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
+		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
 	}
 	//Hit API download doc
 	requestDoc := client.NewDownloadRequest()
@@ -179,11 +144,7 @@ func (d DigisignController) Activation(c echo.Context) error {
 	}
 	//Validate Request on Struct Los Request
 	if err := c.Validate(activationRequest); err != nil {
-		errorData := make(echo.Map)
-		for _, v := range err.(validator.ValidationErrors) {
-			errorData[v.Field()] = v.Tag()
-		}
-		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
+		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
 	}
 	data, err := d.DigisignRepository.SaveActivationRequest(os.Getenv("DIGISIGN_USER_ID"), activationRequest.EmailUser)
 	if err != nil {
@@ -200,7 +161,7 @@ func (d DigisignController) Activation(c echo.Context) error {
 
 func (d DigisignController) ActivationCallback(c echo.Context) error {
 	query := c.QueryParam("msg")
-	log.Info("Query ",query)
+	log.Info("Query ", query)
 
 	//TODO : MUST DECRPT FROM QUERY PARAM
 	decrypt, err := helpers.DecryptAes(query)
@@ -213,7 +174,7 @@ func (d DigisignController) ActivationCallback(c echo.Context) error {
 	if err != nil {
 		return response.BadRequest(c, helpers.BadRequest, nil, err.Error())
 	}
-	result, err := d.DigisignRepository.SaveActivationCallback(jsonMap["email"].(string),jsonMap["result"].(string),
+	result, err := d.DigisignRepository.SaveActivationCallback(jsonMap["email"].(string), jsonMap["result"].(string),
 		jsonMap["notif"].(string))
 
 	//TODO : SEND NOTIF TO LOS
@@ -228,11 +189,7 @@ func (d DigisignController) SignDocument(c echo.Context) error {
 	}
 	//Validate Request on Struct Los Request
 	if err := c.Validate(signDocumentRequest); err != nil {
-		errorData := make(echo.Map)
-		for _, v := range err.(validator.ValidationErrors) {
-			errorData[v.Field()] = v.Tag()
-		}
-		return response.ValidationError(c, helpers.ValidationError, nil, errorData)
+		return response.ValidationError(c, helpers.ValidationError, nil, err.Error())
 	}
 	data, err := d.DigisignRepository.SaveSignDocRequest(os.Getenv("DIGISIGN_USER_ID"), signDocumentRequest.EmailUser,
 		signDocumentRequest.DocumentID)
@@ -250,7 +207,6 @@ func (d DigisignController) SignDocument(c echo.Context) error {
 
 func (d DigisignController) SignDocumentCallback(c echo.Context) error {
 	query := c.QueryParam("msg")
-
 	//TODO : MUST DECRPT FROM QUERY PARAM
 	decrypt, err := helpers.DecryptAes(query)
 	if err != nil {
@@ -262,11 +218,8 @@ func (d DigisignController) SignDocumentCallback(c echo.Context) error {
 	if err != nil {
 		return response.BadRequest(c, helpers.BadRequest, nil, err.Error())
 	}
-	result, err := d.DigisignRepository.SaveSignDocCallback(jsonMap["email"].(string),jsonMap["result"].(string),
-		jsonMap["document_id"].(string),jsonMap["status_document"].(string))
-
+	result, err := d.DigisignRepository.SaveSignDocCallback(jsonMap["email"].(string), jsonMap["result"].(string),
+		jsonMap["document_id"].(string), jsonMap["status_document"].(string))
 	//TODO : SEND NOTIF TO LOS
-
 	return response.SingleData(c, helpers.OK, result, nil)
-
 }

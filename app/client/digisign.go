@@ -172,15 +172,13 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, losRequest re
 	dr.JsonFile.Payment = losRequest.Payment
 	dr.JsonFile.Redirect = true
 	dr.JsonFile.SequenceOption = false
+	dr.JsonFile.SendTo = losRequest.SendTo
+	dr.JsonFile.ReqSign = losRequest.ReqSign
 
-	sendTo := jsoniter.Get([]byte(losRequest.SendTo), "sendTo").GetInterface()
-	reqSign := jsoniter.Get([]byte(losRequest.ReqSign), "reqSign").GetInterface()
-
-	dr.JsonFile.SendTo = sendTo
-	dr.JsonFile.ReqSign = reqSign
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
+	client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
