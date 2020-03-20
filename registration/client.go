@@ -101,9 +101,9 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			return nil,"", "", "", "", nil
 		}
 		log.Info("Response :", resp.String())
-		result = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		notif = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		reftrx = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
+		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
+		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
+		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
 		return resp,result, notif, reftrx, resp.String(), err
 	} else if byteNpwp == nil {
 		resp, err := client.R().
@@ -123,9 +123,9 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			return nil,"", "", "", "", nil
 		}
 		log.Info("Response :", resp.String())
-		result = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		notif = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		reftrx = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
+		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
+		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
+		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
 		return resp,result, notif, reftrx, resp.String(), err
 	} else if byteTtd == nil {
 		resp, err := client.R().
@@ -145,9 +145,9 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			return nil,"", "", "", "", nil
 		}
 		log.Info("Response :", resp.String())
-		result = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		notif = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		reftrx = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
+		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
+		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
+		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
 		return resp, result, notif, reftrx, resp.String(), err
 	} else {
 		resp, err := client.R().
@@ -170,9 +170,9 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			return nil,"", "", "", "", nil
 		}
 		log.Info("Response :", resp.String())
-		result = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		notif = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
-		reftrx = jsoniter.Get(resp.Body(), "JSONFile", 0).Get("result").ToString()
+		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
+		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
+		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
 		return resp,result, notif, reftrx, resp.String(), err
 	}
 }
