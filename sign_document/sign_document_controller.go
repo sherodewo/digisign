@@ -80,8 +80,8 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if code !="200" {
 		return response.BadRequest(ctx, "Bad Request", nil, "Error hit service callback api")
 	}
-	_, err = c.service.SaveSignDocumentCallback(jsonMap["email"].(string), jsonMap["result"].(string),
-		jsonMap["document_id"].(string), jsonMap["status_document"].(string))
+	_, err = c.service.SaveSignDocumentCallback(jsonMap["document_id"].(string),jsonMap["email"].(string),
+		jsonMap["status_document"].(string),jsonMap["result"].(string), )
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
