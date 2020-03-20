@@ -17,7 +17,6 @@ type Validator struct {
 
 func customRegisterValidation(vd validator.StructLevel) {
 	registerDto := vd.Current().Interface().(registration.Dto)
-
 	if registerDto.KonsumenType == "NEW" {
 		if registerDto.AsliRiRefVerifikasi == nil {
 			vd.ReportError(registerDto.AsliRiRefVerifikasi, "asliri_ref_verifikasi", "AsliRiRefVerifikasi", "Cannot be null or empty", "")

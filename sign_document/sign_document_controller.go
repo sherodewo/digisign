@@ -67,11 +67,23 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
-	result, err := c.service.SaveSignDocumentCallback(jsonMap["email"].(string), jsonMap["result"].(string),
+	client := NewLosSignDocumentCallbackRequest()
+	resLos, code, message, err := client.losSignDocumentRequestCallback(jsonMap["email"].(string), jsonMap["result"].(string),
+		jsonMap["document_id"].(string), jsonMap["status_document"].(string))
+
+	if err != nil {
+		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
+	}
+	if resLos.IsError() {
+		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
+	}
+	if code !="200" {
+		return response.BadRequest(ctx, "Bad Request", nil, "Error hit service callback api")
+	}
+	_, err = c.service.SaveSignDocumentCallback(jsonMap["email"].(string), jsonMap["result"].(string),
 		jsonMap["document_id"].(string), jsonMap["status_document"].(string))
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	//TODO : SEND NOTIF TO LOS
-	return response.SingleData(ctx, utils.OK, result, nil)
+	return response.SingleData(ctx, utils.OK, echo.Map{"code":code,"message":message}, nil)
 }

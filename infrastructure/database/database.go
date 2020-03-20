@@ -47,5 +47,7 @@ func AutoMigrate(db *gorm.DB) {
 		&model.Activation{},
 		&model.SignDocumentResult{},
 		&model.SignDocument{},
+		&model.ActivationCallback{},
+		&model.SignDocumentCallback{},
 	)
 }

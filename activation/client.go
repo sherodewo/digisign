@@ -44,5 +44,7 @@ func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 	link = jsoniter.Get(resp.Body(), "JSONFile").Get("link").ToString()
 
+
+
 	return resp, resultActivation, link, err
 }

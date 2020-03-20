@@ -64,13 +64,28 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	}
 	jsonMap := make(map[string]interface{})
 	err = json.Unmarshal([]byte(*decrypt), &jsonMap)
+
 	if err != nil {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
-	result, err := c.service.SaveActivationCallback(jsonMap["email"].(string), jsonMap["result"].(string),
+	client := NewLosActivationCallbackRequest()
+	resLos, code, message, err := client.losActivationRequestCallback(jsonMap["email"].(string), jsonMap["result"].(string),
 		jsonMap["notif"].(string))
 
-	//TODO : SEND NOTIF TO LOS
+	if err != nil {
+		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
+	}
+	if resLos.IsError() {
+		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
+	}
+	if code !="200" {
+		return response.BadRequest(ctx, "Bad Request", nil, "Error hit service callback api")
+	}
+	_, err = c.service.SaveActivationCallback(jsonMap["email"].(string), jsonMap["result"].(string),
+		jsonMap["notif"].(string))
 
-	return response.SingleData(ctx, utils.OK, result, nil)
+	if err != nil {
+		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
+	}
+	return response.SingleData(ctx, utils.OK, echo.Map{"code":code,"message":message}, nil)
 }
