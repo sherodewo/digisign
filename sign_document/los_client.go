@@ -31,7 +31,7 @@ func (c *losSignDocumentRequestCallbackRequest) losSignDocumentRequestCallback(e
 	client.SetDebug(true)
 	resp, err := client.R().SetHeader("Content-Type", "application/json").
 		SetBody(c).
-		Post(os.Getenv("LOS_BASE_URL") + "/digisign/sign-document")
+		Post(os.Getenv("LOS_BASE_URL") + "/digisign/sign_doc")
 	if err != nil {
 		return nil, "", "", err
 	}
