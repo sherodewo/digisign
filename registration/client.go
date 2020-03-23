@@ -39,15 +39,17 @@ type digisignRegistrationRequest struct {
 }
 
 type DigisignRegistrationResponse struct {
-	JSONFile struct {
-		Result          string `json:"result"`
-		Notif           string `json:"notif"`
-		Info            string `json:"info,omitempty"`
-		RefTrx          string `json:"refTrx,omitempty"`
-		KodeUser        string `json:"kode_user,omitempty"`
-		EmailRegistered string `json:"email_registered,omitempty"`
-		ExpiredAktivasi string `json:"expired_aktivasi,omitempty"`
-	}
+	JSONFile JSONFile `json:"JSONFile"`
+}
+
+type JSONFile struct {
+	Result          string `json:"result"`
+	Notif           string `json:"notif"`
+	Info            string `json:"info,omitempty"`
+	RefTrx          string `json:"refTrx,omitempty"`
+	KodeUser        string `json:"kode_user,omitempty"`
+	EmailRegistered string `json:"email_registered,omitempty"`
+	ExpiredAktivasi string `json:"expired_aktivasi,omitempty"`
 }
 
 func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
