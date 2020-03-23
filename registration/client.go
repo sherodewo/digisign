@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/labstack/gommon/log"
 	"kpdigisign/utils"
 	"os"
 )
