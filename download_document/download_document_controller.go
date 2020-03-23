@@ -27,7 +27,7 @@ func (c *Controller) DownloadDocument(ctx echo.Context) error {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	if resp.IsError() {
-		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error")
+		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error "+resp.String())
 	}
 	return ctx.Stream(200, "application/pdf", bytes.NewReader(resp.Body()))
 
@@ -47,7 +47,7 @@ func (c *Controller) DownloadDocumentBase64(ctx echo.Context) error {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	if resp.IsError() {
-		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error")
+		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error "+resp.String())
 	}
 	return response.SingleData(ctx, "Success execute request", file, nil)
 

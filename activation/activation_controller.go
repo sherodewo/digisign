@@ -46,7 +46,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	if res.IsError() {
-		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error")
+		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error "+res.String())
 	}
 	data, err := c.service.SaveActivation(dto, result, link)
 	if err != nil {

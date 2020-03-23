@@ -110,7 +110,6 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
-		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
@@ -132,7 +131,6 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
-		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
@@ -154,7 +152,6 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
-		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
@@ -178,7 +175,6 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
-		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
