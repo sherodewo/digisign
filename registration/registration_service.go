@@ -2,7 +2,6 @@ package registration
 
 import (
 	"kpdigisign/model"
-	"os"
 )
 
 type service struct {
@@ -39,7 +38,7 @@ func (s *service) SaveRegistration(dto Dto, result string, notif string, reftrx 
 	jsonResponse string) (*Mapper, error) {
 	entity := model.Registration{}
 	entity.ProspectID = dto.ProspectID
-	entity.UserID = os.Getenv("DIGISIGN_USER_ID")
+	entity.UserID = dto.UserID
 	entity.Alamat = dto.Alamat
 	entity.JenisKelamin = dto.JenisKelamin
 	entity.Kecamatan = dto.Kecamatan

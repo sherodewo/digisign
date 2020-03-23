@@ -26,7 +26,7 @@ func NewDigisignSendDocRequest() *digisignSendDocRequest {
 
 func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 	res *resty.Response, result string, notif string, reftrx string, jsonResponse string, err error) {
-	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
+	dr.JSONFile.UserID = dto.UserID
 	dr.JSONFile.DocumentID = dto.DocumentID
 	dr.JSONFile.Payment = dto.Payment
 	dr.JSONFile.Redirect = true

@@ -22,7 +22,7 @@ func NewDigisignDownloadRequest() *digisignDownloadRequest {
 }
 
 func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (result *resty.Response, file string, err error) {
-	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
+	dr.JSONFile.UserID = downloadRequest.UserID
 	dr.JSONFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
 	if err != nil {
@@ -49,7 +49,7 @@ func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (resu
 }
 
 func (dr *digisignDownloadRequest) DownloadFile(downloadRequest Dto) (result *resty.Response, err error) {
-	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
+	dr.JSONFile.UserID = downloadRequest.UserID
 	dr.JSONFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
 	if err != nil {

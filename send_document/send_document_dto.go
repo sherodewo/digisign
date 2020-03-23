@@ -1,6 +1,7 @@
 package send_document
 
 type Dto struct {
+	UserID     string    `form:"user_id" json:"user_id" validate:"required"`
 	DocumentID string    `form:"document_id" json:"document_id" validate:"required"`
 	Payment    string    `form:"payment" json:"payment" validate:"required"`
 	SendTo     []SendTo  `json:"send_to" validate:"required,dive,required"`

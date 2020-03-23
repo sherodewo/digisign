@@ -3,7 +3,6 @@ package send_document
 import (
 	jsoniter "github.com/json-iterator/go"
 	"kpdigisign/model"
-	"os"
 )
 
 type service struct {
@@ -48,7 +47,7 @@ func (s *service) SaveSendDocument(dto Dto,result string, notif string, reftrx s
 	if err != nil {
 		return nil, err
 	}
-	entity.UserID = os.Getenv("DIGISIGN_USER_ID")
+	entity.UserID =dto.UserID
 	entity.DocumentID = dto.DocumentID
 	entity.Payment = dto.Payment
 	entity.SendTo = string(sendTo)

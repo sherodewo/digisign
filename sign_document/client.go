@@ -24,7 +24,7 @@ func NewDigisignSignDocumentRequest() *digisignSignDocumentRequest {
 
 func (dr *digisignSignDocumentRequest) DigisignSignDocumentRequest(request Dto) (
 	res *resty.Response, result string, link string, err error) {
-	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
+	dr.JSONFile.UserID = request.UserID
 	dr.JSONFile.EmailUser = request.EmailUser
 	dr.JSONFile.DocumentID = request.DocumentID
 	dr.JSONFile.ViewOnly = false

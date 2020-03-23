@@ -22,7 +22,7 @@ func NewDigisignActivationRequest() *digisignActivationRequest {
 
 func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 	result *resty.Response, resultActivation string, link string, err error) {
-	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
+	dr.JSONFile.UserID = request.UserID
 	dr.JSONFile.EmailUser = request.EmailUser
 	drJson, err := json.Marshal(dr)
 	if err != nil {
@@ -43,8 +43,6 @@ func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 	}
 	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 	link = jsoniter.Get(resp.Body(), "JSONFile").Get("link").ToString()
-
-
 
 	return resp, resultActivation, link, err
 }

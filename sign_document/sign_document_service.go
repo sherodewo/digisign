@@ -3,7 +3,6 @@ package sign_document
 import (
 	"github.com/labstack/echo"
 	"kpdigisign/model"
-	"os"
 )
 
 type service struct {
@@ -38,7 +37,7 @@ func (s *service) FindSignDocumentById(id string) (*Mapper, error) {
 
 func (s *service) SaveSignDocument(dto Dto, result string, link string) (*Mapper, error) {
 	var entity model.SignDocument
-	entity.UserID = os.Getenv("DIGISIGN_USER_ID")
+	entity.UserID = dto.UserID
 	entity.EmailUser = dto.EmailUser
 	entity.DocumentID = dto.DocumentID
 	entity.SignDocumentResult.Result = result

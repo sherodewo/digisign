@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/labstack/gommon/log"
 	"kpdigisign/utils"
 	"os"
 )
@@ -37,6 +36,16 @@ type digisignRegistrationRequest struct {
 		VtanggalLahir       string `json:"vtgl_lahir,omitempty"`
 		VtempatLahir        string `json:"vtmp_lahir,omitempty"`
 	}
+
+	DigisignResponse struct {
+		Result          string `json:"result"`
+		Notif           string `json:"notif"`
+		Info            string `json:"info,omitempty"`
+		RefTrx          string `json:"ref_trx,omitempty"`
+		KodeUser        string `json:"kode_user,omitempty"`
+		EmailRegistered string `json:"email_registered,omitempty"`
+		ExpiredAktivasi string `json:"expired_aktivasi,omitempty"`
+	}
 }
 
 func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
@@ -44,10 +53,10 @@ func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
 }
 
 func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byteKtp []byte, byteSelfie []byte,
-	byteNpwp []byte, byteTtd []byte, dto Dto) (res *resty.Response,result string, notif string, reftrx string, jsonResponse string, err error) {
+	byteNpwp []byte, byteTtd []byte, dto Dto) (res *resty.Response, result string, notif string, reftrx string, jsonResponse string, err error) {
 
 	//Mapping request
-	dr.JSONFile.UserID = os.Getenv("DIGISIGN_USER_ID")
+	dr.JSONFile.UserID = dto.UserID
 	dr.JSONFile.Alamat = dto.Alamat
 	dr.JSONFile.JenisKelamin = dto.JenisKelamin
 	dr.JSONFile.Kecamatan = dto.Kecamatan
@@ -95,16 +104,15 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteSelfie)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).
+			}).SetResult(&dr.DigisignResponse).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil,"", "", "", "", nil
+			return nil, "", "", "", "", nil
 		}
-		log.Info("Response :", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp,result, notif, reftrx, resp.String(), err
+		return resp, result, notif, reftrx, resp.String(), err
 	} else if byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -117,16 +125,15 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteTtd)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).
+			}).SetResult(&dr.DigisignResponse).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil,"", "", "", "", nil
+			return nil, "", "", "", "", nil
 		}
-		log.Info("Response :", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp,result, notif, reftrx, resp.String(), err
+		return resp, result, notif, reftrx, resp.String(), err
 	} else if byteTtd == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -139,12 +146,11 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteNpwp)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).
+			}).SetResult(&dr.DigisignResponse).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil,"", "", "", "", nil
+			return nil, "", "", "", "", nil
 		}
-		log.Info("Response :", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
@@ -161,18 +167,16 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteNpwp)).
 			SetFileReader("ttd", "ttd_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteTtd),
 				bytes.NewReader(byteTtd)).
-
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).
+			}).SetResult(&dr.DigisignResponse).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil,"", "", "", "", nil
+			return nil, "", "", "", "", nil
 		}
-		log.Info("Response :", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp,result, notif, reftrx, resp.String(), err
+		return resp, result, notif, reftrx, resp.String(), err
 	}
 }

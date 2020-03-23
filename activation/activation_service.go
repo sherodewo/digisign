@@ -3,7 +3,6 @@ package activation
 import (
 	"github.com/labstack/echo"
 	"kpdigisign/model"
-	"os"
 )
 
 type service struct {
@@ -38,7 +37,7 @@ func (s *service) FindActivationById(id string) (*Mapper, error) {
 
 func (s *service) SaveActivation(dto Dto, result string, link string) (*Mapper, error) {
 	var entity model.Activation
-	entity.UserID = os.Getenv("DIGISIGN_USER_ID")
+	entity.UserID = dto.UserID
 	entity.EmailUser = dto.EmailUser
 	entity.ActivationResult.Result = result
 	entity.ActivationResult.Link = link
