@@ -33,9 +33,6 @@ func customRegisterValidation(vd validator.StructLevel) {
 		if registerDto.AsliRiTanggalLahir == nil {
 			vd.ReportError(registerDto.AsliRiTanggalLahir, "asliri_tanggal_lahir", "AsliRiTanggalLahir", "Cannot be null or empty", "")
 		}
-		if registerDto.AsliRiRegNumber == nil {
-			vd.ReportError(registerDto.AsliRiRegNumber, "asliri_reg_number", "AsliRiRegNumber", "Cannot be null or empty", "")
-		}
 		if registerDto.ScoreSelfie == nil {
 			vd.ReportError(registerDto.ScoreSelfie, "score_selfie", "ScoreSelfie", "Cannot be null or empty", "")
 		}

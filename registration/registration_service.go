@@ -53,13 +53,9 @@ func (s *service) SaveRegistration(dto Dto, result string, notif string, reftrx 
 	entity.TempatLahir = dto.TempatLahir
 	entity.Email = dto.Email
 	entity.Npwp = dto.Npwp
-	entity.RegNumber = dto.RegNumber
 	entity.KonsumenType = dto.KonsumenType
-	entity.EmailBm = dto.EmailBm
-	entity.BranchID = dto.BranchID
 	entity.Redirect = dto.Redirect
 	if entity.KonsumenType == "NEW" {
-		entity.AsliRiRegNumber = *dto.AsliRiRegNumber
 		entity.AsliRiRefVerifikasi = *dto.AsliRiRefVerifikasi
 		entity.ScoreSelfie = *dto.ScoreSelfie
 		entity.AsliRiAlamat = *dto.AsliRiAlamat
