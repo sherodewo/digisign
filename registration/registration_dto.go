@@ -17,9 +17,7 @@ type Dto struct {
 	TempatLahir         string  `json:"tempat_lahir" form:"tempat_lahir" validate:"required"`
 	Email               string  `json:"email" form:"email" validate:"required"`
 	Npwp                string  `json:"npwp" form:"npwp"`
-	//RegNumber           string  `json:"reg_number" form:"reg_number" validate:"required"`
 	KonsumenType        string  `json:"konsumen_type" form:"konsumen_type" validate:"required"`
-	//AsliRiRegNumber     *string `json:"asliri_reg_number" form:"asliri_reg_number"`
 	AsliRiRefVerifikasi *string `json:"asliri_ref_verifikasi" form:"asliri_ref_verifikasi"`
 	AsliRiNama          *bool   `json:"asliri_nama" form:"asliri_nama"`
 	AsliRiTempatLahir   *bool   `json:"asliri_tempat_lahir" form:"asliri_tempat_lahir"`
@@ -30,8 +28,6 @@ type Dto struct {
 	Vnama               *string `json:"vnama" form:"vnama"`
 	VtanggalLahir       *string `json:"vtanggal_lahir" form:"vtanggal_lahir"`
 	VtempatLahir        *string `json:"vtempat_lahir" form:"vtempat_lahir"`
-	//BranchID            string  `json:"branch_id" form:"branch_id" validate:"required"`
-	//EmailBm             string  `json:"email_bm" form:"email_bm" validate:"required"`
 	FotoKtp             string  `json:"foto_ktp" form:"foto_ktp" validate:"required"`
 	FotoSelfie          string  `json:"foto_selfie" form:"foto_selfie" validate:"required"`
 	FotoNpwp            string  `json:"foto_npwp" form:"foto_npwp"`

@@ -26,7 +26,6 @@ type digisignRegistrationRequest struct {
 		TempatLahir         string `json:"tmp_lahir"`
 		Email               string `json:"email"`
 		Npwp                string `json:"npwp"`
-		//RegNumber           string `json:"reg_number"`
 		Redirect            bool   `json:"redirect"`
 		AsliRiRefVerifikasi string `json:"ref_verifikasi,omitempty"`
 		DataVerifikasi      string `json:"data_verifikasi,omitempty"`
@@ -61,7 +60,6 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	dr.JSONFile.TempatLahir = dto.TempatLahir
 	dr.JSONFile.Email = dto.Email
 	dr.JSONFile.Npwp = dto.Npwp
-	//dr.JSONFile.RegNumber = dto.RegNumber
 	dr.JSONFile.Redirect = true
 
 	if userType == "NEW" {

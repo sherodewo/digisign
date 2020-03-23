@@ -62,6 +62,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if resp.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error "+resp.String())
 	}
+	//mapping response
 	mapResponse := NewDigisignRegistrationResponse()
 	resMap, err := mapResponse.Bind(resp.Body())
 	if err != nil {
