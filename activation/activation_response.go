@@ -1,8 +1,8 @@
-package sign_document
+package activation
 
 import jsoniter "github.com/json-iterator/go"
 
-type digisignSignDocumentResponse struct {
+type digisignActivationResponse struct {
 	JSONFile struct {
 		Result string `json:"result"`
 		Notif  string `json:"notif,omitempty"`
@@ -20,11 +20,11 @@ type mapDigisignResponse struct {
 	Link   string `json:"link,omitempty"`
 }
 
-func NewDigisignSignDocumentResponse() *digisignSignDocumentResponse {
-	return &digisignSignDocumentResponse{}
+func NewDigisignActivationResponse() *digisignActivationResponse {
+	return &digisignActivationResponse{}
 }
 
-func (r *digisignSignDocumentResponse) Bind(byteResponse []byte) (*mapDigisignResponse, error) {
+func (r *digisignActivationResponse) Bind(byteResponse []byte) (*mapDigisignResponse, error) {
 	library := jsoniter.ConfigCompatibleWithStandardLibrary
 	err := library.Unmarshal(byteResponse, r)
 	if err != nil {
