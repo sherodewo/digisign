@@ -66,5 +66,5 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, "Success execute request", resp.Result(), nil)
+	return response.SingleData(ctx, "Success execute request", resp.Result().(*DigisignRegistrationResponse), nil)
 }
