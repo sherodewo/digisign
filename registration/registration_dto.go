@@ -1,7 +1,7 @@
 package registration
 
 type Dto struct {
-	UserID              string  `json:"user_id" form:"prospect_id" validate:"required"`
+	UserID              string  `json:"user_id" form:"user_id" validate:"required"`
 	ProspectID          string  `json:"prospect_id" form:"prospect_id" validate:"required"`
 	Alamat              string  `json:"alamat" form:"alamat" validate:"required"`
 	JenisKelamin        string  `json:"jenis_kelamin" form:"jenis_kelamin" validate:"required"`

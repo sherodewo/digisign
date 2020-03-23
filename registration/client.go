@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/labstack/gommon/log"
 	"kpdigisign/utils"
 	"os"
 )
@@ -41,7 +42,7 @@ type digisignRegistrationRequest struct {
 		Result          string `json:"result"`
 		Notif           string `json:"notif"`
 		Info            string `json:"info,omitempty"`
-		RefTrx          string `json:"ref_trx,omitempty"`
+		RefTrx          string `json:"refTrx,omitempty"`
 		KodeUser        string `json:"kode_user,omitempty"`
 		EmailRegistered string `json:"email_registered,omitempty"`
 		ExpiredAktivasi string `json:"expired_aktivasi,omitempty"`
@@ -109,6 +110,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
+		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
@@ -130,6 +132,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
+		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
@@ -151,6 +154,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
+		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
@@ -174,6 +178,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		if err != nil {
 			return nil, "", "", "", "", nil
 		}
+		log.Info("RESPONSE REGISTER", resp.String())
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()

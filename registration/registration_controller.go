@@ -54,13 +54,13 @@ func (c *Controller) Store(ctx echo.Context) error {
 	bufTtd, _ := utils.Base64Decode(dto.FotoTandaTangan)
 
 	client := NewDigisignRegistrationRequest()
-	resp,result, notif, reftrx, jsonResponse, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
-		bufNpwp,bufTtd, dto)
+	resp, result, notif, reftrx, jsonResponse, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
+		bufNpwp, bufTtd, dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	if resp.IsError() {
-		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error")
+		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error"+resp.String())
 	}
 	_, err = c.service.SaveRegistration(dto, result, notif, reftrx, jsonResponse)
 	if err != nil {
