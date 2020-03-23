@@ -8,11 +8,12 @@ import (
 )
 
 type SignDocumentResult struct {
-	ID             string       `gorm:"column:id;primary_key:true"`
-	Result         string       `gorm:"type:varchar(5);column:result"`
-	Link           string       `gorm:"type:varchar(255);column:link"`
-	CreatedAt      time.Time    `gorm:"column:created_at"`
-	UpdatedAt      time.Time    `gorm:"column:updated_at"`
+	ID           string    `gorm:"column:id;primary_key:true"`
+	Result       string    `gorm:"type:varchar(5);column:result"`
+	Link         string    `gorm:"type:varchar(255);column:link"`
+	JsonResponse string    `gorm:"type:text;column:json_response"`
+	CreatedAt    time.Time `gorm:"column:created_at"`
+	UpdatedAt    time.Time `gorm:"column:updated_at"`
 }
 
 func (c SignDocumentResult) TableName() string {

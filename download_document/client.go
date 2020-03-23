@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/labstack/gommon/log"
 	"os"
 	"strconv"
 )
@@ -42,7 +41,6 @@ func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (resu
 	if err != nil {
 		return nil, "", err
 	}
-	log.Info("Response :", resp.String())
 	base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
 
 	return resp, base64File, err

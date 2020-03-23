@@ -35,13 +35,14 @@ func (s *service) FindSignDocumentById(id string) (*Mapper, error) {
 	}
 }
 
-func (s *service) SaveSignDocument(dto Dto, result string, link string) (*Mapper, error) {
+func (s *service) SaveSignDocument(dto Dto, result string, link string, jsonResponse string) (*Mapper, error) {
 	var entity model.SignDocument
 	entity.UserID = dto.UserID
 	entity.EmailUser = dto.EmailUser
 	entity.DocumentID = dto.DocumentID
 	entity.SignDocumentResult.Result = result
 	entity.SignDocumentResult.Link = link
+	entity.SignDocumentResult.JsonResponse = jsonResponse
 
 	data, err := s.signDocumentRepository.Save(entity)
 	if err != nil {
@@ -50,7 +51,7 @@ func (s *service) SaveSignDocument(dto Dto, result string, link string) (*Mapper
 	return s.signDocumentMapper.Map(data), err
 }
 
-func (s *service) SaveSignDocumentCallback(documentId string, email string, statusDocument string,result string) (
+func (s *service) SaveSignDocumentCallback(documentId string, email string, statusDocument string, result string) (
 	interface{}, error) {
 	var entity model.SignDocumentCallback
 	entity.DocumentID = documentId

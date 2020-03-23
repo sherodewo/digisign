@@ -41,18 +41,24 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.ValidationError(ctx, "Validation error", nil, err.Error())
 	}
 	client := NewDigisignSignDocumentRequest()
-	res, result, link, err := client.DigisignSignDocumentRequest(dto)
+	res, result, link, _, err := client.DigisignSignDocumentRequest(dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	if res.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error "+res.String())
 	}
-	data, err := c.service.SaveSignDocument(dto, result, link)
+	//mapping response
+	mapResponse := NewDigisignSignDocumentResponse()
+	resMap, err := mapResponse.Bind(res.Body())
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, "Success execute request", data, nil)
+	_, err = c.service.SaveSignDocument(dto, result, link, res.String())
+	if err != nil {
+		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
+	}
+	return response.SingleData(ctx, "Success execute request", resMap, nil)
 }
 
 func (c *Controller) Callback(ctx echo.Context) error {
@@ -77,13 +83,13 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if resLos.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
 	}
-	if code !="200" {
+	if code != "200" {
 		return response.BadRequest(ctx, "Bad Request", nil, "Error hit service callback api")
 	}
-	_, err = c.service.SaveSignDocumentCallback(jsonMap["document_id"].(string),jsonMap["email"].(string),
-		jsonMap["status_document"].(string),jsonMap["result"].(string), )
+	_, err = c.service.SaveSignDocumentCallback(jsonMap["document_id"].(string), jsonMap["email"].(string),
+		jsonMap["status_document"].(string), jsonMap["result"].(string), )
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, utils.OK, echo.Map{"code":code,"message":message}, nil)
+	return response.SingleData(ctx, utils.OK, echo.Map{"code": code, "message": message}, nil)
 }
