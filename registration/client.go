@@ -36,8 +36,10 @@ type digisignRegistrationRequest struct {
 		VtanggalLahir       string `json:"vtgl_lahir,omitempty"`
 		VtempatLahir        string `json:"vtmp_lahir,omitempty"`
 	}
+}
 
-	DigisignResponse struct {
+type DigisignRegistrationResponse struct {
+	JSONFile struct {
 		Result          string `json:"result"`
 		Notif           string `json:"notif"`
 		Info            string `json:"info,omitempty"`
@@ -104,7 +106,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteSelfie)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&dr.DigisignResponse).
+			}).SetResult(&DigisignRegistrationResponse{}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
@@ -125,7 +127,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteTtd)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&dr.DigisignResponse).
+			}).SetResult(&DigisignRegistrationResponse{}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
@@ -146,7 +148,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteNpwp)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&dr.DigisignResponse).
+			}).SetResult(&DigisignRegistrationResponse{}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
@@ -169,7 +171,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteTtd)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&dr.DigisignResponse).
+			}).SetResult(&DigisignRegistrationResponse{}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
