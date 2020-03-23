@@ -62,9 +62,13 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if resp.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error "+resp.String())
 	}
+	mapResponse := NewDigisignRegistrationResponse()
+	if err := mapResponse.Bind(resp.Body()); err != nil {
+		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
+	}
 	_, err = c.service.SaveRegistration(dto, result, notif, reftrx, jsonResponse)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, "Success execute request", resp.Result().(*DigisignRegistrationResponse), nil)
+	return response.SingleData(ctx, "Success execute request", mapResponse, nil)
 }

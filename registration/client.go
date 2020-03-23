@@ -26,7 +26,7 @@ type digisignRegistrationRequest struct {
 		TempatLahir         string `json:"tmp_lahir"`
 		Email               string `json:"email"`
 		Npwp                string `json:"npwp"`
-		RegNumber           string `json:"reg_number"`
+		//RegNumber           string `json:"reg_number"`
 		Redirect            bool   `json:"redirect"`
 		AsliRiRefVerifikasi string `json:"ref_verifikasi,omitempty"`
 		DataVerifikasi      string `json:"data_verifikasi,omitempty"`
@@ -36,20 +36,6 @@ type digisignRegistrationRequest struct {
 		VtanggalLahir       string `json:"vtgl_lahir,omitempty"`
 		VtempatLahir        string `json:"vtmp_lahir,omitempty"`
 	}
-}
-
-type DigisignRegistrationResponse struct {
-	JSONFile JSONFile `json:"JSONFile"`
-}
-
-type JSONFile struct {
-	Result          string `json:"result"`
-	Notif           string `json:"notif"`
-	Info            string `json:"info,omitempty"`
-	RefTrx          string `json:"refTrx,omitempty"`
-	KodeUser        string `json:"kode_user,omitempty"`
-	EmailRegistered string `json:"email_registered,omitempty"`
-	ExpiredAktivasi string `json:"expired_aktivasi,omitempty"`
 }
 
 func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
@@ -75,7 +61,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	dr.JSONFile.TempatLahir = dto.TempatLahir
 	dr.JSONFile.Email = dto.Email
 	dr.JSONFile.Npwp = dto.Npwp
-	dr.JSONFile.RegNumber = dto.RegNumber
+	//dr.JSONFile.RegNumber = dto.RegNumber
 	dr.JSONFile.Redirect = true
 
 	if userType == "NEW" {
@@ -108,7 +94,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteSelfie)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&DigisignRegistrationResponse{}).
+			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
@@ -129,7 +115,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteTtd)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&DigisignRegistrationResponse{}).
+			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
@@ -150,7 +136,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteNpwp)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&DigisignRegistrationResponse{}).
+			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
@@ -173,7 +159,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 				bytes.NewReader(byteTtd)).
 			SetFormData(map[string]string{
 				"jsonfield": string(drJson),
-			}).SetResult(&DigisignRegistrationResponse{}).
+			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
 			return nil, "", "", "", "", nil
