@@ -9,6 +9,7 @@ import (
 
 type Activation struct {
 	ID                 string           `gorm:"column:id;primary_key:true"`
+	ProspectID         string           `gorm:"type:varchar(100);column:prospect_id"`
 	UserID             string           `gorm:"type:varchar(80);column:user_id"`
 	ActivationResult   ActivationResult `gorm:"forigenkey:ActivationResultID"`
 	ActivationResultID string           `gorm:"column:activation_result_id"`

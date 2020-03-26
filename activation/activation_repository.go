@@ -10,6 +10,7 @@ type Repository interface {
 	FindById(string) (model.Activation, error)
 	Save(model.Activation) (model.Activation, error)
 	SaveCallback(callback model.ActivationCallback) (model.ActivationCallback, error)
+	FindLastByCreatedAt(string, string) (model.Activation, error)
 	Update(model.Activation) (model.Activation, error)
 	Delete(model.Activation) error
 }
@@ -51,5 +52,10 @@ func (r activationRepository) Delete(entity model.Activation) error {
 func (r activationRepository) SaveCallback(callback model.ActivationCallback) (model.ActivationCallback, error) {
 	err := r.DB.Create(&callback).Error
 	return callback, err
+}
 
+func (r activationRepository) FindLastByCreatedAt(prospectId string, emailUser string) (model.Activation, error) {
+	var entity model.Activation
+	err := r.DB.Where("prospect_id =?", prospectId).Where("email_user =?", emailUser).Order("created_at DESC").First(&entity).Error
+	return entity, err
 }

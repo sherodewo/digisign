@@ -1,6 +1,7 @@
 package utils
 
 import (
+	_ "github.com/stretchr/testify"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

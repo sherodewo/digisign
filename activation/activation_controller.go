@@ -50,7 +50,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	}
 	//mapping response
 	mapResponse := NewDigisignActivationResponse()
-	resMap, err := mapResponse.Bind(res.Body())
+	resMap, err := mapResponse.Bind(dto.ProspectID, res.Body())
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
