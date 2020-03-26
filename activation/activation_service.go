@@ -38,8 +38,9 @@ func (s *service) FindActivationById(id string) (*Mapper, error) {
 func (s *service) SaveActivation(dto Dto, result string, link string, jsonResponse string) (*Mapper, error) {
 
 	entity := model.Activation{
-		UserID:    dto.UserID,
-		EmailUser: dto.EmailUser,
+		UserID:     dto.UserID,
+		ProspectID: dto.ProspectID,
+		EmailUser:  dto.EmailUser,
 		ActivationResult: model.ActivationResult{
 			Result:       result,
 			Link:         link,
