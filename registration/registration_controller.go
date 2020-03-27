@@ -54,7 +54,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	bufTtd, _ := utils.Base64Decode(dto.FotoTandaTangan)
 
 	client := NewDigisignRegistrationRequest()
-	resp, result, notif, reftrx, jsonResponse, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
+	resp, result, notif, reftrx, jsonResponse, kodeUser, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
 		bufNpwp, bufTtd, dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
@@ -64,11 +64,11 @@ func (c *Controller) Store(ctx echo.Context) error {
 	}
 	//mapping response
 	mapResponse := NewDigisignRegistrationResponse()
-	resMap, err := mapResponse.Bind(dto.ProspectID,resp.Body())
+	resMap, err := mapResponse.Bind(dto.ProspectID, resp.Body())
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	_, err = c.service.SaveRegistration(dto, result, notif, reftrx, jsonResponse)
+	_, err = c.service.SaveRegistration(dto, result, notif, reftrx, jsonResponse, kodeUser)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
