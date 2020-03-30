@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"errors"
+	"github.com/labstack/gommon/log"
 	"net/http"
 	"os"
 	"strings"
@@ -23,10 +24,9 @@ func GetExtensionImageFromByte(byte []byte) string {
 
 func DecryptAes(message string) (*string, error) {
 	key := []byte(os.Getenv("DIGISIGN_AES_KEY"))
-	cipherText, err := base64.URLEncoding.DecodeString(message)
-	if err != nil {
-		return nil, err
-	}
+	log.Info("KEY ",string(key))
+	cipherText, _ := base64.StdEncoding.DecodeString(message)
+	//b := AesDecrypt(encodeText, key)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -61,5 +61,3 @@ func Base64Decode(data string) ([]byte, error) {
 	}
 	return decode, nil
 }
-
-

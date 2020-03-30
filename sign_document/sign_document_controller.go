@@ -1,10 +1,12 @@
 package sign_document
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"github.com/labstack/echo"
 	"kpdigisign/infrastructure/response"
 	"kpdigisign/utils"
+	"os"
 )
 
 type Controller struct {
@@ -62,20 +64,22 @@ func (c *Controller) Store(ctx echo.Context) error {
 }
 
 func (c *Controller) Callback(ctx echo.Context) error {
-	query := ctx.QueryParam("msg")
-
-	decrypt, err := utils.DecryptAes(query)
+	encodedValue := ctx.Request().URL.Query().Get("msg")
+	decodeValue, err := base64.StdEncoding.DecodeString(encodedValue)
 	if err != nil {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
-	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal([]byte(*decrypt), &jsonMap)
+	key := os.Getenv("DIGISIGN_AES_KEY")
+	byteDecrypt := utils.AesDecrypt(decodeValue, []byte(key))
+
+	var dataMap map[string]interface{}
+	err = json.Unmarshal(byteDecrypt, &dataMap)
 	if err != nil {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
 	client := NewLosSignDocumentCallbackRequest()
-	resLos, code, message, err := client.losSignDocumentRequestCallback(jsonMap["email"].(string), jsonMap["result"].(string),
-		jsonMap["document_id"].(string), jsonMap["status_document"].(string))
+	resLos, err := client.losSignDocumentRequestCallback(dataMap["email_user"].(string), dataMap["result"].(string),
+		dataMap["document_id"].(string), dataMap["status_document"].(string))
 
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
@@ -83,13 +87,10 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if resLos.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
 	}
-	if code != "200" {
-		return response.BadRequest(ctx, "Bad Request", nil, "Error hit service callback api")
-	}
-	_, err = c.service.SaveSignDocumentCallback(jsonMap["document_id"].(string), jsonMap["email"].(string),
-		jsonMap["status_document"].(string), jsonMap["result"].(string), )
+	_, err = c.service.SaveSignDocumentCallback(dataMap["document_id"].(string), dataMap["email_user"].(string),
+		dataMap["status_document"].(string), dataMap["result"].(string), dataMap["notif"].(string))
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, utils.OK, echo.Map{"code": code, "message": message}, nil)
+	return response.SingleData(ctx, utils.OK, echo.Map{"message": "Callback success send"}, nil)
 }

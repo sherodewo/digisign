@@ -13,6 +13,7 @@ type SignDocumentCallback struct {
 	Email          string    `gorm:"type:varchar(100);column:email"`
 	StatusDocument string    `gorm:"type:varchar(50);column:status_document"`
 	Result         string    `gorm:"type:varchar(5);column:result"`
+	Notif          string    `gorm:"type:varchar(50);column:notif"`
 	CreatedAt      time.Time `gorm:"column:created_at"`
 	UpdatedAt      time.Time `gorm:"column:updated_at"`
 }
@@ -28,4 +29,3 @@ func (c *SignDocumentCallback) BeforeCreate(scope *gorm.Scope) error {
 	}
 	return nil
 }
-

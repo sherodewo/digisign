@@ -2,7 +2,6 @@ package sign_document
 
 import (
 	"github.com/go-resty/resty"
-	jsoniter "github.com/json-iterator/go"
 	"os"
 )
 
@@ -19,7 +18,7 @@ func NewLosSignDocumentCallbackRequest() *losSignDocumentRequestCallbackRequest 
 }
 
 func (c *losSignDocumentRequestCallbackRequest) losSignDocumentRequestCallback(email string, result string,
-	documentId string, statusDocument string) (res *resty.Response, code string, message string, err error) {
+	documentId string, statusDocument string) (res *resty.Response, err error) {
 
 	c.ClientKey = os.Getenv("LOS_KEY")
 	c.Email = email
@@ -33,10 +32,9 @@ func (c *losSignDocumentRequestCallbackRequest) losSignDocumentRequestCallback(e
 		SetBody(c).
 		Post(os.Getenv("LOS_BASE_URL") + "/digisign/sign_doc")
 	if err != nil {
-		return nil, "", "", err
+		return nil,  err
 	}
-	code = jsoniter.Get(resp.Body(), "code").ToString()
-	message = jsoniter.Get(resp.Body(), "message").ToString()
 
-	return resp, code, message, nil
+
+	return resp, nil
 }

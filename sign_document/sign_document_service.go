@@ -51,13 +51,14 @@ func (s *service) SaveSignDocument(dto Dto, result string, link string, jsonResp
 	return s.signDocumentMapper.Map(data), err
 }
 
-func (s *service) SaveSignDocumentCallback(documentId string, email string, statusDocument string, result string) (
+func (s *service) SaveSignDocumentCallback(documentId string, email string, statusDocument string, result string, notif string) (
 	interface{}, error) {
 	var entity model.SignDocumentCallback
 	entity.DocumentID = documentId
 	entity.Email = email
 	entity.StatusDocument = statusDocument
 	entity.Result = result
+	entity.Notif = notif
 
 	data, err := s.signDocumentRepository.SaveCallback(entity)
 	if err != nil {

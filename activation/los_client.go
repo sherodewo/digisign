@@ -2,7 +2,6 @@ package activation
 
 import (
 	"github.com/go-resty/resty"
-	jsoniter "github.com/json-iterator/go"
 	"os"
 )
 
@@ -18,7 +17,7 @@ func NewLosActivationCallbackRequest() *losActivationRequestCallbackRequest {
 }
 
 func (c *losActivationRequestCallbackRequest) losActivationRequestCallback(email string, result string,
-	notif string) (res *resty.Response, code string, message string, err error) {
+	notif string) (res *resty.Response, err error) {
 
 	c.ClientKey = os.Getenv("LOS_KEY")
 	c.Email = email
@@ -31,11 +30,11 @@ func (c *losActivationRequestCallbackRequest) losActivationRequestCallback(email
 		SetBody(c).
 		Post(os.Getenv("LOS_BASE_URL") + "/digisign/activation")
 	if err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
-	code = jsoniter.Get(resp.Body(), "code").ToString()
-	message = jsoniter.Get(resp.Body(), "message").ToString()
+	//code = jsoniter.Get(resp.Body(), "code").ToString()
+	//message = jsoniter.Get(resp.Body(), "message").ToString()
 
-	return resp, code, message, nil
+	return resp, nil
 
 }
