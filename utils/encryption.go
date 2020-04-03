@@ -36,6 +36,7 @@ func AesDecrypt(crypted, key []byte) []byte {
 	origData := make([]byte, len(crypted))
 	blockMode.CryptBlocks(origData, crypted)
 	origData = PKCS5UnPadding(origData)
+	//fmt.Println("source is:", origData, string(origData))
 	return origData
 }
 

@@ -78,7 +78,7 @@ func (c *Controller) Callback(ctx echo.Context) error {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
 	client := NewLosActivationCallbackRequest()
-	resLos, err := client.losActivationRequestCallback(dataMap["email"].(string), dataMap["result"].(string),
+	resLos, err := client.losActivationRequestCallback(dataMap["email_user"].(string), dataMap["result"].(string),
 		dataMap["notif"].(string))
 
 	if err != nil {
@@ -87,7 +87,7 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if resLos.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
 	}
-	_, err = c.service.SaveActivationCallback(dataMap["email"].(string), dataMap["result"].(string),
+	_, err = c.service.SaveActivationCallback(dataMap["email_user"].(string), dataMap["result"].(string),
 		dataMap["notif"].(string))
 
 	if err != nil {
