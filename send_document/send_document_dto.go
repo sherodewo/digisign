@@ -8,7 +8,7 @@ type Dto struct {
 	ReqSign        []ReqSign `json:"req_sign" validate:"required,dive,required"`
 	Redirect       bool      `json:"redirect"`
 	SequenceOption bool      `json:"sequence_option"`
-	SigningSeq     bool      `json:"signing_seq"`
+	SigningSeq     int       `json:"signing_seq"`
 	File           string    `json:"file" validate:"required"`
 }
 type SendTo struct {

@@ -17,7 +17,7 @@ type digisignSendDocRequest struct {
 		ReqSign        interface{} `json:"req-sign"`
 		Redirect       bool        `json:"redirect"`
 		SequenceOption bool        `json:"sequence_option"`
-		SigningSeq     bool        `json:"signing_seq"`
+		SigningSeq     int         `json:"signing_seq"`
 	}
 }
 
