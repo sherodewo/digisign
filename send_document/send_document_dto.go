@@ -6,8 +6,9 @@ type Dto struct {
 	Payment        string    `form:"payment" json:"payment" validate:"required"`
 	SendTo         []SendTo  `json:"send_to" validate:"required,dive,required"`
 	ReqSign        []ReqSign `json:"req_sign" validate:"required,dive,required"`
-	Redirect       bool      `json:"redirect" validate:"required"`
-	SequenceOption bool      `json:"sequence_option" validate:"required"`
+	Redirect       bool      `json:"redirect"`
+	SequenceOption bool      `json:"sequence_option"`
+	SigningSeq     bool      `json:"signing_seq"`
 	File           string    `json:"file" validate:"required"`
 }
 type SendTo struct {

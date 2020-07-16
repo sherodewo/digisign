@@ -17,6 +17,7 @@ type digisignSendDocRequest struct {
 		ReqSign        interface{} `json:"req-sign"`
 		Redirect       bool        `json:"redirect"`
 		SequenceOption bool        `json:"sequence_option"`
+		SigningSeq     bool        `json:"signing_seq"`
 	}
 }
 
@@ -31,6 +32,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 	dr.JSONFile.Payment = dto.Payment
 	dr.JSONFile.Redirect = dto.Redirect
 	dr.JSONFile.SequenceOption = dto.SequenceOption
+	dr.JSONFile.SigningSeq = dto.SigningSeq
 	dr.JSONFile.SendTo = dto.SendTo
 	dr.JSONFile.ReqSign = dto.ReqSign
 
