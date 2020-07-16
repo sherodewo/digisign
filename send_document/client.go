@@ -29,8 +29,8 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 	dr.JSONFile.UserID = dto.UserID
 	dr.JSONFile.DocumentID = dto.DocumentID
 	dr.JSONFile.Payment = dto.Payment
-	dr.JSONFile.Redirect = true
-	dr.JSONFile.SequenceOption = false
+	dr.JSONFile.Redirect = dto.Redirect
+	dr.JSONFile.SequenceOption = dto.SequenceOption
 	dr.JSONFile.SendTo = dto.SendTo
 	dr.JSONFile.ReqSign = dto.ReqSign
 
