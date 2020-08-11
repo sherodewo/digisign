@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
+	"kpdigisign/infrastructure/config/digisign"
 	"os"
 	"strconv"
 )
@@ -31,7 +32,7 @@ func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (resu
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+		SetHeader("Authorization", "Bearer "+digisign.Token).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).
@@ -57,7 +58,7 @@ func (dr *digisignDownloadRequest) DownloadFile(downloadRequest Dto) (result *re
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+		SetHeader("Authorization", "Bearer "+digisign.Token).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).

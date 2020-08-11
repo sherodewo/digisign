@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
+	"kpdigisign/infrastructure/config/digisign"
 	"kpdigisign/infrastructure/database"
 	"kpdigisign/infrastructure/routes"
 	"kpdigisign/infrastructure/validator"
@@ -12,10 +13,18 @@ import (
 	"os"
 )
 
-func main() {
-
+func init() {
 	//Load .env file
 	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func main() {
+
+	//set credential digisign
+	err := digisign.DecryptDigisignCredentials()
 	if err != nil {
 		panic(err)
 	}
@@ -50,5 +59,5 @@ func main() {
 	routes.ApiRoute(e, db)
 
 	//Start server
-	e.Logger.Fatal(e.Start(":"+os.Getenv("APP_PORT")))
+	e.Logger.Fatal(e.Start(":" + os.Getenv("APP_PORT")))
 }

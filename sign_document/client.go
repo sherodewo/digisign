@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
+	"kpdigisign/infrastructure/config/digisign"
 	"os"
 	"strconv"
 )
@@ -36,7 +37,7 @@ func (dr *digisignSignDocumentRequest) DigisignSignDocumentRequest(request Dto) 
 	client := resty.New()
 	res, err = client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+		SetHeader("Authorization", "Bearer "+digisign.Token).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
 		}).

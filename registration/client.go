@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
+	"kpdigisign/infrastructure/config/digisign"
 	"kpdigisign/utils"
 	"os"
 )
@@ -86,7 +87,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+			SetHeader("Authorization", "Bearer "+digisign.Token).
 			SetFileReader("fotoktp", "ktp_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteSelfie),
@@ -102,11 +103,11 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp, result, notif, reftrx, resp.String(),kodeUser, err
+		return resp, result, notif, reftrx, resp.String(), kodeUser, err
 	} else if byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+			SetHeader("Authorization", "Bearer "+digisign.Token).
 			SetFileReader("fotoktp", "ktp_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteSelfie),
@@ -123,11 +124,11 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp, result, notif, reftrx, resp.String(), kodeUser,err
+		return resp, result, notif, reftrx, resp.String(), kodeUser, err
 	} else if byteTtd == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+			SetHeader("Authorization", "Bearer "+digisign.Token).
 			SetFileReader("fotoktp", "ktp_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteSelfie),
@@ -144,11 +145,11 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp, result, notif, reftrx, resp.String(),kodeUser, err
+		return resp, result, notif, reftrx, resp.String(), kodeUser, err
 	} else {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
-			SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+			SetHeader("Authorization", "Bearer "+digisign.Token).
 			SetFileReader("fotoktp", "ktp_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteKtp),
 				bytes.NewReader(byteKtp)).
 			SetFileReader("fotodiri", "selfie_"+dto.Nama+"."+utils.GetExtensionImageFromByte(byteSelfie),

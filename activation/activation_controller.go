@@ -4,9 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/labstack/echo"
+	"kpdigisign/infrastructure/config/digisign"
 	"kpdigisign/infrastructure/response"
 	"kpdigisign/utils"
-	"os"
 )
 
 type Controller struct {
@@ -69,7 +69,7 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
-	key := os.Getenv("DIGISIGN_AES_KEY")
+	key := digisign.AesKey
 	byteDecrypt := utils.AesDecrypt(decodeValue, []byte(key))
 
 	var dataMap map[string]interface{}

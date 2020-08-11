@@ -1,13 +1,9 @@
 package utils
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"encoding/base64"
 	"errors"
-	"github.com/labstack/gommon/log"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -22,34 +18,6 @@ func GetExtensionImageFromByte(byte []byte) string {
 	return res[1]
 }
 
-func DecryptAes(message string) (*string, error) {
-	key := []byte(os.Getenv("DIGISIGN_AES_KEY"))
-	log.Info("KEY ",string(key))
-	cipherText, _ := base64.StdEncoding.DecodeString(message)
-	//b := AesDecrypt(encodeText, key)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(cipherText) < aes.BlockSize {
-		err = errors.New("ciphertext block size is too short!")
-		return nil, err
-	}
-
-	//IV needs to be unique, but doesn't have to be secure.
-	//It's common to put it at the beginning of the ciphertext.
-	iv := cipherText[:aes.BlockSize]
-	cipherText = cipherText[aes.BlockSize:]
-
-	stream := cipher.NewCFBDecrypter(block, iv)
-	// XORKeyStream can work in-place if the two arguments are the same.
-	stream.XORKeyStream(cipherText, cipherText)
-
-	decodedMessage := string(cipherText)
-	return &decodedMessage, nil
-}
 
 func Base64Decode(data string) ([]byte, error) {
 	if data == "" {
