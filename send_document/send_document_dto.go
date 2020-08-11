@@ -1,12 +1,15 @@
 package send_document
 
 type Dto struct {
-	UserID     string    `form:"user_id" json:"user_id" validate:"required"`
-	DocumentID string    `form:"document_id" json:"document_id" validate:"required"`
-	Payment    string    `form:"payment" json:"payment" validate:"required"`
-	SendTo     []SendTo  `json:"send_to" validate:"required,dive,required"`
-	ReqSign    []ReqSign `json:"req_sign" validate:"required,dive,required"`
-	File       string    `json:"file" validate:"required"`
+	UserID         string    `form:"user_id" json:"user_id" validate:"required"`
+	DocumentID     string    `form:"document_id" json:"document_id" validate:"required"`
+	Payment        string    `form:"payment" json:"payment" validate:"required"`
+	SendTo         []SendTo  `json:"send_to" validate:"required,dive,required"`
+	ReqSign        []ReqSign `json:"req_sign" validate:"required,dive,required"`
+	Redirect       bool      `json:"redirect"`
+	SequenceOption bool      `json:"sequence_option"`
+	SigningSeq     int       `json:"signing_seq"`
+	File           string    `json:"file" validate:"required"`
 }
 type SendTo struct {
 	Name  string `json:"name" validate:"required"`
