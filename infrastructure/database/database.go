@@ -1,40 +1,45 @@
 package database
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"kpdigisign/model"
 	"kpdigisign/utils"
-	"log"
 	"os"
 )
 
 var dataBase *gorm.DB
 
 // New : err check
-func NewDb() *gorm.DB {
+func NewDb() (*gorm.DB, error) {
+
+	decryptDbHost, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
+		os.Getenv("DB_HOST"))
+
+	decryptDbPort, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
+		os.Getenv("DB_PORT"))
 
 	decryptDbPassword, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
 		os.Getenv("DB_PASSWORD"))
-	if err != nil {
-		log.Fatal("DECRYPT CREDENTIAL ERROR ", err.Error())
-	}
-	connection := "host=" + os.Getenv("DB_HOST") +
-		" port=" + os.Getenv("DB_PORT") +
-		" user=" + os.Getenv("DB_USERNAME") +
+
+	decryptDbUsername, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
+		os.Getenv("DB_USERNAME"))
+
+	connection := "host=" + decryptDbHost +
+		" port=" + decryptDbPort +
+		" user=" + decryptDbUsername +
 		" dbname=" + os.Getenv("DB_NAME") +
 		" password=" + decryptDbPassword +
 		" sslmode=" + os.Getenv("DB_SSL")
 	db, err := gorm.Open(os.Getenv("DB_DRIVER"), connection)
 
 	if err != nil {
-		fmt.Println("Error DB: ", err)
+		return nil, err
 	}
 	db.DB().SetMaxIdleConns(3)
 	db.LogMode(true)
-	dataBase = db
-	return db
+
+	return db, err
 }
 
 // GetLinkDb :

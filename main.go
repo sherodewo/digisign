@@ -33,7 +33,10 @@ func main() {
 	e := echo.New()
 
 	//Database
-	db := database.NewDb()
+	db, err := database.NewDb()
+	if err != nil {
+		panic(err)
+	}
 	if os.Getenv("APP_ENV") != "production" {
 		//Auto migrate
 		database.AutoMigrate(db)
