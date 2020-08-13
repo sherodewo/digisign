@@ -13,17 +13,14 @@ var dataBase *gorm.DB
 // New : err check
 func NewDb() (*gorm.DB, error) {
 
-	decryptDbHost, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
-		os.Getenv("DB_HOST"))
+	decryptDbHost, err := utils.DecryptCredential(os.Getenv("DB_HOST"))
 
-	decryptDbPort, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
-		os.Getenv("DB_PORT"))
+	decryptDbPort, err := utils.DecryptCredential(os.Getenv("DB_PORT"))
 
-	decryptDbPassword, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
-		os.Getenv("DB_PASSWORD"))
+	decryptDbPassword, err := utils.DecryptCredential(os.Getenv("DB_PASSWORD"))
 
-	decryptDbUsername, err := utils.DecryptCredential(os.Getenv("KEY_DECRYPT_CREDENTIALS"),
-		os.Getenv("DB_USERNAME"))
+	decryptDbUsername, err := utils.DecryptCredential(os.Getenv("DB_USERNAME"))
+
 
 	connection := "host=" + decryptDbHost +
 		" port=" + decryptDbPort +

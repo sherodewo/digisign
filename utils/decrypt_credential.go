@@ -3,7 +3,6 @@ package utils
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -16,19 +15,22 @@ func pkcs7Unpad(data []byte) ([]byte, error) {
 	return data[:(length - unPadding)], nil
 }
 
-func decrypt(key []byte, iv []byte, encrypted string) ([]byte, error) {
-	data, err := base64.RawStdEncoding.DecodeString(encrypted)
+func decrypt(key, iv []byte, encrypted string) ([]byte, error) {
+	data, err := base64.StdEncoding.DecodeString(encrypted)
 	if err != nil {
+		return nil, err
+	}
+	if len(string(data))%aes.BlockSize != 0 {
+		return nil, fmt.Errorf("bad blocksize(%v), aes.BlockSize = %v\n", len(data), aes.BlockSize)
+	}
+
+	c, err := aes.NewCipher(key)
+
+	if err != nil {
+		fmt.Println("error chipper ", err.Error())
 		return nil, err
 	}
 
-	if len(data) == 0 || len(data)%aes.BlockSize != 0 {
-		return nil, fmt.Errorf("bad blocksize(%v), aes.BlockSize = %v\n", len(data), aes.BlockSize)
-	}
-	c, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
 	cbc := cipher.NewCBCDecrypter(c, iv)
 	cbc.CryptBlocks(data, data)
 	out, err := pkcs7Unpad(data)
@@ -38,15 +40,21 @@ func decrypt(key []byte, iv []byte, encrypted string) ([]byte, error) {
 	return out, nil
 }
 
-func DecryptCredential(key string, encryptedText string) (string, error) {
-	s := strings.Split(encryptedText, ":")
-	src, iv := s[0], s[1]
+func DecryptCredential(encryptedText string) (string, error) {
+	data, err := base64.RawStdEncoding.DecodeString(encryptedText)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
-	h := sha256.New()
-	h.Write([]byte(key))
-	keyEncrypted := h.Sum(nil)
+	s := strings.Split(string(data), ":")
+	src, iv, key := s[0], s[1], s[2]
 
+	keys, err := base64.StdEncoding.DecodeString(key)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	decodeIv, err := hex.DecodeString(iv)
-	decryptedText, err := decrypt(keyEncrypted, decodeIv, src)
+	decryptedText, err := decrypt(keys, decodeIv, src)
 	return string(decryptedText), err
 }
