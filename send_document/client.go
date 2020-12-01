@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-resty/resty"
 	jsoniter "github.com/json-iterator/go"
+	"time"
 	"os"
 )
 
@@ -39,6 +40,8 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
+	//client.SetDebug(true)
+	client.SetTimeout(time.Second * time.Duration(250))
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
