@@ -1,0 +1,160 @@
+node () {
+	dir ("${env.BUILD_ID}") {
+		//app build var
+		def APP_NAME = "los-int-digisign"
+		def APP_PATH = "/opt/go/src/${APP_NAME}"
+		def APP_SERVICE = "${APP_NAME}.service"
+		def APP_OWNER = "los-admin"
+		def APP_ARCHIVE = "${APP_NAME}.tar.gz"
+		
+		//repository var
+		def APP_REPO_URL = "https://github.com/KB-FMF/los-int-digisign.git"
+		def APP_REPO_DEVOPS_URL = "https://github.com/KB-FMF/los-devops.git"
+		def CREDENTIAL_ID = "11c240e3-aa44-4d5b-b791-d3048f60f3c8"
+
+		//deployment var
+		def SSH_CREDENTIAL_ID = "168jloek-345s-9k2n-94ka-9kan4lau3jj1"
+		def SSH_IP_ADDRESS = "10.0.0.168"
+		def SSH_PORT = "22"
+		def SOURCE_PATH = "/opt/go/src"
+
+	
+		checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[
+			credentialsId: "${CREDENTIAL_ID}", 
+			url: "${APP_REPO_URL}"]], 
+			branches: [[name: "refs/tags/*"]
+		]]
+		
+		env.GIT_TAG_NAME = gitTagName()
+		currentBuild.displayName="#${BUILD_NUMBER}, ${JOB_NAME}, ${env.GIT_TAG_NAME}"
+				
+		try {
+			stage ('Pre-Build') {
+				slackSend (color: '#0000FF', message: "STARTING: Build for ' ${JOB_NAME}, ${env.GIT_TAG_NAME}' (${env.BUILD_URL})", channel: "#los-builds")
+				echo 'Pre-Build'
+				dir("temp_config"){
+					checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[
+						credentialsId: "${CREDENTIAL_ID}", 
+						url: "${APP_REPO_DEVOPS_URL}"]], 
+						branches: [[name: "*/master"]
+					]]
+				}
+			}
+			stage ('Build') {
+				echo 'Build'
+				// Export environment variables pointing to the directory where Go was installed
+				withEnv(["GOROOT=/usr/local/go", "PATH+GO=/usr/local/go/bin"]) {
+					sh """
+						echo '[DEBUG-MODE] BUILD_ID : ${WORKSPACE}/${BUILD_ID}'
+
+						rm -rf ${APP_PATH}/*
+						cp ./temp_config/config-production/config-${APP_NAME}/prod.env ${WORKSPACE}/${BUILD_ID}/config.json
+
+						chmod 755 ${WORKSPACE}/${BUILD_ID}/temp_config/shell/appVersionProd.sh && cd ${WORKSPACE}/${BUILD_ID}/temp_config/shell/ && ./appVersionProd.sh
+						
+						rm -rf .git*
+						rm -rf ${WORKSPACE}/${BUILD_ID}/temp_config
+						rm -rf ${WORKSPACE}/${BUILD_ID}/temp_config@tmp
+						
+						cp -a ./* ${APP_PATH}/
+						cd ${APP_PATH} && go build -o ${APP_PATH}/${APP_NAME}
+						cd ${SOURCE_PATH} && tar czf ${APP_ARCHIVE} ./${APP_NAME}
+					"""
+				}
+			}
+			stage ('Deploy') {
+				echo 'Deploy to Remote Nodes'
+
+				deployToRemote(SSH_IP_ADDRESS, SSH_PORT, SSH_CREDENTIAL_ID, APP_NAME, APP_PATH, APP_OWNER, SOURCE_PATH, APP_ARCHIVE)
+			}
+			stage ('Restart Service'){
+				echo 'Restart Service on Remote Nodes'
+
+				restartServiceRemote(SSH_IP_ADDRESS, SSH_PORT, SSH_CREDENTIAL_ID, APP_SERVICE)
+			}
+			stage ('Cleaning') {
+				// Cleansing WS
+				sh 'cd ${SOURCE_PATH} && rm -rf ${APP_ARCHIVE}'
+				deleteDir()
+			}
+		} catch (e) {
+        currentBuild.result = "FAILED"
+        throw e
+		} finally {
+			notifyBuild(currentBuild.result)
+		}
+	}
+}
+
+//for grab git tag
+String gitTagName() {
+    commit = getCommit()
+    if (commit) {
+        desc = sh(script: "git describe --tags ${commit}", returnStdout: true)?.trim()
+        if (isTag(desc)) {
+            return desc
+        }
+    }
+    return null
+}
+String getCommit() {
+    return sh(script: 'git rev-parse HEAD', returnStdout: true)?.trim()
+}
+ 
+@NonCPS
+boolean isTag(String desc) {
+    match = desc =~ /.+-[0-9]+-g[0-9A-Fa-f]{6,}$/
+    result = !match
+    match = null // prevent serialisation
+    return result
+}
+
+//for slackNotifications
+def notifyBuild(String buildStatus = 'STARTED') {
+    buildStatus =  buildStatus ?: 'SUCCESSFUL'
+
+    def color = 'RED'
+    def colorCode = '#FF0000'
+    def subject = "${buildStatus}: Job '${env.JOB_NAME}, ${env.GIT_TAG_NAME}'"
+    def summary = "${subject} (${env.BUILD_URL})"
+
+    if (buildStatus == 'STARTED') {
+        color = 'YELLOW'
+        colorCode = '#FFCC00'
+    } else if (buildStatus == 'SUCCESSFUL') {
+        color = 'GREEN'
+        colorCode = '#00FF00'
+    } else {
+        color = 'RED'
+        colorCode = '#FF0000'
+    }
+
+    slackSend (color: colorCode, message: summary, channel: "#los-builds")
+}
+
+def deployToRemote(String IPAdress, String Port, String CredentialID, String AppName, String AppPath,  String AppOwner, String SourcePath, String AppArchive) {
+	echo "Deploy to ${IPAdress}"
+
+	withCredentials([usernamePassword(credentialsId: "${CredentialID}", passwordVariable: 'PassCred', usernameVariable: 'UserCred')]) {
+		sh """
+			#!/bin/bash
+			ssh -p ${Port} ${UserCred}@${IPAdress} "hostname"
+			ssh -p ${Port} ${UserCred}@${IPAdress} "cd /opt/go/src/ && sudo rm -rf ./${AppName}/*"
+			scp -P ${Port} ${SourcePath}/${AppArchive} ${UserCred}@${IPAdress}:/opt/go/temp/
+			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo tar -xzf /opt/go/temp/${AppArchive} -C ${SourcePath}"
+			ssh -p ${Port} ${UserCred}@${IPAdress} "rm /opt/go/temp/${AppArchive}"
+			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo chown -R ${AppOwner}:${AppOwner} ${AppPath}"
+		"""
+	}
+}
+
+def restartServiceRemote(String IPAdress, String Port, String CredentialID, String AppService) {
+	echo "Restart Service on ${IPAdress}"
+
+	withCredentials([usernamePassword(credentialsId: "${CredentialID}", passwordVariable: 'PassCred', usernameVariable: 'UserCred')]) {
+		sh """
+			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo systemctl stop ${AppService}"
+			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo systemctl start ${AppService}"
+		"""
+	}
+}
