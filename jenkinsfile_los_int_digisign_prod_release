@@ -47,9 +47,10 @@ node () {
 						echo '[DEBUG-MODE] BUILD_ID : ${WORKSPACE}/${BUILD_ID}'
 
 						rm -rf ${APP_PATH}/*
-						cp ./config/config-production/config-${APP_NAME}/prod.json ${WORKSPACE}/${BUILD_ID}/config.json
+						mkdir conf
+						cp ./config/config-production/config-${APP_NAME}/prod.env ${WORKSPACE}/${BUILD_ID}/conf/config.env
 
-						chmod 755 ${WORKSPACE}/${BUILD_ID}/config/shell/appVersionProd.sh && cd ${WORKSPACE}/${BUILD_ID}/config/shell/ && ./appVersionProd.sh
+						chmod 755 ${WORKSPACE}/${BUILD_ID}/config/shell/appVersionProdConf.sh && cd ${WORKSPACE}/${BUILD_ID}/config/shell/ && ./appVersionProdConf.sh
 						
 						rm -rf .git*
 						rm -rf ${WORKSPACE}/${BUILD_ID}/config
