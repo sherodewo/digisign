@@ -13,10 +13,9 @@ node () {
 		def CREDENTIAL_ID = "11c240e3-aa44-4d5b-b791-d3048f60f3c8"
 
 		//deployment var
-		def SSH_CREDENTIAL_ID = "168jloek-345s-9k2n-94ka-9kan4lau3jj1"
-		def SSH_IP_ADDRESS = "10.0.0.168"
-		def SSH_PORT = "22"
+		def SERVER_DEST = "los-int-api"
 		def SOURCE_PATH = "/opt/go/src"
+		def TEMP_PATH = "/opt/go/temp"
 
 	
 		checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[
@@ -32,7 +31,7 @@ node () {
 			stage ('Pre-Build') {
 				slackSend (color: '#0000FF', message: "STARTING: Build for ' ${JOB_NAME}, ${env.GIT_TAG_NAME}' (${env.BUILD_URL})", channel: "#los-builds")
 				echo 'Pre-Build'
-				dir("temp_config"){
+				dir("config"){
 					checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[
 						credentialsId: "${CREDENTIAL_ID}", 
 						url: "${APP_REPO_DEVOPS_URL}"]], 
@@ -48,15 +47,16 @@ node () {
 						echo '[DEBUG-MODE] BUILD_ID : ${WORKSPACE}/${BUILD_ID}'
 
 						rm -rf ${APP_PATH}/*
-						cp ./temp_config/config-production/config-${APP_NAME}/prod.env ${WORKSPACE}/${BUILD_ID}/config.json
+						cp ./config/config-production/config-${APP_NAME}/prod.json ${WORKSPACE}/${BUILD_ID}/config.json
 
-						chmod 755 ${WORKSPACE}/${BUILD_ID}/temp_config/shell/appVersionProd.sh && cd ${WORKSPACE}/${BUILD_ID}/temp_config/shell/ && ./appVersionProd.sh
+						chmod 755 ${WORKSPACE}/${BUILD_ID}/config/shell/appVersionProd.sh && cd ${WORKSPACE}/${BUILD_ID}/config/shell/ && ./appVersionProd.sh
 						
 						rm -rf .git*
-						rm -rf ${WORKSPACE}/${BUILD_ID}/temp_config
-						rm -rf ${WORKSPACE}/${BUILD_ID}/temp_config@tmp
+						rm -rf ${WORKSPACE}/${BUILD_ID}/config
+						rm -rf ${WORKSPACE}/${BUILD_ID}/config@tmp
 						
-						cp -a ./* ${APP_PATH}/
+						cp -a ${WORKSPACE}/${BUILD_ID}/* ${APP_PATH}/
+						cd ${APP_PATH} && go mod vendor
 						cd ${APP_PATH} && go build -o ${APP_PATH}/${APP_NAME}
 						cd ${SOURCE_PATH} && tar czf ${APP_ARCHIVE} ./${APP_NAME}
 					"""
@@ -65,12 +65,12 @@ node () {
 			stage ('Deploy') {
 				echo 'Deploy to Remote Nodes'
 
-				deployToRemote(SSH_IP_ADDRESS, SSH_PORT, SSH_CREDENTIAL_ID, APP_NAME, APP_PATH, APP_OWNER, SOURCE_PATH, APP_ARCHIVE)
+				deployToRemote(SERVER_DEST, APP_PATH, APP_OWNER, SOURCE_PATH, TEMP_PATH, APP_ARCHIVE)
 			}
 			stage ('Restart Service'){
 				echo 'Restart Service on Remote Nodes'
 
-				restartServiceRemote(SSH_IP_ADDRESS, SSH_PORT, SSH_CREDENTIAL_ID, APP_SERVICE)
+				restartServiceRemote(SERVER_DEST, APP_SERVICE)
 			}
 			stage ('Cleaning') {
 				// Cleansing WS
@@ -132,29 +132,25 @@ def notifyBuild(String buildStatus = 'STARTED') {
     slackSend (color: colorCode, message: summary, channel: "#los-builds")
 }
 
-def deployToRemote(String IPAdress, String Port, String CredentialID, String AppName, String AppPath,  String AppOwner, String SourcePath, String AppArchive) {
-	echo "Deploy to ${IPAdress}"
+def deployToRemote(String DestinationHostname, String AppPath, String AppOwner, String SourcePath, String TempPath, String AppArchive) {
+	echo "Deploy to ${DestinationHostname}"
 
-	withCredentials([usernamePassword(credentialsId: "${CredentialID}", passwordVariable: 'PassCred', usernameVariable: 'UserCred')]) {
 		sh """
 			#!/bin/bash
-			ssh -p ${Port} ${UserCred}@${IPAdress} "hostname"
-			ssh -p ${Port} ${UserCred}@${IPAdress} "cd /opt/go/src/ && sudo rm -rf ./${AppName}/*"
-			scp -P ${Port} ${SourcePath}/${AppArchive} ${UserCred}@${IPAdress}:/opt/go/temp/
-			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo tar -xzf /opt/go/temp/${AppArchive} -C ${SourcePath}"
-			ssh -p ${Port} ${UserCred}@${IPAdress} "rm /opt/go/temp/${AppArchive}"
-			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo chown -R ${AppOwner}:${AppOwner} ${AppPath}"
+			ssh ${DestinationHostname} "hostname"
+			ssh ${DestinationHostname} "sudo rm -rf ${AppPath}/*"
+			scp ${SourcePath}/${AppArchive} ${DestinationHostname}:${TempPath}/
+			ssh ${DestinationHostname} "sudo tar -xzf ${TempPath}/${AppArchive} -C ${SourcePath}/"
+			ssh ${DestinationHostname} "rm ${TempPath}/${AppArchive}"
+			ssh ${DestinationHostname} "sudo chown -R ${AppOwner}:${AppOwner} ${AppPath}"
 		"""
-	}
 }
 
-def restartServiceRemote(String IPAdress, String Port, String CredentialID, String AppService) {
-	echo "Restart Service on ${IPAdress}"
+def restartServiceRemote(String DestinationHostname, String AppService) {
+	echo "Restart Service on ${DestinationHostname}"
 
-	withCredentials([usernamePassword(credentialsId: "${CredentialID}", passwordVariable: 'PassCred', usernameVariable: 'UserCred')]) {
 		sh """
-			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo systemctl stop ${AppService}"
-			ssh -p ${Port} ${UserCred}@${IPAdress} "sudo systemctl start ${AppService}"
+			ssh ${DestinationHostname} "sudo systemctl stop ${AppService}"
+			ssh ${DestinationHostname} "sudo systemctl start ${AppService}"
 		"""
-	}
 }
