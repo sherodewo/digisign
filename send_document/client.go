@@ -3,10 +3,11 @@ package send_document
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/go-resty/resty"
-	jsoniter "github.com/json-iterator/go"
-	"time"
 	"os"
+	"time"
+
+	jsoniter "github.com/json-iterator/go"
+	"gopkg.in/resty.v1"
 )
 
 type digisignSendDocRequest struct {
