@@ -1,11 +1,12 @@
 package database
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"kpdigisign/model"
 	"kpdigisign/utils"
 	"os"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 var dataBase *gorm.DB
@@ -21,11 +22,12 @@ func NewDb() (*gorm.DB, error) {
 
 	decryptDbUsername, err := utils.DecryptCredential(os.Getenv("DB_USERNAME"))
 
+	decryptDbName, err := utils.DecryptCredential(os.Getenv("DB_NAME"))
 
 	connection := "host=" + decryptDbHost +
 		" port=" + decryptDbPort +
 		" user=" + decryptDbUsername +
-		" dbname=" + os.Getenv("DB_NAME") +
+		" dbname=" + decryptDbName +
 		" password=" + decryptDbPassword +
 		" sslmode=" + os.Getenv("DB_SSL")
 	db, err := gorm.Open(os.Getenv("DB_DRIVER"), connection)
