@@ -16,7 +16,7 @@ import (
 
 func init() {
 	//Load .env file
-	err := godotenv.Load("conf/config.env")
+	err := godotenv.Load("conf/config-prod.env")
 	if err != nil {
 		panic(err)
 	}
