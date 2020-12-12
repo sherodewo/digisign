@@ -1,8 +1,9 @@
 package sign_document
 
 import (
-	"github.com/go-resty/resty"
 	"os"
+
+	"gopkg.in/resty.v1"
 )
 
 type losSignDocumentRequestCallbackRequest struct {
@@ -32,9 +33,8 @@ func (c *losSignDocumentRequestCallbackRequest) losSignDocumentRequestCallback(e
 		SetBody(c).
 		Post(os.Getenv("LOS_BASE_URL") + "/digisign/sign_doc")
 	if err != nil {
-		return nil,  err
+		return nil, err
 	}
-
 
 	return resp, nil
 }

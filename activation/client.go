@@ -3,11 +3,13 @@ package activation
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/go-resty/resty"
-	jsoniter "github.com/json-iterator/go"
+
 	"kpdigisign/infrastructure/config/digisign"
 	"os"
 	"strconv"
+
+	jsoniter "github.com/json-iterator/go"
+	"gopkg.in/resty.v1"
 )
 
 type digisignActivationRequest struct {

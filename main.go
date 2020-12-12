@@ -1,21 +1,22 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/labstack/gommon/log"
 	"kpdigisign/infrastructure/config/digisign"
 	"kpdigisign/infrastructure/database"
 	"kpdigisign/infrastructure/routes"
 	"kpdigisign/infrastructure/validator"
 	"kpdigisign/model"
 	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/labstack/gommon/log"
 )
 
 func init() {
 	//Load .env file
-	err := godotenv.Load()
+	err := godotenv.Load("conf/config-prod.env")
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +29,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 
 	//New instance echo
 	e := echo.New()

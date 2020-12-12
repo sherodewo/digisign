@@ -1,8 +1,9 @@
 package activation
 
 import (
-	"github.com/go-resty/resty"
 	"os"
+
+	"gopkg.in/resty.v1"
 )
 
 type losActivationRequestCallbackRequest struct {

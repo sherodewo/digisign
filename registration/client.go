@@ -3,12 +3,14 @@ package registration
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/go-resty/resty"
-	jsoniter "github.com/json-iterator/go"
+
 	"kpdigisign/infrastructure/config/digisign"
 	"kpdigisign/utils"
-	"time"
 	"os"
+	"time"
+
+	jsoniter "github.com/json-iterator/go"
+	"gopkg.in/resty.v1"
 )
 
 type digisignRegistrationRequest struct {
