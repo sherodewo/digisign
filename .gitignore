@@ -2,5 +2,4 @@
 .idea
 vendor
 Gopkg.lock
-*config.env
 build/*.env
