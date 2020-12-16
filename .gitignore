@@ -3,3 +3,4 @@
 vendor
 Gopkg.lock
 build/*.env
+logs

@@ -1,12 +1,14 @@
 package main
 
 import (
+	"io"
 	"kpdigisign/infrastructure/config/digisign"
 	"kpdigisign/infrastructure/database"
 	"kpdigisign/infrastructure/routes"
 	"kpdigisign/infrastructure/validator"
 	"kpdigisign/model"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
@@ -47,10 +49,30 @@ func main() {
 		db.Model(&model.SignDocument{}).AddForeignKey("sign_document_result_id", "sign_document_results(id)", "CASCADE", "NO ACTION")
 	}
 
+	// Setup log folder
+	if _, err := os.Stat(os.Getenv("LOG_FILE")); os.IsNotExist(err) {
+		err = os.MkdirAll(os.Getenv("LOG_FILE"), 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
+	currentTime := time.Now()
+
+	// Setup Log
+	logPath := os.Getenv("LOG_FILE")
+	logFileName := currentTime.Format("2006-01-02") + "-" + "digisign.log"
+	logFile, err := os.OpenFile(logPath+logFileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("Error create or open log file")
+	}
+
 	//Validation
 	e.Validator = validator.NewValidator()
 	//Set Middleware
 	e.Logger.SetLevel(log.DEBUG)
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Output: io.MultiWriter(logFile, os.Stdout),
+	}))
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
