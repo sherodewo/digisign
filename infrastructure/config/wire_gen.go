@@ -7,12 +7,12 @@ package config
 
 import (
 	"github.com/jinzhu/gorm"
-	"kpdigisign/activation"
-	"kpdigisign/download_document"
-	"kpdigisign/registration"
-	"kpdigisign/send_document"
-	"kpdigisign/sign_document"
-	"kpdigisign/user"
+	"los-int-digisign/activation"
+	"los-int-digisign/download_document"
+	"los-int-digisign/registration"
+	"los-int-digisign/send_document"
+	"los-int-digisign/sign_document"
+	"los-int-digisign/user"
 )
 
 // Injectors from di.go:

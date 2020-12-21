@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"kpdigisign/infrastructure/config/digisign"
-	"kpdigisign/utils"
+	"los-int-digisign/infrastructure/config/digisign"
+	"los-int-digisign/utils"
 	"os"
 	"time"
 

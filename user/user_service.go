@@ -1,8 +1,8 @@
 package user
 
 import (
-	"kpdigisign/model"
-	"kpdigisign/utils"
+	"los-int-digisign/model"
+	"los-int-digisign/utils"
 )
 
 type service struct {

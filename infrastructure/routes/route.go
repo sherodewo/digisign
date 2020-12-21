@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"kpdigisign/infrastructure/config"
+	"los-int-digisign/infrastructure/config"
 	"net/http"
 )
 

@@ -2,7 +2,7 @@ package send_document
 
 import (
 	"github.com/jinzhu/gorm"
-	"kpdigisign/model"
+	"los-int-digisign/model"
 )
 
 type Repository interface {

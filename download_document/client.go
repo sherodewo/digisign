@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"kpdigisign/infrastructure/config/digisign"
+	"los-int-digisign/infrastructure/config/digisign"
 	"os"
 	"strconv"
 

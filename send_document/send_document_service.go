@@ -2,7 +2,7 @@ package send_document
 
 import (
 	jsoniter "github.com/json-iterator/go"
-	"kpdigisign/model"
+	"los-int-digisign/model"
 )
 
 type service struct {

@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/labstack/echo"
-	"kpdigisign/infrastructure/response"
+	"los-int-digisign/infrastructure/response"
 )
 
 type Controller struct {

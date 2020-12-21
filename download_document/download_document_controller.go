@@ -3,7 +3,7 @@ package download_document
 import (
 	"bytes"
 	"github.com/labstack/echo"
-	"kpdigisign/infrastructure/response"
+	"los-int-digisign/infrastructure/response"
 )
 
 type Controller struct{}

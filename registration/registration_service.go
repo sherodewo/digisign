@@ -1,7 +1,7 @@
 package registration
 
 import (
-	"kpdigisign/model"
+	"los-int-digisign/model"
 )
 
 type service struct {

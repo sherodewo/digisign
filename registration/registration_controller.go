@@ -2,8 +2,8 @@ package registration
 
 import (
 	"github.com/labstack/echo"
-	"kpdigisign/infrastructure/response"
-	"kpdigisign/utils"
+	"los-int-digisign/infrastructure/response"
+	"los-int-digisign/utils"
 )
 
 type Controller struct {

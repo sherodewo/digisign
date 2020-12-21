@@ -2,7 +2,7 @@ package activation
 
 import (
 	"github.com/labstack/echo"
-	"kpdigisign/model"
+	"los-int-digisign/model"
 )
 
 type service struct {

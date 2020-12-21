@@ -1,6 +1,6 @@
 package registration
 
-import "kpdigisign/model"
+import "los-int-digisign/model"
 
 type Mapper struct {
 	ID                   string `json:"id"`

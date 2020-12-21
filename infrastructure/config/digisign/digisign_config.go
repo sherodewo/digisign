@@ -1,7 +1,7 @@
 package digisign
 
 import (
-	"kpdigisign/utils"
+	"los-int-digisign/utils"
 	"os"
 )
 

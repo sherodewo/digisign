@@ -2,7 +2,7 @@ package validator
 
 import (
 	"gopkg.in/go-playground/validator.v9"
-	"kpdigisign/registration"
+	"los-int-digisign/registration"
 )
 
 func NewValidator() *Validator {

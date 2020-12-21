@@ -2,11 +2,6 @@ package main
 
 import (
 	"io"
-	"kpdigisign/infrastructure/config/digisign"
-	"kpdigisign/infrastructure/database"
-	"kpdigisign/infrastructure/routes"
-	"kpdigisign/infrastructure/validator"
-	"kpdigisign/model"
 	"os"
 	"time"
 
@@ -14,6 +9,11 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
+	"los-int-digisign/infrastructure/config/digisign"
+	"los-int-digisign/infrastructure/database"
+	"los-int-digisign/infrastructure/routes"
+	"los-int-digisign/infrastructure/validator"
+	"los-int-digisign/model"
 )
 
 func init() {

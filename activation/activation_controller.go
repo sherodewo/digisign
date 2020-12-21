@@ -4,9 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/labstack/echo"
-	"kpdigisign/infrastructure/config/digisign"
-	"kpdigisign/infrastructure/response"
-	"kpdigisign/utils"
+	"los-int-digisign/infrastructure/config/digisign"
+	"los-int-digisign/infrastructure/response"
+	"los-int-digisign/utils"
 )
 
 type Controller struct {
