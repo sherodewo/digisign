@@ -1,5 +1,4 @@
 .vscode
 .idea
-vendor
 Gopkg.lock
-build/*.env
+build
