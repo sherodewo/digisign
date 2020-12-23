@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"los-int-digisign/infrastructure/config/digisign"
+	
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/resty.v1"
 )
