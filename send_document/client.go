@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"los-int-digisign/infrastructure/config/digisign"
+	
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/resty.v1"
 )
@@ -45,7 +47,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 	client.SetTimeout(time.Second * time.Duration(250))
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Authorization", "Bearer "+os.Getenv("DIGISIGN_TOKEN")).
+		SetHeader("Authorization", "Bearer "+digisign.Token).
 		SetFileReader("file", "file_"+dto.DocumentID+".pdf", bytes.NewReader(byteFile)).
 		SetFormData(map[string]string{
 			"jsonfield": string(drJson),
