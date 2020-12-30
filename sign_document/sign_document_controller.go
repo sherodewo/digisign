@@ -6,7 +6,6 @@ import (
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
-	"fmt"
 	"github.com/labstack/echo"
 )
 
