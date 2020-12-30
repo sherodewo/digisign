@@ -1,10 +1,11 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/gommon/log"
-	"time"
 )
 
 type SignDocumentResult struct {
@@ -12,6 +13,7 @@ type SignDocumentResult struct {
 	Result       string    `gorm:"type:varchar(5);column:result"`
 	Link         string    `gorm:"type:varchar(255);column:link"`
 	JsonResponse string    `gorm:"type:text;column:json_response"`
+	JsonRequest  string    `gorm:"type:text;column:json_request"`
 	CreatedAt    time.Time `gorm:"column:created_at"`
 	UpdatedAt    time.Time `gorm:"column:updated_at"`
 }

@@ -35,7 +35,7 @@ func (s *service) FindRegistrationById(id string) (*Mapper, error) {
 }
 
 func (s *service) SaveRegistration(dto Dto, result string, notif string, reftrx string,
-	jsonResponse string, kodeUser string) (*Mapper, error) {
+	jsonResponse string, kodeUser string, jsonRequest string) (*Mapper, error) {
 	entity := model.Registration{}
 	entity.ProspectID = dto.ProspectID
 	entity.UserID = dto.UserID
@@ -72,6 +72,7 @@ func (s *service) SaveRegistration(dto Dto, result string, notif string, reftrx 
 	entity.RegistrationResult.Result = result
 	entity.RegistrationResult.KodeUser = kodeUser
 	entity.RegistrationResult.JsonResponse = jsonResponse
+	entity.RegistrationResult.JsonRequest = jsonRequest
 
 	data, err := s.registrationRepository.Save(entity)
 	if err != nil {

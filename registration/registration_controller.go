@@ -1,9 +1,10 @@
 package registration
 
 import (
-	"github.com/labstack/echo"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
+
+	"github.com/labstack/echo"
 )
 
 type Controller struct {
@@ -54,7 +55,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	bufTtd, _ := utils.Base64Decode(dto.FotoTandaTangan)
 
 	client := NewDigisignRegistrationRequest()
-	resp, result, notif, reftrx, jsonResponse, kodeUser, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
+	resp, result, notif, reftrx, jsonResponse, kodeUser, request, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
 		bufNpwp, bufTtd, dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
@@ -68,7 +69,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	_, err = c.service.SaveRegistration(dto, result, notif, reftrx, jsonResponse, kodeUser)
+	_, err = c.service.SaveRegistration(dto, result, notif, reftrx, jsonResponse, kodeUser, request)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}

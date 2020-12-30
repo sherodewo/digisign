@@ -1,8 +1,9 @@
 package sign_document
 
 import (
-	"github.com/labstack/echo"
 	"los-int-digisign/model"
+
+	"github.com/labstack/echo"
 )
 
 type service struct {
@@ -35,7 +36,7 @@ func (s *service) FindSignDocumentById(id string) (*Mapper, error) {
 	}
 }
 
-func (s *service) SaveSignDocument(dto Dto, result string, link string, jsonResponse string) (*Mapper, error) {
+func (s *service) SaveSignDocument(dto Dto, result string, link string, jsonResponse string, jsonRequest string) (*Mapper, error) {
 	var entity model.SignDocument
 	entity.UserID = dto.UserID
 	entity.EmailUser = dto.EmailUser
@@ -43,6 +44,7 @@ func (s *service) SaveSignDocument(dto Dto, result string, link string, jsonResp
 	entity.SignDocumentResult.Result = result
 	entity.SignDocumentResult.Link = link
 	entity.SignDocumentResult.JsonResponse = jsonResponse
+	entity.SignDocumentResult.JsonRequest = jsonRequest
 
 	data, err := s.signDocumentRepository.Save(entity)
 	if err != nil {
