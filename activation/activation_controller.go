@@ -3,10 +3,11 @@ package activation
 import (
 	"encoding/base64"
 	"encoding/json"
-	"github.com/labstack/echo"
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
+
+	"github.com/labstack/echo"
 )
 
 type Controller struct {
@@ -43,7 +44,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.ValidationError(ctx, "Validation error", nil, err.Error())
 	}
 	client := NewDigisignActivationRequest()
-	res, result, link, err := client.ActivationDigisign(dto)
+	res, result, link, jsonRequest, err := client.ActivationDigisign(dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
@@ -56,7 +57,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	_, err = c.service.SaveActivation(dto, result, link, res.String())
+	_, err = c.service.SaveActivation(dto, result, link, res.String(), jsonRequest)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}

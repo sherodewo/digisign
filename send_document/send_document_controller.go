@@ -1,9 +1,10 @@
 package send_document
 
 import (
-	"github.com/labstack/echo"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
+
+	"github.com/labstack/echo"
 )
 
 type Controller struct {
@@ -45,14 +46,14 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	client := NewDigisignSendDocRequest()
-	res,result, notif, reftrx, jsonResponse, err := client.DigisignSendDoc(byteFile, dto)
+	res, result, notif, reftrx, jsonResponse, jsonRequest, err := client.DigisignSendDoc(byteFile, dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	if res.IsError() {
-		return response.BadRequest(ctx, "Bad Request", nil,"Digisign api error "+res.String())
+		return response.BadRequest(ctx, "Bad Request", nil, "Digisign api error "+res.String())
 	}
-	data, err := c.service.SaveSendDocument(dto, result, notif, reftrx, jsonResponse)
+	data, err := c.service.SaveSendDocument(dto, result, notif, reftrx, jsonResponse, jsonRequest)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}

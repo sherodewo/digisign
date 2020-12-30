@@ -1,10 +1,11 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/gommon/log"
-	"time"
 )
 
 type SendDocumentResult struct {
@@ -13,6 +14,7 @@ type SendDocumentResult struct {
 	Notif        string    `gorm:"type:varchar(100);column:notif"`
 	RefTrx       string    `gorm:"type:varchar(100);column:ref_trx"`
 	JsonResponse string    `gorm:"type:text;column:json_response"`
+	JsonRequest  string    `gorm:"type:text;column:json_request"`
 	CreatedAt    time.Time `gorm:"column:created_at"`
 	UpdatedAt    time.Time `gorm:"column:updated_at"`
 }

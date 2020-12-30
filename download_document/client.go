@@ -3,6 +3,7 @@ package download_document
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"los-int-digisign/infrastructure/config/digisign"
 	"os"
@@ -27,6 +28,7 @@ func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (resu
 	dr.JSONFile.UserID = downloadRequest.UserID
 	dr.JSONFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
+	fmt.Println("Request Download File : ", string(drJson))
 	if err != nil {
 		return nil, "", err
 	}
@@ -45,7 +47,7 @@ func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (resu
 		return nil, "", err
 	}
 	base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
-
+	fmt.Println("Response Download File : ", string(resp.Body()))
 	return resp, base64File, err
 }
 

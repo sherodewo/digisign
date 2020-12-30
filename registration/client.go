@@ -47,7 +47,7 @@ func NewDigisignRegistrationRequest() *digisignRegistrationRequest {
 
 func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byteKtp []byte, byteSelfie []byte,
 	byteNpwp []byte, byteTtd []byte, dto Dto) (res *resty.Response, result string, notif string, reftrx string,
-	jsonResponse string, kodeUser string, err error) {
+	jsonResponse string, kodeUser string, request string, err error) {
 
 	//Mapping request
 	dr.JSONFile.UserID = dto.UserID
@@ -88,7 +88,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 
 	client := resty.New()
 	client.SetTimeout(time.Second * time.Duration(250))
-	client.SetDebug(true)
+	//client.SetDebug(true)
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -102,13 +102,13 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil, "", "", "", "", "", nil
+			return nil, "", "", "", "", "", string(drJson), nil
 
 		}
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp, result, notif, reftrx, resp.String(), kodeUser, err
+		return resp, result, notif, reftrx, resp.String(), kodeUser, string(drJson), err
 	} else if byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -124,12 +124,12 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil, "", "", "", "", "", nil
+			return nil, "", "", "", "", "", string(drJson), nil
 		}
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp, result, notif, reftrx, resp.String(), kodeUser, err
+		return resp, result, notif, reftrx, resp.String(), kodeUser, string(drJson), err
 	} else if byteTtd == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -145,12 +145,12 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil, "", "", "", "", "", nil
+			return nil, "", "", "", "", "", string(drJson), nil
 		}
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-		return resp, result, notif, reftrx, resp.String(), kodeUser, err
+		return resp, result, notif, reftrx, resp.String(), kodeUser, string(drJson), err
 	} else {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -168,12 +168,12 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
-			return nil, "", "", "", "", "", nil
+			return nil, "", "", "", "", "", string(drJson), nil
 		}
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 		notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 		reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
 		kodeUser = jsoniter.Get(resp.Body(), "JSONFile").Get("kode_user").ToString()
-		return resp, result, notif, reftrx, resp.String(), kodeUser, err
+		return resp, result, notif, reftrx, resp.String(), kodeUser, string(drJson), err
 	}
 }

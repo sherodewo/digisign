@@ -1,8 +1,9 @@
 package send_document
 
 import (
-	jsoniter "github.com/json-iterator/go"
 	"los-int-digisign/model"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 type service struct {
@@ -35,8 +36,8 @@ func (s *service) FindSendDocumentById(id string) (*Mapper, error) {
 	}
 }
 
-func (s *service) SaveSendDocument(dto Dto,result string, notif string, reftrx string,
-	jsonResponse string) (*Mapper, error) {
+func (s *service) SaveSendDocument(dto Dto, result string, notif string, reftrx string,
+	jsonResponse string, jsonRequest string) (*Mapper, error) {
 	var entity model.SendDocument
 
 	reqSign, err := jsoniter.Marshal(dto.ReqSign)
@@ -47,7 +48,7 @@ func (s *service) SaveSendDocument(dto Dto,result string, notif string, reftrx s
 	if err != nil {
 		return nil, err
 	}
-	entity.UserID =dto.UserID
+	entity.UserID = dto.UserID
 	entity.DocumentID = dto.DocumentID
 	entity.Payment = dto.Payment
 	entity.SendTo = string(sendTo)
@@ -57,6 +58,7 @@ func (s *service) SaveSendDocument(dto Dto,result string, notif string, reftrx s
 	entity.SendDocumentResult.Notif = notif
 	entity.SendDocumentResult.Result = result
 	entity.SendDocumentResult.JsonResponse = jsonResponse
+	entity.SendDocumentResult.JsonRequest = jsonRequest
 
 	data, err := s.sendDocumentRepository.Save(entity)
 	if err != nil {

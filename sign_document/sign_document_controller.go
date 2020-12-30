@@ -3,10 +3,11 @@ package sign_document
 import (
 	"encoding/base64"
 	"encoding/json"
-	"github.com/labstack/echo"
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
+	"fmt"
+	"github.com/labstack/echo"
 )
 
 type Controller struct {
@@ -43,7 +44,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.ValidationError(ctx, "Validation error", nil, err.Error())
 	}
 	client := NewDigisignSignDocumentRequest()
-	res, result, link, _, err := client.DigisignSignDocumentRequest(dto)
+	res, result, link, _, jsonRequest, err := client.DigisignSignDocumentRequest(dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
@@ -56,7 +57,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	_, err = c.service.SaveSignDocument(dto, result, link, res.String())
+	_, err = c.service.SaveSignDocument(dto, result, link, res.String(), jsonRequest)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
@@ -71,7 +72,7 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	}
 	key := digisign.AesKey
 	byteDecrypt := utils.AesDecrypt(decodeValue, []byte(key))
-
+	 
 	var dataMap map[string]interface{}
 	err = json.Unmarshal(byteDecrypt, &dataMap)
 	if err != nil {

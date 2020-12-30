@@ -24,16 +24,16 @@ func NewDigisignActivationRequest() *digisignActivationRequest {
 }
 
 func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
-	result *resty.Response, resultActivation string, link string, err error) {
+	result *resty.Response, resultActivation string, link string, jsonRequest string, err error) {
 	dr.JSONFile.UserID = request.UserID
 	dr.JSONFile.EmailUser = request.EmailUser
 	drJson, err := json.Marshal(dr)
 	if err != nil {
-		return nil, "", "", err
+		return nil, "", "", string(drJson), err
 	}
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
-	client.SetDebug(true)
+	// client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer "+digisign.Token).
@@ -43,10 +43,10 @@ func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/gen/genACTPage.html")
 	if err != nil {
-		return nil, "", "", err
+		return nil, "", "", string(drJson), err
 	}
 	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 	link = jsoniter.Get(resp.Body(), "JSONFile").Get("link").ToString()
 
-	return resp, resultActivation, link, err
+	return resp, resultActivation, link, string(drJson), err
 }

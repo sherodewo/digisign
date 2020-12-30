@@ -26,14 +26,14 @@ func NewDigisignSignDocumentRequest() *digisignSignDocumentRequest {
 }
 
 func (dr *digisignSignDocumentRequest) DigisignSignDocumentRequest(request Dto) (
-	res *resty.Response, result string, link string, notif string, err error) {
+	res *resty.Response, result string, link string, notif string, jsonRequest string, err error) {
 	dr.JSONFile.UserID = request.UserID
 	dr.JSONFile.EmailUser = request.EmailUser
 	dr.JSONFile.DocumentID = request.DocumentID
 	dr.JSONFile.ViewOnly = false
 	drJson, err := json.Marshal(dr)
 	if err != nil {
-		return nil, "", "", "", err
+		return nil, "", "", "", string(drJson), err
 	}
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
@@ -46,11 +46,11 @@ func (dr *digisignSignDocumentRequest) DigisignSignDocumentRequest(request Dto) 
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/gen/genSignPage.html")
 	if err != nil {
-		return nil, "", "", "", err
+		return nil, "", "", "", string(drJson), err
 	}
 	result = jsoniter.Get(res.Body(), "JSONFile").Get("result").ToString()
 	link = jsoniter.Get(res.Body(), "JSONFile").Get("link").ToString()
 	notif = jsoniter.Get(res.Body(), "JSONFile").Get("notif").ToString()
 
-	return res, result, link, notif, err
+	return res, result, link, notif, string(drJson), err
 }

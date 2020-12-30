@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"los-int-digisign/infrastructure/config/digisign"
-	
+
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/resty.v1"
 )
@@ -30,7 +30,7 @@ func NewDigisignSendDocRequest() *digisignSendDocRequest {
 }
 
 func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
-	res *resty.Response, result string, notif string, reftrx string, jsonResponse string, err error) {
+	res *resty.Response, result string, notif string, reftrx string, jsonResponse string, jsonRequest string, err error) {
 	dr.JSONFile.UserID = dto.UserID
 	dr.JSONFile.DocumentID = dto.DocumentID
 	dr.JSONFile.Payment = dto.Payment
@@ -55,10 +55,10 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/SendDocMitraAT.html")
 
 	if err != nil {
-		return nil, "", "", "", "", nil
+		return nil, "", "", "", "", string(drJson), nil
 	}
 	result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
 	notif = jsoniter.Get(resp.Body(), "JSONFile").Get("notif").ToString()
 	reftrx = jsoniter.Get(resp.Body(), "JSONFile").Get("refTrx").ToString()
-	return resp, result, notif, reftrx, resp.String(), err
+	return resp, result, notif, reftrx, resp.String(), string(drJson), err
 }

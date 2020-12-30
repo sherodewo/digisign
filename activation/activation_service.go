@@ -1,8 +1,9 @@
 package activation
 
 import (
-	"github.com/labstack/echo"
 	"los-int-digisign/model"
+
+	"github.com/labstack/echo"
 )
 
 type service struct {
@@ -35,7 +36,7 @@ func (s *service) FindActivationById(id string) (*Mapper, error) {
 	}
 }
 
-func (s *service) SaveActivation(dto Dto, result string, link string, jsonResponse string) (*Mapper, error) {
+func (s *service) SaveActivation(dto Dto, result string, link string, jsonResponse string, jsonRequest string) (*Mapper, error) {
 
 	entity := model.Activation{
 		UserID:     dto.UserID,
@@ -45,6 +46,7 @@ func (s *service) SaveActivation(dto Dto, result string, link string, jsonRespon
 			Result:       result,
 			Link:         link,
 			JsonResponse: jsonResponse,
+			JsonRequest:  jsonRequest,
 		},
 	}
 	data, err := s.activationRepository.Save(entity)
