@@ -88,7 +88,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 
 	client := resty.New()
 	client.SetTimeout(time.Second * time.Duration(250))
-	//client.SetDebug(true)
+	
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").

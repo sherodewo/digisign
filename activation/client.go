@@ -33,7 +33,7 @@ func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 	}
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
-	// client.SetDebug(true)
+	
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer "+digisign.Token).
