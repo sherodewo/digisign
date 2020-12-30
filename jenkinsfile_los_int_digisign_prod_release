@@ -21,6 +21,7 @@ node () {
 		checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[
 			credentialsId: "${CREDENTIAL_ID}", 
 			url: "${APP_REPO_URL}"]], 
+			extensions: [[$class: 'CloneOption', timeout: 20]], 
 			branches: [[name: "refs/tags/*"]
 		]]
 		
