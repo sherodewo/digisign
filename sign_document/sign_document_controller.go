@@ -6,6 +6,7 @@ import (
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
+
 	"github.com/labstack/echo"
 )
 
@@ -67,11 +68,20 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	encodedValue := ctx.Request().URL.Query().Get("msg")
 	decodeValue, err := base64.StdEncoding.DecodeString(encodedValue)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":    "sign_document",
+			"app.func":   "Callback",
+			"app.action": "callback-msg-decode",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DECODE")
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
 	key := digisign.AesKey
 	byteDecrypt := utils.AesDecrypt(decodeValue, []byte(key))
-	 
+
 	var dataMap map[string]interface{}
 	err = json.Unmarshal(byteDecrypt, &dataMap)
 	if err != nil {
