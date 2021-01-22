@@ -88,7 +88,7 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 
 	client := resty.New()
 	client.SetTimeout(time.Second * time.Duration(250))
-	
+
 	if byteTtd == nil && byteNpwp == nil {
 		resp, err := client.R().
 			SetHeader("Content-Type", "multipart/form-data").
@@ -102,6 +102,18 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
+			tags := map[string]string{
+				"app.pkg":       "registration",
+				"app.func":      "DigisignRegistration",
+				"app.condition": "Ttd_Npwp_Nil",
+			}
+			extra := map[string]interface{}{
+				"message":     err.Error(),
+				"user_id":     dto.UserID,
+				"prospect_id": dto.ProspectID,
+			}
+
+			digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 			return nil, "", "", "", "", "", string(drJson), nil
 
 		}
@@ -124,6 +136,18 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
+			tags := map[string]string{
+				"app.pkg":       "registration",
+				"app.func":      "DigisignRegistration",
+				"app.condition": "Npwp_Nil",
+			}
+			extra := map[string]interface{}{
+				"message":     err.Error(),
+				"user_id":     dto.UserID,
+				"prospect_id": dto.ProspectID,
+			}
+
+			digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 			return nil, "", "", "", "", "", string(drJson), nil
 		}
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
@@ -145,6 +169,18 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
+			tags := map[string]string{
+				"app.pkg":       "registration",
+				"app.func":      "DigisignRegistration",
+				"app.condition": "Ttd_Nil",
+			}
+			extra := map[string]interface{}{
+				"message":     err.Error(),
+				"user_id":     dto.UserID,
+				"prospect_id": dto.ProspectID,
+			}
+
+			digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 			return nil, "", "", "", "", "", string(drJson), nil
 		}
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()
@@ -168,6 +204,18 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			}).
 			Post(os.Getenv("DIGISIGN_BASE_URL") + "/REG-MITRA.html")
 		if err != nil {
+			tags := map[string]string{
+				"app.pkg":       "registration",
+				"app.func":      "DigisignRegistration",
+				"app.condition": "Full_Data",
+			}
+			extra := map[string]interface{}{
+				"message":     err.Error(),
+				"user_id":     dto.UserID,
+				"prospect_id": dto.ProspectID,
+			}
+
+			digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 			return nil, "", "", "", "", "", string(drJson), nil
 		}
 		result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()

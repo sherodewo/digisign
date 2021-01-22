@@ -1,6 +1,7 @@
 package sign_document
 
 import (
+	"los-int-digisign/infrastructure/config/digisign"
 	"os"
 
 	"gopkg.in/resty.v1"
@@ -28,11 +29,20 @@ func (c *losSignDocumentRequestCallbackRequest) losSignDocumentRequestCallback(e
 	c.StatusDocument = statusDocument
 
 	client := resty.New()
-	client.SetDebug(true)
+	// client.SetDebug(true)
 	resp, err := client.R().SetHeader("Content-Type", "application/json").
 		SetBody(c).
 		Post(os.Getenv("LOS_BASE_URL") + "/digisign/sign_doc")
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":      "sign_document",
+			"app.func":     "losSignDocumentRequestCallback",
+			"app.proccess": "callback-signdocument-los",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "LOS-API")
 		return nil, err
 	}
 

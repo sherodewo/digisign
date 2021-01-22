@@ -46,6 +46,16 @@ func (dr *digisignSignDocumentRequest) DigisignSignDocumentRequest(request Dto) 
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/gen/genSignPage.html")
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "sign_document",
+			"app.func": "DigisignSignDocumentRequest",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+			"user_id": request.UserID,
+		}
+
+		digisign.SendToSentry(tags, extra, "SIGN_DOCUMENT")
 		return nil, "", "", "", string(drJson), err
 	}
 	result = jsoniter.Get(res.Body(), "JSONFile").Get("result").ToString()

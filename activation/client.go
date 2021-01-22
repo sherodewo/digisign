@@ -33,7 +33,7 @@ func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 	}
 	bs := []byte(strconv.Itoa(0))
 	client := resty.New()
-	
+
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Authorization", "Bearer "+digisign.Token).
@@ -43,6 +43,18 @@ func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/gen/genACTPage.html")
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":     "activation",
+			"app.func":    "ActivationDigisign",
+			"app.process": "activation-to-digisign",
+		}
+		extra := map[string]interface{}{
+			"message":     err.Error(),
+			"user_id":     request.UserID,
+			"prospect_id": request.ProspectID,
+		}
+
+		digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 		return nil, "", "", string(drJson), err
 	}
 	resultActivation = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()

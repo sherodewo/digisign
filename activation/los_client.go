@@ -1,6 +1,7 @@
 package activation
 
 import (
+	"los-int-digisign/infrastructure/config/digisign"
 	"os"
 
 	"gopkg.in/resty.v1"
@@ -31,6 +32,16 @@ func (c *losActivationRequestCallbackRequest) losActivationRequestCallback(email
 		SetBody(c).
 		Post(os.Getenv("LOS_BASE_URL") + "/digisign/activation")
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":     "activation",
+			"app.func":    "losActivationRequestCallback",
+			"app.process": "callback-activation-los",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+
+		digisign.SendToSentry(tags, extra, "LOS-API")
 		return nil, err
 	}
 	//code = jsoniter.Get(resp.Body(), "code").ToString()

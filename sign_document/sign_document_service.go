@@ -1,6 +1,7 @@
 package sign_document
 
 import (
+	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/model"
 
 	"github.com/labstack/echo"
@@ -21,6 +22,16 @@ func NewSignDocumentService(repository Repository, mapper *Mapper) *service {
 func (s *service) FindAllSignDocuments() (*[]Mapper, error) {
 	data, err := s.signDocumentRepository.FindAll()
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "sign_document",
+			"app.func": "FindAllSignDocuments",
+			"action":   "create",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	} else {
 		return s.signDocumentMapper.MapList(data), nil
@@ -30,6 +41,16 @@ func (s *service) FindAllSignDocuments() (*[]Mapper, error) {
 func (s *service) FindSignDocumentById(id string) (*Mapper, error) {
 	data, err := s.signDocumentRepository.FindById(id)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "sign_document",
+			"app.func": "FindSignDocumentById",
+			"action":   "create",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	} else {
 		return s.signDocumentMapper.Map(data), nil
@@ -48,6 +69,17 @@ func (s *service) SaveSignDocument(dto Dto, result string, link string, jsonResp
 
 	data, err := s.signDocumentRepository.Save(entity)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "sign_document",
+			"app.func": "SaveSignDocument",
+			"action":   "create",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+			"user_id": entity.UserID,
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	}
 	return s.signDocumentMapper.Map(data), err
@@ -64,6 +96,16 @@ func (s *service) SaveSignDocumentCallback(documentId string, email string, stat
 
 	data, err := s.signDocumentRepository.SaveCallback(entity)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "sign_document",
+			"app.func": "SaveSignDocumentCallback",
+			"action":   "create",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	}
 	return echo.Map{"id": data.ID, "document_id": data.DocumentID, "email": data.Email, "status_document": statusDocument,
