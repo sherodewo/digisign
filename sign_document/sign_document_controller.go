@@ -74,7 +74,8 @@ func (c *Controller) Callback(ctx echo.Context) error {
 		tags := map[string]string{
 			"app.pkg":    "sign_document",
 			"app.func":   "Callback",
-			"app.action": "callback-msg-decode",
+			"app.action": "decode",
+			"app.process": "sign-doc-callback",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),

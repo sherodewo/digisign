@@ -9,7 +9,6 @@ import (
 	"los-int-digisign/infrastructure/database"
 	"los-int-digisign/infrastructure/routes"
 	"los-int-digisign/infrastructure/validator"
-	"los-int-digisign/model"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
@@ -36,6 +35,7 @@ func main() {
 		tags := map[string]string{
 			"app.pkg":     "main",
 			"app.func":    "main",
+			"app.action":  "init",
 			"app.process": "decrypt-credentials",
 		}
 		extra := map[string]interface{}{
@@ -54,22 +54,14 @@ func main() {
 		tags := map[string]string{
 			"app.pkg":  "main",
 			"app.func": "main",
+			"app.action":  "init",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
-		digisign.SendToSentry(tags, extra, "DATABASE")
-		log.Fatal(err.Error())
-	}
-
-	if os.Getenv("APP_ENV") != "production" {
-		//Auto migrate
-		database.AutoMigrate(db)
-		db.Model(&model.Registration{}).AddForeignKey("registration_result_id", "registration_results(id)", "CASCADE", "NO ACTION")
-		db.Model(&model.SendDocument{}).AddForeignKey("send_document_result_id", "send_document_results(id)", "CASCADE", "NO ACTION")
-		db.Model(&model.Activation{}).AddForeignKey("activation_result_id", "activation_results(id)", "CASCADE", "NO ACTION")
-		db.Model(&model.SignDocument{}).AddForeignKey("sign_document_result_id", "sign_document_results(id)", "CASCADE", "NO ACTION")
+		digisign.SendToSentry(tags, extra, "DB-DOWN")
+		log.Info(err.Error())
 	}
 
 	// Setup log folder
