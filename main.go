@@ -30,7 +30,16 @@ func main() {
 	//set credential digisign
 	err := digisign.DecryptDigisignCredentials()
 	if err != nil {
-		panic(err)
+		tags := map[string]string{
+			"app.pkg":     "main",
+			"app.func":    "main",
+			"app.process": "decrypt-credentials",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
+		log.Fatal(err.Error())
 	}
 
 	//New instance echo
