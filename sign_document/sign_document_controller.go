@@ -44,6 +44,9 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.ValidationError(ctx, "Validation error", nil, err.Error())
 	}
 	client := NewDigisignSignDocumentRequest()
+
+	dto.UserID = digisign.UserID
+
 	res, result, link, _, jsonRequest, err := client.DigisignSignDocumentRequest(dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())

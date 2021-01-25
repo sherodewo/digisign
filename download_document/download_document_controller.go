@@ -2,8 +2,10 @@ package download_document
 
 import (
 	"bytes"
-	"github.com/labstack/echo"
+	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
+
+	"github.com/labstack/echo"
 )
 
 type Controller struct{}
@@ -21,6 +23,9 @@ func (c *Controller) DownloadDocument(ctx echo.Context) error {
 		return response.ValidationError(ctx, "Validation Error", nil, err.Error())
 	}
 	client := NewDigisignDownloadRequest()
+
+	dto.UserID = digisign.UserID
+
 	resp, err := client.DownloadFile(dto)
 
 	if err != nil {
@@ -41,6 +46,9 @@ func (c *Controller) DownloadDocumentBase64(ctx echo.Context) error {
 		return response.ValidationError(ctx, "Validation Error", nil, err.Error())
 	}
 	client := NewDigisignDownloadRequest()
+
+	dto.UserID = digisign.UserID
+
 	resp, file, err := client.DownloadFileBase64(dto)
 
 	if err != nil {

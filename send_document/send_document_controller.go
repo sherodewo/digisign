@@ -56,6 +56,9 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	client := NewDigisignSendDocRequest()
+
+	dto.UserID = digisign.UserID
+
 	res, result, notif, reftrx, jsonResponse, jsonRequest, err := client.DigisignSendDoc(byteFile, dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())

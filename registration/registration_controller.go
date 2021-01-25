@@ -74,6 +74,9 @@ func (c *Controller) Store(ctx echo.Context) error {
 	bufTtd, _ := utils.Base64Decode(dto.FotoTandaTangan)
 
 	client := NewDigisignRegistrationRequest()
+
+	dto.UserID = digisign.UserID
+
 	resp, result, notif, reftrx, jsonResponse, kodeUser, request, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
 		bufNpwp, bufTtd, dto)
 	if err != nil {

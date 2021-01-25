@@ -41,7 +41,7 @@ func main() {
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
-		digisign.SendToSentry(tags, extra, "DATABASE")
+		digisign.SendToSentry(tags, extra, "DECRYPT")
 		log.Fatal(err.Error())
 	}
 
