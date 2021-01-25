@@ -27,6 +27,9 @@ func init() {
 
 func main() {
 
+	// Sentry
+	digisign.InitSentry()
+
 	//set credential digisign
 	err := digisign.DecryptDigisignCredentials()
 	if err != nil {
@@ -59,9 +62,6 @@ func main() {
 		digisign.SendToSentry(tags, extra, "DATABASE")
 		log.Fatal(err.Error())
 	}
-
-	// Sentry
-	digisign.InitSentry()
 
 	if os.Getenv("APP_ENV") != "production" {
 		//Auto migrate
