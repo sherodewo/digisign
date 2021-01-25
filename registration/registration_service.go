@@ -1,6 +1,7 @@
 package registration
 
 import (
+	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/model"
 )
 
@@ -19,6 +20,16 @@ func NewRegistrationService(repository Repository, mapper *Mapper) *service {
 func (s *service) FindAllRegistrations() (*[]Mapper, error) {
 	data, err := s.registrationRepository.FindAll()
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "registration",
+			"app.func": "FindAllRegistrations",
+			"action":   "read",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	} else {
 		return s.registrationMapper.MapList(data), nil
@@ -28,6 +39,16 @@ func (s *service) FindAllRegistrations() (*[]Mapper, error) {
 func (s *service) FindRegistrationById(id string) (*Mapper, error) {
 	data, err := s.registrationRepository.FindById(id)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "registration",
+			"app.func": "FindRegistrationById",
+			"action":   "read",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	} else {
 		return s.registrationMapper.Map(data), nil
@@ -76,6 +97,18 @@ func (s *service) SaveRegistration(dto Dto, result string, notif string, reftrx 
 
 	data, err := s.registrationRepository.Save(entity)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "registration",
+			"app.func": "SaveRegistration",
+			"action":   "create",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message":     err.Error(),
+			"prospect_id": entity.ProspectID,
+			"user_id":     entity.UserID,
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	} else {
 		return s.registrationMapper.Map(data), nil

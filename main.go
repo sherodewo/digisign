@@ -5,15 +5,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/labstack/gommon/log"
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/database"
 	"los-int-digisign/infrastructure/routes"
 	"los-int-digisign/infrastructure/validator"
 	"los-int-digisign/model"
+
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/labstack/gommon/log"
 )
 
 func init() {
@@ -26,10 +27,22 @@ func init() {
 
 func main() {
 
+	// Sentry
+	digisign.InitSentry()
+
 	//set credential digisign
 	err := digisign.DecryptDigisignCredentials()
 	if err != nil {
-		panic(err)
+		tags := map[string]string{
+			"app.pkg":     "main",
+			"app.func":    "main",
+			"app.process": "decrypt-credentials",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DECRYPT")
+		log.Fatal(err.Error())
 	}
 
 	//New instance echo
@@ -38,8 +51,18 @@ func main() {
 	//Database
 	db, err := database.NewDb()
 	if err != nil {
-		panic(err)
+		tags := map[string]string{
+			"app.pkg":  "main",
+			"app.func": "main",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
+		log.Fatal(err.Error())
 	}
+
 	if os.Getenv("APP_ENV") != "production" {
 		//Auto migrate
 		database.AutoMigrate(db)
@@ -63,7 +86,15 @@ func main() {
 	logFileName := currentTime.Format("2006-01-02") + "-" + "digisign.log"
 	logFile, err := os.OpenFile(logPath+logFileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatal("Error create or open log file")
+		tags := map[string]string{
+			"app.pkg":  "main",
+			"app.func": "main",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "LOG_FILE")
+		panic("Error create or open log file" + logFileName)
 	}
 
 	//Validation

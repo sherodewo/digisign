@@ -1,6 +1,7 @@
 package registration
 
 import (
+	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
 
@@ -44,10 +45,28 @@ func (c *Controller) Store(ctx echo.Context) error {
 	//required file
 	bufktp, err := utils.Base64Decode(dto.FotoKtp)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":    "registration",
+			"app.func":   "Store",
+			"app.action": "base64ktp-decode",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DECODE")
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	bufSelfie, err := utils.Base64Decode(dto.FotoSelfie)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":    "registration",
+			"app.func":   "Store",
+			"app.action": "base64selfie-decode",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DECODE")
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	//optional file
@@ -55,6 +74,9 @@ func (c *Controller) Store(ctx echo.Context) error {
 	bufTtd, _ := utils.Base64Decode(dto.FotoTandaTangan)
 
 	client := NewDigisignRegistrationRequest()
+
+	dto.UserID = digisign.UserID
+
 	resp, result, notif, reftrx, jsonResponse, kodeUser, request, err := client.DigisignRegistration(dto.KonsumenType, bufktp, bufSelfie,
 		bufNpwp, bufTtd, dto)
 	if err != nil {

@@ -1,6 +1,7 @@
 package send_document
 
 import (
+	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
 
@@ -43,9 +44,21 @@ func (c *Controller) Store(ctx echo.Context) error {
 	//required file
 	byteFile, err := utils.Base64Decode(dto.File)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":    "send_document",
+			"app.func":   "Store",
+			"app.action": "base64File-decode",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DECODE")
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
 	client := NewDigisignSendDocRequest()
+
+	dto.UserID = digisign.UserID
+
 	res, result, notif, reftrx, jsonResponse, jsonRequest, err := client.DigisignSendDoc(byteFile, dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())

@@ -1,6 +1,7 @@
 package send_document
 
 import (
+	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/model"
 
 	jsoniter "github.com/json-iterator/go"
@@ -21,6 +22,16 @@ func NewSendDocumentService(repository Repository, mapper *Mapper) *service {
 func (s *service) FindAllSendDocuments() (*[]Mapper, error) {
 	data, err := s.sendDocumentRepository.FindAll()
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "send_document",
+			"app.func": "FindAllSendDocuments",
+			"action":   "read",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	} else {
 		return s.sendDocumentMapper.MapList(data), nil
@@ -30,6 +41,16 @@ func (s *service) FindAllSendDocuments() (*[]Mapper, error) {
 func (s *service) FindSendDocumentById(id string) (*Mapper, error) {
 	data, err := s.sendDocumentRepository.FindById(id)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "send_document",
+			"app.func": "FindSendDocumentById",
+			"action":   "read",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	} else {
 		return s.sendDocumentMapper.Map(data), nil
@@ -62,6 +83,17 @@ func (s *service) SaveSendDocument(dto Dto, result string, notif string, reftrx 
 
 	data, err := s.sendDocumentRepository.Save(entity)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "send_document",
+			"app.func": "SaveSendDocument",
+			"action":   "create",
+			"db.name":  "di****gn",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+			"user_id": entity.UserID,
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return nil, err
 	}
 	return s.sendDocumentMapper.Map(data), err

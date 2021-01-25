@@ -43,7 +43,7 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 	drJson, err := json.Marshal(dr)
 
 	client := resty.New()
-	
+
 	client.SetTimeout(time.Second * time.Duration(250))
 	resp, err := client.R().
 		SetHeader("Content-Type", "multipart/form-data").
@@ -55,6 +55,17 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/SendDocMitraAT.html")
 
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":  "send_document",
+			"app.func": "DigisignSendDoc",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+			"user_id": dto.UserID,
+		}
+
+		digisign.SendToSentry(tags, extra, "SEND_DOCUMENT")
+
 		return nil, "", "", "", "", string(drJson), nil
 	}
 	result = jsoniter.Get(resp.Body(), "JSONFile").Get("result").ToString()

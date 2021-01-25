@@ -2,11 +2,12 @@ package download_document
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"strconv"
-	"encoding/json"
-	
+
 	"los-int-digisign/infrastructure/config/digisign"
+
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/resty.v1"
 )
@@ -26,7 +27,6 @@ func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (resu
 	dr.JSONFile.UserID = downloadRequest.UserID
 	dr.JSONFile.DocumentID = downloadRequest.DocumentID
 	drJson, err := json.Marshal(dr)
-	
 	if err != nil {
 		return nil, "", err
 	}
@@ -42,10 +42,21 @@ func (dr *digisignDownloadRequest) DownloadFileBase64(downloadRequest Dto) (resu
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/DWMITRA64.html")
 
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":     "download_document",
+			"app.func":    "DownloadFileBase64",
+			"app.process": "download-file-base64",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+			"user_id": downloadRequest.UserID,
+		}
+
+		digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 		return nil, "", err
 	}
 	base64File := jsoniter.Get(resp.Body(), "JSONFile").Get("file").ToString()
-	
+
 	return resp, base64File, err
 }
 
@@ -66,5 +77,19 @@ func (dr *digisignDownloadRequest) DownloadFile(downloadRequest Dto) (result *re
 		}).
 		SetFileReader("file", "file_", bytes.NewReader(bs)).
 		Post(os.Getenv("DIGISIGN_BASE_URL") + "/DWMITRA.html")
+	if err != nil {
+		tags := map[string]string{
+			"app.pkg":     "download_document",
+			"app.func":    "DownloadFileBase64",
+			"app.process": "download-file-base64",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+			"user_id": downloadRequest.UserID,
+		}
+
+		digisign.SendToSentry(tags, extra, "DIGISIGN-API")
+		return nil, err
+	}
 	return resp, err
 }

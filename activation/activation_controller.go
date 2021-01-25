@@ -44,6 +44,9 @@ func (c *Controller) Store(ctx echo.Context) error {
 		return response.ValidationError(ctx, "Validation error", nil, err.Error())
 	}
 	client := NewDigisignActivationRequest()
+
+	dto.UserID = digisign.UserID
+
 	res, result, link, jsonRequest, err := client.ActivationDigisign(dto)
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
@@ -68,6 +71,15 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	encodedValue := ctx.Request().URL.Query().Get("msg")
 	decodeValue, err := base64.StdEncoding.DecodeString(encodedValue)
 	if err != nil {
+		tags := map[string]string{
+			"app.pkg":    "activation",
+			"app.func":   "Callback",
+			"app.action": "decode-digisign-callback",
+		}
+		extra := map[string]interface{}{
+			"message": err.Error(),
+		}
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
 	key := digisign.AesKey
