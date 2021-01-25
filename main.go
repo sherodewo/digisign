@@ -60,7 +60,7 @@ func main() {
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
-		digisign.SendToSentry(tags, extra, "DB-DOWN")
+		digisign.SendToSentry(tags, extra, "DATABASE")
 		log.Info(err.Error())
 	}
 
@@ -68,7 +68,17 @@ func main() {
 	if _, err := os.Stat(os.Getenv("LOG_FILE")); os.IsNotExist(err) {
 		err = os.MkdirAll(os.Getenv("LOG_FILE"), 0755)
 		if err != nil {
-			panic(err)
+			tags := map[string]string{
+				"app.pkg":  "main",
+				"app.func": "main",
+				"app.action":"create",
+				"app.process": "directory-log",
+			}
+			extra := map[string]interface{}{
+				"message": err.Error(),
+			}
+			config.SendToSentry(tags, extra, "FILE-LOG")
+			log.Info(err)
 		}
 	}
 	currentTime := time.Now()
@@ -81,12 +91,14 @@ func main() {
 		tags := map[string]string{
 			"app.pkg":  "main",
 			"app.func": "main",
+			"app.action":"create",
+			"app.process": "file-log",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
-		digisign.SendToSentry(tags, extra, "LOG_FILE")
-		panic("Error create or open log file" + logFileName)
+		config.SendToSentry(tags, extra, "FILE-LOG")
+		log.Info(err)
 	}
 
 	//Validation

@@ -25,7 +25,7 @@ func (s *service) FindAllSendDocuments() (*[]Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "send_document",
 			"app.func": "FindAllSendDocuments",
-			"action":   "read",
+			"app.action":   "read",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -44,7 +44,7 @@ func (s *service) FindSendDocumentById(id string) (*Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "send_document",
 			"app.func": "FindSendDocumentById",
-			"action":   "read",
+			"app.action":   "read",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -86,7 +86,7 @@ func (s *service) SaveSendDocument(dto Dto, result string, notif string, reftrx 
 		tags := map[string]string{
 			"app.pkg":  "send_document",
 			"app.func": "SaveSendDocument",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{

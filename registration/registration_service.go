@@ -23,7 +23,7 @@ func (s *service) FindAllRegistrations() (*[]Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "registration",
 			"app.func": "FindAllRegistrations",
-			"action":   "read",
+			"app.action":   "read",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -42,7 +42,7 @@ func (s *service) FindRegistrationById(id string) (*Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "registration",
 			"app.func": "FindRegistrationById",
-			"action":   "read",
+			"app.action":   "read",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -100,7 +100,7 @@ func (s *service) SaveRegistration(dto Dto, result string, notif string, reftrx 
 		tags := map[string]string{
 			"app.pkg":  "registration",
 			"app.func": "SaveRegistration",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
