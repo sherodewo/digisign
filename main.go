@@ -77,7 +77,7 @@ func main() {
 			extra := map[string]interface{}{
 				"message": err.Error(),
 			}
-			config.SendToSentry(tags, extra, "FILE-LOG")
+			digisign.SendToSentry(tags, extra, "FILE-LOG")
 			log.Info(err)
 		}
 	}
@@ -97,7 +97,7 @@ func main() {
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
-		config.SendToSentry(tags, extra, "FILE-LOG")
+		digisign.SendToSentry(tags, extra, "FILE-LOG")
 		log.Info(err)
 	}
 

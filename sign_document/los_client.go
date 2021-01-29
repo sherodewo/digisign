@@ -37,12 +37,13 @@ func (c *losSignDocumentRequestCallbackRequest) losSignDocumentRequestCallback(e
 		tags := map[string]string{
 			"app.pkg":      "sign_document",
 			"app.func":     "losSignDocumentRequestCallback",
-			"app.proccess": "callback-signdocument-los",
+			"app.action": "forwarding-callback",
+			"app.process": "sign-doc",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
-		digisign.SendToSentry(tags, extra, "LOS-API")
+		digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 		return nil, err
 	}
 
