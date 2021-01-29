@@ -48,7 +48,8 @@ func (c *Controller) Store(ctx echo.Context) error {
 		tags := map[string]string{
 			"app.pkg":    "registration",
 			"app.func":   "Store",
-			"app.action": "base64ktp-decode",
+			"app.action": "decode",
+			"app.process": "base64ktp",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
@@ -61,7 +62,8 @@ func (c *Controller) Store(ctx echo.Context) error {
 		tags := map[string]string{
 			"app.pkg":    "registration",
 			"app.func":   "Store",
-			"app.action": "base64selfie-decode",
+			"app.action": "decode",
+			"app.process": "base64selfie",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),

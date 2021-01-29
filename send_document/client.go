@@ -58,13 +58,15 @@ func (dr *digisignSendDocRequest) DigisignSendDoc(byteFile []byte, dto Dto) (
 		tags := map[string]string{
 			"app.pkg":  "send_document",
 			"app.func": "DigisignSendDoc",
+			"app.action":  "call",
+			"app.process":  "send-doc",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
-			"user_id": dto.UserID,
+			"doc_id": dto.DocumentID,
 		}
 
-		digisign.SendToSentry(tags, extra, "SEND_DOCUMENT")
+		digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 
 		return nil, "", "", "", "", string(drJson), nil
 	}

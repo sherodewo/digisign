@@ -24,7 +24,7 @@ func (s *service) FindAllUsers() (*[]Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "user",
 			"app.func": "FindAllUsers",
-			"action":   "read",
+			"app.action":   "read",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
@@ -43,7 +43,7 @@ func (s *service) FindUserById(id string) (*Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "user",
 			"app.func": "FindUserById",
-			"action":   "read",
+			"app.action":   "read",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
@@ -68,7 +68,7 @@ func (s *service) SaveUser(dto Dto) (*Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "user",
 			"app.func": "SaveUser",
-			"action":   "create",
+			"app.action":   "create",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
@@ -94,7 +94,7 @@ func (s *service) UpdateUser(id string, dto Dto) (*Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "user",
 			"app.func": "UpdateUser",
-			"action":   "update",
+			"app.action":   "update",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
@@ -116,7 +116,7 @@ func (s *service) DeleteUser(id string) error {
 		tags := map[string]string{
 			"app.pkg":  "user",
 			"app.func": "DeleteUser",
-			"action":   "delete",
+			"app.action":   "delete",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),

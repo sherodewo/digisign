@@ -49,13 +49,15 @@ func (dr *digisignSignDocumentRequest) DigisignSignDocumentRequest(request Dto) 
 		tags := map[string]string{
 			"app.pkg":  "sign_document",
 			"app.func": "DigisignSignDocumentRequest",
+			"app.action":  "call",
+			"app.process":  "sign-doc",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
-			"user_id": request.UserID,
+			"doc_id": request.DocumentID,
 		}
 
-		digisign.SendToSentry(tags, extra, "SIGN_DOCUMENT")
+		digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 		return nil, "", "", "", string(drJson), err
 	}
 	result = jsoniter.Get(res.Body(), "JSONFile").Get("result").ToString()

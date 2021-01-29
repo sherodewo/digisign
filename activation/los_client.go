@@ -35,13 +35,14 @@ func (c *losActivationRequestCallbackRequest) losActivationRequestCallback(email
 		tags := map[string]string{
 			"app.pkg":     "activation",
 			"app.func":    "losActivationRequestCallback",
-			"app.process": "callback-activation-los",
+			"app.action": "forwarding-callback",
+			"app.process": "activation",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
 
-		digisign.SendToSentry(tags, extra, "LOS-API")
+		digisign.SendToSentry(tags, extra, "DIGISIGN-API")
 		return nil, err
 	}
 	//code = jsoniter.Get(resp.Body(), "code").ToString()

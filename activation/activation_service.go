@@ -25,7 +25,7 @@ func (s *service) FindAllActivations() (*[]Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "activation",
 			"app.func": "FindAllActivations",
-			"action":   "read",
+			"app.action":   "read",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -44,7 +44,7 @@ func (s *service) FindActivationById(id string) (*Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "activation",
 			"app.func": "FindActivationById",
-			"action":   "read",
+			"app.action":   "read",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -75,7 +75,7 @@ func (s *service) SaveActivation(dto Dto, result string, link string, jsonRespon
 		tags := map[string]string{
 			"app.pkg":  "activation",
 			"app.func": "SaveActivation",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -100,7 +100,7 @@ func (s *service) SaveActivationCallback(email string, result string, notif stri
 		tags := map[string]string{
 			"app.pkg":  "activation",
 			"app.func": "SaveActivationCallback",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{

@@ -74,12 +74,13 @@ func (c *Controller) Callback(ctx echo.Context) error {
 		tags := map[string]string{
 			"app.pkg":    "activation",
 			"app.func":   "Callback",
-			"app.action": "decode-digisign-callback",
+			"app.action": "decode",
+			"app.process": "activation-callback",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
 		}
-		digisign.SendToSentry(tags, extra, "DATABASE")
+		digisign.SendToSentry(tags, extra, "DECODE")
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
 	key := digisign.AesKey

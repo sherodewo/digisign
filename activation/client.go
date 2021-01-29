@@ -46,11 +46,11 @@ func (dr *digisignActivationRequest) ActivationDigisign(request Dto) (
 		tags := map[string]string{
 			"app.pkg":     "activation",
 			"app.func":    "ActivationDigisign",
-			"app.process": "activation-to-digisign",
+			"app.action":  "call",
+			"app.process": "activation",
 		}
 		extra := map[string]interface{}{
 			"message":     err.Error(),
-			"user_id":     request.UserID,
 			"prospect_id": request.ProspectID,
 		}
 

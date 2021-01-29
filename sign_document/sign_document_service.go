@@ -25,7 +25,7 @@ func (s *service) FindAllSignDocuments() (*[]Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "sign_document",
 			"app.func": "FindAllSignDocuments",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -44,7 +44,7 @@ func (s *service) FindSignDocumentById(id string) (*Mapper, error) {
 		tags := map[string]string{
 			"app.pkg":  "sign_document",
 			"app.func": "FindSignDocumentById",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -72,7 +72,7 @@ func (s *service) SaveSignDocument(dto Dto, result string, link string, jsonResp
 		tags := map[string]string{
 			"app.pkg":  "sign_document",
 			"app.func": "SaveSignDocument",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{
@@ -99,7 +99,7 @@ func (s *service) SaveSignDocumentCallback(documentId string, email string, stat
 		tags := map[string]string{
 			"app.pkg":  "sign_document",
 			"app.func": "SaveSignDocumentCallback",
-			"action":   "create",
+			"app.action":   "create",
 			"db.name":  "di****gn",
 		}
 		extra := map[string]interface{}{

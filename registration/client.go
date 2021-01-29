@@ -105,11 +105,12 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			tags := map[string]string{
 				"app.pkg":       "registration",
 				"app.func":      "DigisignRegistration",
+				"app.action":  "call",
+				"app.process":  "register",
 				"app.condition": "Ttd_Npwp_Nil",
 			}
 			extra := map[string]interface{}{
 				"message":     err.Error(),
-				"user_id":     dto.UserID,
 				"prospect_id": dto.ProspectID,
 			}
 
@@ -139,11 +140,12 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			tags := map[string]string{
 				"app.pkg":       "registration",
 				"app.func":      "DigisignRegistration",
+				"app.action":  "call",
+				"app.process":  "register",
 				"app.condition": "Npwp_Nil",
 			}
 			extra := map[string]interface{}{
 				"message":     err.Error(),
-				"user_id":     dto.UserID,
 				"prospect_id": dto.ProspectID,
 			}
 
@@ -172,11 +174,12 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			tags := map[string]string{
 				"app.pkg":       "registration",
 				"app.func":      "DigisignRegistration",
+				"app.action":  "call",
+				"app.process":  "register",
 				"app.condition": "Ttd_Nil",
 			}
 			extra := map[string]interface{}{
 				"message":     err.Error(),
-				"user_id":     dto.UserID,
 				"prospect_id": dto.ProspectID,
 			}
 
@@ -207,11 +210,12 @@ func (dr *digisignRegistrationRequest) DigisignRegistration(userType string, byt
 			tags := map[string]string{
 				"app.pkg":       "registration",
 				"app.func":      "DigisignRegistration",
+				"app.action":  "call",
+				"app.process":  "register",
 				"app.condition": "Full_Data",
 			}
 			extra := map[string]interface{}{
 				"message":     err.Error(),
-				"user_id":     dto.UserID,
 				"prospect_id": dto.ProspectID,
 			}
 

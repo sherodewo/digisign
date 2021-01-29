@@ -47,7 +47,8 @@ func (c *Controller) Store(ctx echo.Context) error {
 		tags := map[string]string{
 			"app.pkg":    "send_document",
 			"app.func":   "Store",
-			"app.action": "base64File-decode",
+			"app.action": "decode",
+			"app.process": "base64File",
 		}
 		extra := map[string]interface{}{
 			"message": err.Error(),
