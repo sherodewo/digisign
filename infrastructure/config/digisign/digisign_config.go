@@ -31,10 +31,10 @@ func DecryptDigisignCredentials() error {
 }
 
 func InitSentry() {
-	isSentryActive, errEnv := strconv.ParseBool(os.Getenv("SENTRY_DSN_LOS_SERVICES_ACTIVE"))
+	isSentryActive, errEnv := strconv.ParseBool(os.Getenv("SENTRY_ACTIVE"))
 	if isSentryActive && errEnv == nil {
 		if err := sentry.Init(sentry.ClientOptions{
-			Dsn:         os.Getenv("SENTRY_DSN_LOS_SERVICES"),
+			Dsn:         os.Getenv("SENTRY_DSN"),
 			Environment: os.Getenv("APP_ENV"),
 		}); err != nil {
 			tags := map[string]string{
@@ -53,7 +53,7 @@ func InitSentry() {
 }
 
 func SendToSentry(tags map[string]string, extras map[string]interface{}, errCategory interface{}) {
-	isSentryActive, errEnv := strconv.ParseBool(os.Getenv("SENTRY_DSN_LOS_SERVICES_ACTIVE"))
+	isSentryActive, errEnv := strconv.ParseBool(os.Getenv("SENTRY_ACTIVE"))
 	if isSentryActive && errEnv == nil {
 		sentry.ConfigureScope(func(scope *sentry.Scope) {
 
