@@ -9,7 +9,7 @@ node () {
 		
 		//repository var
 		def APP_REPO_URL = "https://github.com/KB-FMF/los-int-digisign.git"
-		def APP_REPO_DEVOPS_URL = "https://github.com/KB-FMF/los-devops.git"
+		def APP_REPO_DEVOPS_URL = "https://github.com/KB-FMF/devops-config.git"
 		def CREDENTIAL_ID = "11c240e3-aa44-4d5b-b791-d3048f60f3c8"
 
 		//deployment var
@@ -50,9 +50,9 @@ node () {
 
 						rm -rf ${APP_PATH}/*
 						mkdir conf
-						cp ./config/config-production/config-${APP_NAME}/prod.env ${WORKSPACE}/${BUILD_ID}/conf/config.env
+						cp ./config/prod/config-los/${APP_NAME}/prod.env ${WORKSPACE}/${BUILD_ID}/conf/config.env
 
-						chmod 755 ${WORKSPACE}/${BUILD_ID}/config/shell/appVersionProdConf.sh && cd ${WORKSPACE}/${BUILD_ID}/config/shell/ && ./appVersionProdConf.sh
+						chmod 755 ${WORKSPACE}/${BUILD_ID}/config/shell/appVersionProdLos.sh && cd ${WORKSPACE}/${BUILD_ID}/config/shell/ && ./appVersionProdLos.sh
 						
 						rm -rf .git*
 						rm -rf ${WORKSPACE}/${BUILD_ID}/config
