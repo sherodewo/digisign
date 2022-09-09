@@ -3,7 +3,8 @@ package config
 import (
 	"io"
 	"los-int-digisign/shared/constant"
-	"los-int-digisign/utils"
+	"los-int-digisign/shared/utils"
+
 	"os"
 	"strconv"
 	"strings"
