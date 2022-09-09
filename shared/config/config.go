@@ -1,9 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"io"
 	"los-int-digisign/shared/constant"
-	"los-int-digisign/utils"
+	"los-int-digisign/shared/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -26,6 +27,11 @@ func LoadEnv() {
 	if err != nil {
 		log.Fatal("Error loading env file")
 	}
+}
+
+func SetupTimezone() {
+	location, _ := time.LoadLocation("Asia/Jakarta")
+	time.Local = location
 }
 
 func NewConfiguration(appEnv string) {
@@ -118,11 +124,11 @@ func SetCustomLog(keyConfig string, isError bool, data map[string]interface{}, m
 }
 
 func DigisignDBCredential() (string, string, string, string, string) {
-	user, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_USERNAME"))
-	pwd, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_PASSWORD"))
-	host, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_HOST"))
-	port, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_PORT"))
-	database, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_DATABASE"))
-
+	user, _ := utils.DecryptCredential(os.Getenv("DB_USERNAME"))
+	pwd, _ := utils.DecryptCredential(os.Getenv("DB_PASSWORD"))
+	host, _ := utils.DecryptCredential(os.Getenv("DB_HOST"))
+	port, _ := utils.DecryptCredential(os.Getenv("DB_PORT"))
+	database, _ := utils.DecryptCredential(os.Getenv("DB_DATABASE"))
+fmt.Println("DATA : ",user, pwd, host, port, database)
 	return user, pwd, host, port, database
 }
