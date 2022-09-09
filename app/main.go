@@ -2,24 +2,18 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"github.com/jinzhu/gorm"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	digisignHttpDelivery "los-int-digisign/domain/digisign/delivery/http"
 	digisignRepository "los-int-digisign/domain/digisign/repository"
 	digisignUsecase "los-int-digisign/domain/digisign/usecase"
 	"los-int-digisign/shared/common"
 	jsonResponse "los-int-digisign/shared/common/json"
 	"los-int-digisign/shared/config"
-	"los-int-digisign/shared/database"
 	"los-int-digisign/shared/httpclient"
-	"los-int-digisign/shared/utils"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
-
-	"github.com/allegro/bigcache"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 // @contact.name Kredit Plus
@@ -50,10 +44,10 @@ func main() {
 
 	e.Debug = config.IsDevelopment
 
-	los, err := database.OpenIntDatabase()
-	if err != nil {
-		log.Fatal(err)
-	}
+	//los, err := database.OpenIntDatabase()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	//rapindoMiddleware := rapindo_middlewares.NewLoginMiddleware()
 
@@ -72,16 +66,17 @@ func main() {
 	})
 
 	// Cache
-	var cache *bigcache.BigCache
-	isCacheActive, _ := strconv.ParseBool(config.Env("CACHE_ACTIVE"))
-	if isCacheActive {
-		cacheExp, _ := strconv.Atoi(config.Env("CACHE_EXPIRED_DEFAULT"))
-		cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(time.Duration(cacheExp) * time.Second))
-	}
+	//var cache *bigcache.BigCache
+	//isCacheActive, _ := strconv.ParseBool(config.Env("CACHE_ACTIVE"))
+	//if isCacheActive {
+	//	cacheExp, _ := strconv.Atoi(config.Env("CACHE_EXPIRED_DEFAULT"))
+	//	cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(time.Duration(cacheExp) * time.Second))
+	//}
 
-	utils.NewCache(cache, los, config.IsDevelopment)
+	//utils.NewCache(cache, los, config.IsDevelopment)
 
-	digiRepo := digisignRepository.NewRepository(los)
+	var db *gorm.DB // sementara gan
+	digiRepo := digisignRepository.NewRepository(db)
 
 	httpClient := httpclient.NewHttpClient()
 
