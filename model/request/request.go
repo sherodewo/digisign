@@ -58,7 +58,7 @@ type SendDocRequest struct {
 		Branch         string   `json:"branch"`
 		SequenceOption bool     `json:"sequence_option"`
 		SendTo         []SendTo `json:"sent-to"`
-		ReqSign        []string `json:"req-sign"`
+		ReqSign        []ReqSign `json:"req-sign"`
 	} `json:"JSONFile"`
 }
 
