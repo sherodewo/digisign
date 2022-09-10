@@ -33,6 +33,7 @@ type (
 	}
 )
 
+
 func NewPackages(usecase interfaces.Usecase) interfaces.Packages {
 	return &packages{usecase: usecase}
 }
@@ -57,7 +58,7 @@ func NewMultiUsecase(repository interfaces.Repository, httpclient httpclient.Htt
 	}, usecase
 }
 
-func (u multiUsecase) Register(req request.RegisterRequest) (err error) {
+func (m multiUsecase) Register(req request.RegisterRequest) (err error) {
 
 	return
 }
@@ -137,12 +138,22 @@ func (u usecase) SendDoc(req request.DownloadRequest) (err error) {
 	return
 }
 
-func (u multiUsecase) SignDoc(req request.SignDocRequest) (err error) {
+func (u usecase) SignUseCase(req request.SignDocRequest) (err error) {
 
 	return
 }
 
-func (usecase) UploadDoc() (err error) {
+func (m multiUsecase) SignDoc(req request.SignDocRequest) (err error) {
+
+	return
+}
+
+func (m multiUsecase) DownloadDoc(req request.DownloadRequest) (err error) {
+
+	return
+}
+
+func (m multiUsecase) UploadDoc() (err error) {
 
 	return
 }

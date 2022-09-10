@@ -16,6 +16,7 @@ require (
 	github.com/newrelic/go-agent/v3 v3.18.2
 	github.com/newrelic/go-agent/v3/integrations/nrecho-v4 v1.0.2
 	github.com/sirupsen/logrus v1.9.0
+	github.com/stretchr/testify v1.8.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
 )
