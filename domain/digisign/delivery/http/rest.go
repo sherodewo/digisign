@@ -39,5 +39,6 @@ func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
 		return h.Json.BadRequestErrorValidation(ctx, "LOS - Sign Doc", err)
 	}
 
-	return h.Json.Ok(ctx, "SUCCESS", req)
+	sign := h.usecase.SignUseCase(req)
+	return h.Json.Ok(ctx, "SUCCESS", sign)
 }

@@ -51,13 +51,13 @@ type ActivationRequest struct {
 
 type SendDocRequest struct {
 	JsonFile struct {
-		UserID         string   `json:"user_id" validate:"email,max=80"`
-		DocumentID     string   `json:"document_id" validate:"required,max=20"`
-		Payment        string   `json:"payment" validate:"max=1"`
-		Redirect       bool     `json:"redirect"`
-		Branch         string   `json:"branch"`
-		SequenceOption bool     `json:"sequence_option"`
-		SendTo         []SendTo `json:"sent-to"`
+		UserID         string    `json:"user_id" validate:"email,max=80"`
+		DocumentID     string    `json:"document_id" validate:"required,max=20"`
+		Payment        string    `json:"payment" validate:"max=1"`
+		Redirect       bool      `json:"redirect"`
+		Branch         string    `json:"branch"`
+		SequenceOption bool      `json:"sequence_option"`
+		SendTo         []SendTo  `json:"sent-to"`
 		ReqSign        []ReqSign `json:"req-sign"`
 	} `json:"JSONFile"`
 }
@@ -81,23 +81,35 @@ type ReqSign struct {
 }
 
 type SignDocRequest struct {
-	JsonFile struct {
-		UserID     string `json:"user_id" validate:"email,max=80"`
-		DocumentID string `json:"document_id" validate:"required,max=20"`
-		Email      string `json:"email_user" validate:"required,max=80"`
-		ViewOnly   bool   `json:"view_only"`
-	} `json:"JSONFile"`
+	JsonFile JsonFileSign `json:"JSONFile"`
 }
 
 type DownloadRequest struct {
-	JSONFile struct {
-		UserID     string `json:"user_id" validate:"email,max=80"`
-		DocumentID string `json:"document_id" validate:"required,max=20"`
-	} `json:"JSONFile"`
+	JSONFile DownloadDto `json:"JSONFile"`
 }
 
 type UploadMediaRequest struct {
 	Type        string `json:"type"`
 	ReferenceNo string `json:"reference_no"`
 	File        string `json:"file"`
+}
+
+type JsonFileSign struct {
+	UserID     string `json:"user_id" validate:"email,max=80"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
+	Email      string `json:"email_user" validate:"required,max=80"`
+	ViewOnly   bool   `json:"view_only"`
+}
+
+type SignDocDto struct {
+	ProspectID string `json:"prospect_id" validate:"required,max=50"`
+	UserID     string `json:"user_id" validate:"email,max=80"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
+	Email      string `json:"email_user" validate:"required,max=80"`
+	ViewOnly   bool   `json:"view_only"`
+}
+
+type DownloadDto struct {
+	UserID     string `json:"user_id" validate:"email,max=80"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
 }

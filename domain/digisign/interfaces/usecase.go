@@ -4,7 +4,7 @@ import "los-int-digisign/model/request"
 
 type Usecase interface {
 	DecodeMedia(url string, customerID string) (base64Image string, err error)
-	SignUseCase(req request.SignDocRequest) (err error)
+	SignUseCase(req request.SignDocDto) (err error)
 }
 
 type MultiUsecase interface {
