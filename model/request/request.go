@@ -95,7 +95,7 @@ type UploadMediaRequest struct {
 }
 
 type JsonFileSign struct {
-	UserID     string `json:"user_id" validate:"email,max=80"`
+	UserID     string `json:"userid" validate:"email,max=80"`
 	DocumentID string `json:"document_id" validate:"required,max=20"`
 	Email      string `json:"email_user" validate:"required,max=80"`
 	ViewOnly   bool   `json:"view_only"`

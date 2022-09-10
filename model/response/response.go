@@ -58,3 +58,9 @@ type ImageDecodeResponse struct {
 	Errors interface{} `json:"errors"`
 	Code   string      `json:"code"`
 }
+
+type SignResponse struct {
+	ProspectID string `json:"prospect_id"`
+	Url string `json:"url"`
+
+}

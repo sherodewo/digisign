@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"los-int-digisign/domain/digisign/interfaces"
 	"los-int-digisign/model/request"
+	"los-int-digisign/model/response"
 	"los-int-digisign/shared/common"
 )
 
@@ -29,16 +30,21 @@ func DigisignHandler(route *echo.Group, multiUsecase interfaces.MultiUsecase, us
 }
 
 func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
-	var req request.SignDocRequest
+	var req request.SignDocDto
 
 	if err := ctx.Bind(&req); err != nil {
-		return h.Json.InternalServerError(ctx, "LOS - Sign Doc", err)
+		return h.Json.InternalServerError(ctx, "LOS - Bind Sign Doc", err)
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		return h.Json.BadRequestErrorValidation(ctx, "LOS - Sign Doc", err)
+		return h.Json.BadRequestErrorValidation(ctx, "LOS - Validate Sign Doc", err)
 	}
 
-	sign := h.usecase.SignUseCase(req)
-	return h.Json.Ok(ctx, "SUCCESS", sign)
+	sign, err := h.usecase.SignUseCase(req)
+
+	resp := response.SignResponse{
+		ProspectID: req.ProspectID,
+		Url:        sign.Data.MediaURL,
+	}
+	return h.Json.Ok(ctx, "SUCCESS", resp)
 }

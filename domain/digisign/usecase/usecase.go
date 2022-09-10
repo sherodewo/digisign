@@ -138,42 +138,50 @@ func (u usecase) SendDoc(req request.DownloadRequest) (err error) {
 	return
 }
 
-func (u usecase) SignUseCase(req request.SignDocDto) (err error) {
-	data := request.SignDocRequest{
-		JsonFile: request.JsonFileSign{
-			UserID:     req.UserID,
-			DocumentID: req.DocumentID,
-			Email:      req.Email,
-			ViewOnly:   req.ViewOnly,
-		},
-	}
+func (u usecase) SignUseCase(req request.SignDocDto) (uploadRes response.MediaServiceResponse,err error) {
+	// Check Dummy Setting
+	var fileName string
+	dummy := os.Getenv("DUMMY")
 
-	// 1. Sign Document to Digisign
-	signRes, err := u.SignDoc(req.ProspectID, data)
-	if err != nil {
-		return
-	}
-	fmt.Println(signRes)
-	// 2. Download Document to local
-	downloadDto := request.DownloadRequest{
-		JSONFile: request.DownloadDto{
-			UserID:     req.UserID,
-			DocumentID: req.DocumentID,
-		},
-	}
-	fileName, err := u.DownloadDoc(req.ProspectID, downloadDto)
-	if err != nil {
-		return
+	if dummy != "ON" {
+		data := request.SignDocRequest{
+			JsonFile: request.JsonFileSign{
+				UserID:     req.UserID,
+				DocumentID: req.DocumentID,
+				Email:      req.Email,
+				ViewOnly:   req.ViewOnly,
+			},
+		}
+
+		// 1. Sign Document to Digisign
+		signRes, err := u.SignDoc(req.ProspectID, data)
+		if err != nil {
+			return uploadRes, err
+		}
+		fmt.Println(signRes)
+		// 2. Download Document to local
+		downloadDto := request.DownloadRequest{
+			JSONFile: request.DownloadDto{
+				UserID:     req.UserID,
+				DocumentID: req.DocumentID,
+			},
+		}
+		fileName, err = u.DownloadDoc(req.ProspectID, downloadDto)
+		if err != nil {
+			return uploadRes, err
+		}
+	}else {
+		fileName = "dummy_file.pdf"
 	}
 
 	// 3. Upload Document to Platform
-	uploadRes, err := u.UploadDoc(req.ProspectID, fileName)
+	uploadRes, err = u.UploadDoc(req.ProspectID, fileName)
 	if err != nil {
 		return
 	}
-	fmt.Println(uploadRes)
+
 	// 4. Delete Document on Local
-	defer os.Remove(fileName)
+	//defer os.Remove(fileName)
 	return
 }
 
@@ -190,7 +198,7 @@ func (u usecase) SignDoc(prospectID string,req request.SignDocRequest) (resp res
 	restyResp, err := u.httpclient.DigiAPI(url, http.MethodPost, param, "", header, 30, prospectID)
 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
 		if err := json.Unmarshal(restyResp.Body(), &resp); err != nil {
-			return
+			return resp, err
 		}
 	}
 	return
@@ -210,7 +218,7 @@ func (u usecase) DownloadDoc(prospectID string,req request.DownloadRequest) (nam
 	var respDownload response.DownloadResponse
 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
 		if err := json.Unmarshal(restyResp.Body(), &respDownload); err != nil {
-			return
+			return name, err
 		}
 	}
 	dec, err := base64.StdEncoding.DecodeString(respDownload.JsonFile.File)
@@ -246,8 +254,8 @@ func (u usecase) UploadDoc(prospectID string, fileName string) (uploadResp respo
 	}
 	restyResp, err := u.httpclient.MediaClient(url, http.MethodPost, param, fileName, header, 30, prospectID)
 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
-		if err := json.Unmarshal(restyResp.Body(), &restyResp); err != nil {
-			return
+		if err := json.Unmarshal(restyResp.Body(), &uploadResp); err != nil {
+			return uploadResp, err
 		}
 	}
 	return
