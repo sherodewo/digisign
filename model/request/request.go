@@ -55,9 +55,8 @@ type JsonFile struct {
 
 type ActivationRequest struct {
 	JsonFile struct {
-		ProspectID string `json:"prospect_id" validate:"required,max=50"`
-		UserID     string `json:"user_id" validate:"email,max=80"`
-		Email      string `json:"email_user" validate:"required,max=80"`
+		UserID string `json:"user_id" validate:"email,max=80"`
+		Email  string `json:"email_user" validate:"required,max=80"`
 	} `json:"JSONFile"`
 }
 

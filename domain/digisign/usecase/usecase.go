@@ -233,7 +233,7 @@ func (u usecase) Activation(req request.ActivationRequest) (res response.Activat
 		"Authorization": os.Getenv("Bearer ") + os.Getenv("DIGISIGN_TOKEN"),
 	}
 
-	resp, err := u.httpclient.DigiAPI(url, http.MethodPost, params, "", header, 30, req.JsonFile.ProspectID)
+	resp, err := u.httpclient.DigiAPI(url, http.MethodPost, params, "", header, 30, "")
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		err = errors.New("error while do activation: " + err.Error())
 		return
