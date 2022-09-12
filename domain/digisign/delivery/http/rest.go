@@ -30,6 +30,7 @@ func DigisignHandler(route *echo.Group, multiUsecase interfaces.MultiUsecase, us
 		digiGroup.POST("/register", handler.Register)
 		digiGroup.POST("/sign", handler.SignDoc)
 		digiGroup.GET("/activation/callback", handler.ActivationCallback)
+		digiGroup.POST("/activation", handler.Activation)
 	}
 }
 
@@ -41,7 +42,7 @@ func DigisignHandler(route *echo.Group, multiUsecase interfaces.MultiUsecase, us
 // @Success 200 {object} response.Api{}
 // @Failure 400 {object} response.Api{error=response.ErrorValidation}
 // @Failure 500 {object} response.Api{}
-// @Router /kmob/usc/pmk [post]
+// @Router /digisign/register [post]
 func (h *digisignHandler) Register(ctx echo.Context) (err error) {
 
 	var req request.Register
@@ -64,9 +65,32 @@ func (h *digisignHandler) Register(ctx echo.Context) (err error) {
 
 }
 
+// Digisign godoc
+// @Description Api Activation Digisign
+// @Tags Digisign
+// @Produce json
+// @Param body body request.ActivationRequest true "Body payload"
+// @Success 200 {object} response.Api{}
+// @Failure 400 {object} response.Api{error=response.ErrorValidation}
+// @Failure 500 {object} response.Api{}
+// @Router /digisign/activation [post]
 func (h *digisignHandler) Activation(ctx echo.Context) (err error) {
+	var req request.ActivationRequest
 
-	return
+	if err := ctx.Bind(&req); err != nil {
+		return h.Json.InternalServerError(ctx, "LOS Digisign - Activation", err)
+	}
+
+	if err := ctx.Validate(&req); err != nil {
+		return h.Json.BadRequestErrorValidation(ctx, "LOS Digisign - Activation", err)
+	}
+
+	data, err := h.usecase.Activation(req)
+	if err != nil {
+		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_timeout - Activation Timeout"))
+	}
+
+	return h.Json.Ok(ctx, "LOS Digisign", data.JsonFile)
 }
 
 func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
