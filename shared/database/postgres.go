@@ -10,7 +10,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-func OpenIntDatabase() (*gorm.DB, error) {
+func OpenDigisign() (*gorm.DB, error) {
 
 	user, pwd, host, port, database := config.DigisignDBCredential()
 

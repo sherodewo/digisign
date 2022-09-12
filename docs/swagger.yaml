@@ -1,0 +1,114 @@
+basePath: /api/v1
+definitions:
+  request.Register:
+    properties:
+      address:
+        type: string
+      birth_date:
+        type: string
+      birth_place:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      gender:
+        type: string
+      id_ktp:
+        type: string
+      kecamatan:
+        type: string
+      kelurahan:
+        type: string
+      mobile_phone:
+        type: string
+      name:
+        type: string
+      npwp:
+        type: string
+      photo_ktp:
+        type: string
+      photo_npwp:
+        type: string
+      prospect_id:
+        type: string
+      provinci:
+        type: string
+      selfie:
+        type: string
+      signature:
+        type: string
+      zipcode:
+        type: string
+    required:
+    - address
+    - birth_date
+    - birth_place
+    - city
+    - email
+    - kecamatan
+    - kelurahan
+    - mobile_phone
+    - name
+    - provinci
+    - zipcode
+    type: object
+  response.Api:
+    properties:
+      data:
+        type: object
+      errors:
+        type: object
+      messages:
+        type: string
+      server_time:
+        type: string
+    type: object
+  response.ErrorValidation:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+host: localhost:9100
+info:
+  contact:
+    email: support@kreditplus.com
+    name: Kredit Plus
+    url: https://kreditplus.com
+  license: {}
+paths:
+  /kmob/usc/pmk:
+    post:
+      description: Api Register Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.Register'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+swagger: "2.0"

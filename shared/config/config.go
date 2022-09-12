@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"io"
 	"los-int-digisign/shared/constant"
 	"los-int-digisign/shared/utils"
@@ -124,23 +123,21 @@ func SetCustomLog(keyConfig string, isError bool, data map[string]interface{}, m
 }
 
 func DigisignDBCredential() (string, string, string, string, string) {
-	user, _ := utils.DecryptCredential(os.Getenv("DB_USERNAME"))
-	pwd, _ := utils.DecryptCredential(os.Getenv("DB_PASSWORD"))
-	host, _ := utils.DecryptCredential(os.Getenv("DB_HOST"))
-	port, _ := utils.DecryptCredential(os.Getenv("DB_PORT"))
-	database, _ := utils.DecryptCredential(os.Getenv("DB_DATABASE"))
-	fmt.Println("DATA : ", user, pwd, host, port, database)
+	user, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_USERNAME"))
+	pwd, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_PASSWORD"))
+	host, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_HOST"))
+	port, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_PORT"))
+	database, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_DATABASE"))
 	return user, pwd, host, port, database
 }
 
-func DecryptDigisignCredentials() (UserID, AesKey, Token string, err error) {
-	decryptDigisignUserID, err := utils.DecryptCredential(os.Getenv("DIGISIGN_USER_ID"))
-	decryptDigisignKey, err := utils.DecryptCredential(os.Getenv("DIGISIGN_AES_KEY"))
-	decryptDigisignToken, err := utils.DecryptCredential(os.Getenv("DIGISIGN_TOKEN"))
-	//set to global var
-	UserID = decryptDigisignUserID
-	AesKey = decryptDigisignKey
-	Token = decryptDigisignToken
+func GetLosDB() (string, string, string, int, string) {
+	user, _ := utils.DecryptCredential(os.Getenv("LOS_DB_USERNAME"))
+	pwd, _ := utils.DecryptCredential(os.Getenv("LOS_DB_PASSWORD"))
+	host, _ := utils.DecryptCredential(os.Getenv("LOS_DB_HOST"))
+	strPort, _ := utils.DecryptCredential(os.Getenv("LOS_DB_PORT"))
+	port, _ := strconv.Atoi(strPort)
+	database, _ := utils.DecryptCredential(os.Getenv("LOS_DB_DATABASE"))
 
-	return
+	return user, pwd, host, port, database
 }

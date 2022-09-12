@@ -19,27 +19,38 @@ type Register struct {
 	Selfie     string `json:"selfie"`
 	Signature  string `json:"signature"`
 	PhotoNPWP  string `json:"photo_npwp"`
+	ProspectID string `json:"prospect_id"`
+}
+
+type DataFile struct {
+	PhotoKTP  []byte `json:"photo_ktp"`
+	Selfie    []byte `json:"selfie"`
+	Signature []byte `json:"signature"`
+	PhotoNPWP []byte `json:"photo_npwp"`
+	Name      string `json:"name"`
 }
 
 type RegisterRequest struct {
-	JsonFile struct {
-		UserID     string `json:"user_id" validate:"email,max=80"`
-		Address    string `json:"alamat" validate:"required,max=50"`
-		Gender     string `json:"jenis_kelamin" validate:"validate:required,max=10"`
-		Kecamatan  string `json:"kecamatan" validate:"required"`
-		Kelurahan  string `json:"kelurahan" validate:"required"`
-		Zipcode    string `json:"kode-pos" validate:"required,max=10"`
-		City       string `json:"kota" validate:"required"`
-		Name       string `json:"nama" validate:"required,max=80"`
-		Phone      string `json:"tlp" validate:"required,max=15"`
-		TglLahir   string `json:"tgl_lahir" validate:"required,max=10"`
-		Provinci   string `json:"provinci" validate:"required"`
-		IDKtp      string `json:"idktp" validate:"len=16"`
-		BirthPlace string `json:"tmp_lahir" validate:"required,max=30"`
-		Email      string `json:"email" validate:"required,max=80"`
-		NPWP       string `json:"npwp"`
-		Redirect   bool   `json:"redirect"`
-	} `json:"JSONFile"`
+	UserID     string `json:"user_id" validate:"email,max=80"`
+	Address    string `json:"alamat" validate:"required,max=50"`
+	Gender     string `json:"jenis_kelamin" validate:"validate:required,max=10"`
+	Kecamatan  string `json:"kecamatan" validate:"required"`
+	Kelurahan  string `json:"kelurahan" validate:"required"`
+	Zipcode    string `json:"kode-pos" validate:"required,max=10"`
+	City       string `json:"kota" validate:"required"`
+	Name       string `json:"nama" validate:"required,max=80"`
+	Phone      string `json:"tlp" validate:"required,max=15"`
+	TglLahir   string `json:"tgl_lahir" validate:"required,max=10"`
+	Provinci   string `json:"provinci" validate:"required"`
+	IDKtp      string `json:"idktp" validate:"len=16"`
+	BirthPlace string `json:"tmp_lahir" validate:"required,max=30"`
+	Email      string `json:"email" validate:"required,max=80"`
+	NPWP       string `json:"npwp"`
+	Redirect   bool   `json:"redirect"`
+}
+
+type JsonFile struct {
+	JsonFile interface{} `json:"JSONFile"`
 }
 
 type ActivationRequest struct {
@@ -50,16 +61,15 @@ type ActivationRequest struct {
 }
 
 type SendDocRequest struct {
-	JsonFile struct {
-		UserID         string   `json:"user_id" validate:"email,max=80"`
-		DocumentID     string   `json:"document_id" validate:"required,max=20"`
-		Payment        string   `json:"payment" validate:"max=1"`
-		Redirect       bool     `json:"redirect"`
-		Branch         string   `json:"branch"`
-		SequenceOption bool     `json:"sequence_option"`
-		SendTo         []SendTo `json:"sent-to"`
-		ReqSign        []ReqSign `json:"req-sign"`
-	} `json:"JSONFile"`
+	UserID         string    `json:"user_id" validate:"email,max=80"`
+	DocumentID     string    `json:"document_id" validate:"required,max=20"`
+	Payment        string    `json:"payment" validate:"max=1"`
+	Redirect       bool      `json:"redirect"`
+	Branch         string    `json:"branch"`
+	SequenceOption bool      `json:"sequence_option"`
+	SendTo         []SendTo  `json:"sent-to"`
+	ReqSign        []ReqSign `json:"req-sign"`
+	SigningSeq     int       `json:"signing_seq"`
 }
 
 type SendTo struct {
@@ -68,36 +78,47 @@ type SendTo struct {
 }
 
 type ReqSign struct {
-	Name       string `json:"name" validate:"required,max=80"`
-	Email      string `json:"email" validate:"required,max=80"`
-	User       string `json:"user" validate:"required,max=30"`
-	Llx        string `json:"llx" validate:"max=30"`
-	Lly        string `json:"lly" validate:"max=30"`
-	Urx        string `json:"urx" validate:"max=30"`
-	Ury        string `json:"ury" validate:"max=30"`
-	Page       string `json:"page" validate:"max=3"`
-	Visible    string `json:"visible" validate:"max=1"`
-	SigningSeq int    `json:"signing_seq"`
+	Name    string `json:"name" validate:"required,max=80"`
+	Email   string `json:"email" validate:"required,max=80"`
+	User    string `json:"user" validate:"required,max=30"`
+	Llx     string `json:"llx" validate:"max=30"`
+	Lly     string `json:"lly" validate:"max=30"`
+	Urx     string `json:"urx" validate:"max=30"`
+	Ury     string `json:"ury" validate:"max=30"`
+	Page    string `json:"page" validate:"max=3"`
+	Visible string `json:"visible" validate:"max=1"`
 }
 
 type SignDocRequest struct {
-	JsonFile struct {
-		UserID     string `json:"user_id" validate:"email,max=80"`
-		DocumentID string `json:"document_id" validate:"required,max=20"`
-		Email      string `json:"email_user" validate:"required,max=80"`
-		ViewOnly   bool   `json:"view_only"`
-	} `json:"JSONFile"`
+	JsonFile JsonFileSign `json:"JSONFile"`
 }
 
 type DownloadRequest struct {
-	JSONFile struct {
-		UserID     string `json:"user_id" validate:"email,max=80"`
-		DocumentID string `json:"document_id" validate:"required,max=20"`
-	} `json:"JSONFile"`
+	JSONFile DownloadDto `json:"JSONFile"`
 }
 
 type UploadMediaRequest struct {
 	Type        string `json:"type"`
 	ReferenceNo string `json:"reference_no"`
 	File        string `json:"file"`
+}
+
+type JsonFileSign struct {
+	UserID     string `json:"userid" validate:"email,max=80"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
+	Email      string `json:"email_user" validate:"required,max=80"`
+	ViewOnly   bool   `json:"view_only"`
+}
+
+type SignDocDto struct {
+	ProspectID string `json:"prospect_id" validate:"required,max=50"`
+	UserID     string `json:"user_id" validate:"email,max=80"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
+	Email      string `json:"email_user" validate:"required,max=80"`
+	ViewOnly   bool   `json:"view_only"`
+}
+
+type DownloadDto struct {
+	UserID     string `json:"user_id" validate:"email,max=80"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
 }

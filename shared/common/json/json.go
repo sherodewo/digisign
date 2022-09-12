@@ -3,11 +3,12 @@ package json
 import (
 	"encoding/json"
 	"fmt"
-	"los-int-digisign/model/common_models"
 	"los-int-digisign/shared/common"
 	"los-int-digisign/shared/utils"
 	"net/http"
 	"strings"
+
+	resp "los-int-digisign/model/response"
 
 	"github.com/iancoleman/strcase"
 	"github.com/labstack/echo/v4"
@@ -24,7 +25,7 @@ func NewResponse() common.JSON {
 }
 
 func (c *response) Ok(ctx echo.Context, message string, data interface{}) error {
-	return ctx.JSON(http.StatusOK, common_models.Api{
+	return ctx.JSON(http.StatusOK, resp.Api{
 		Message:    message,
 		Errors:     nil,
 		Data:       data,
@@ -33,7 +34,7 @@ func (c *response) Ok(ctx echo.Context, message string, data interface{}) error 
 }
 
 func (c *response) OkCreated(ctx echo.Context, message string, data interface{}) error {
-	return ctx.JSON(http.StatusCreated, common_models.Api{
+	return ctx.JSON(http.StatusCreated, resp.Api{
 		Message:    message,
 		Errors:     nil,
 		Data:       data,
@@ -42,7 +43,7 @@ func (c *response) OkCreated(ctx echo.Context, message string, data interface{})
 }
 
 func (c *response) ServiceUnavailable(ctx echo.Context, message string) error {
-	return ctx.JSON(http.StatusServiceUnavailable, common_models.Api{
+	return ctx.JSON(http.StatusServiceUnavailable, resp.Api{
 		Message:    message,
 		Errors:     "service_unavailable",
 		Data:       nil,
@@ -52,7 +53,7 @@ func (c *response) ServiceUnavailable(ctx echo.Context, message string) error {
 
 func (c *response) InternalServerError(ctx echo.Context, message string, err error) error {
 	errString := handleInternalError(err)
-	return ctx.JSON(http.StatusInternalServerError, common_models.Api{
+	return ctx.JSON(http.StatusInternalServerError, resp.Api{
 		Message:    message + " - " + errString,
 		Errors:     "internal_server_error",
 		Data:       nil,
@@ -61,15 +62,15 @@ func (c *response) InternalServerError(ctx echo.Context, message string, err err
 }
 
 func (c *response) BadRequestErrorValidation(ctx echo.Context, message string, err error) error {
-	var errors = make([]common_models.ErrorValidation, len(err.(validator.ValidationErrors)))
+	var errors = make([]resp.ErrorValidation, len(err.(validator.ValidationErrors)))
 
 	for k, v := range err.(validator.ValidationErrors) {
-		errors[k] = common_models.ErrorValidation{
+		errors[k] = resp.ErrorValidation{
 			Field:   strcase.ToSnake(v.Field()),
 			Message: formatMessage(v),
 		}
 	}
-	return ctx.JSON(http.StatusBadRequest, common_models.Api{
+	return ctx.JSON(http.StatusBadRequest, resp.Api{
 		Message:    message,
 		Errors:     errors,
 		Data:       nil,
@@ -84,7 +85,7 @@ func (c *response) ServerSideError(ctx echo.Context, message string, err error) 
 	switch handleError[0] {
 
 	case "upstream_service_error":
-		return ctx.JSON(http.StatusBadGateway, common_models.Api{
+		return ctx.JSON(http.StatusBadGateway, resp.Api{
 			Message:    fmt.Sprintf("%s - %s", message, handleError[1]),
 			Errors:     "upstream_service_error",
 			Data:       nil,
@@ -92,7 +93,7 @@ func (c *response) ServerSideError(ctx echo.Context, message string, err error) 
 		})
 
 	case "upstream_service_timeout":
-		return ctx.JSON(http.StatusGatewayTimeout, common_models.Api{
+		return ctx.JSON(http.StatusGatewayTimeout, resp.Api{
 			Message:    fmt.Sprintf("%s - %s", message, handleError[1]),
 			Errors:     "upstream_service_timeout",
 			Data:       nil,
@@ -100,7 +101,7 @@ func (c *response) ServerSideError(ctx echo.Context, message string, err error) 
 		})
 
 	case "service_unavailable":
-		return ctx.JSON(http.StatusServiceUnavailable, common_models.Api{
+		return ctx.JSON(http.StatusServiceUnavailable, resp.Api{
 			Message:    fmt.Sprintf("%s - %s", message, handleError[1]),
 			Errors:     "service_unavailable",
 			Data:       nil,
@@ -108,7 +109,7 @@ func (c *response) ServerSideError(ctx echo.Context, message string, err error) 
 		})
 
 	case "bad_request":
-		return ctx.JSON(http.StatusBadRequest, common_models.Api{
+		return ctx.JSON(http.StatusBadRequest, resp.Api{
 			Message:    fmt.Sprintf("%s - %s", message, handleError[1]),
 			Errors:     "bad_request",
 			Data:       nil,
@@ -120,7 +121,7 @@ func (c *response) ServerSideError(ctx echo.Context, message string, err error) 
 }
 
 func (c *response) Unauthorized(ctx echo.Context, message string, err error) error {
-	return ctx.JSON(http.StatusUnauthorized, common_models.Api{
+	return ctx.JSON(http.StatusUnauthorized, resp.Api{
 		Message:    message,
 		Errors:     err.Error(),
 		Data:       nil,
@@ -128,25 +129,25 @@ func (c *response) Unauthorized(ctx echo.Context, message string, err error) err
 	})
 }
 
-func handleUnmarshalError(err error) []common_models.ErrorValidation {
-	var apiErrors []common_models.ErrorValidation
+func handleUnmarshalError(err error) []resp.ErrorValidation {
+	var apiErrors []resp.ErrorValidation
 	if he, ok := err.(*echo.HTTPError); ok {
 		if ute, ok := he.Internal.(*json.UnmarshalTypeError); ok {
-			valError := common_models.ErrorValidation{
+			valError := resp.ErrorValidation{
 				Field:   ute.Field,
 				Message: ute.Error(),
 			}
 			apiErrors = append(apiErrors, valError)
 		}
 		if se, ok := he.Internal.(*json.SyntaxError); ok {
-			valError := common_models.ErrorValidation{
+			valError := resp.ErrorValidation{
 				Field:   "Syntax Error",
 				Message: se.Error(),
 			}
 			apiErrors = append(apiErrors, valError)
 		}
 		if iue, ok := he.Internal.(*json.InvalidUnmarshalError); ok {
-			valError := common_models.ErrorValidation{
+			valError := resp.ErrorValidation{
 				Field:   iue.Type.String(),
 				Message: iue.Error(),
 			}

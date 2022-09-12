@@ -1,0 +1,174 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {
+            "name": "Kredit Plus",
+            "url": "https://kreditplus.com",
+            "email": "support@kreditplus.com"
+        },
+        "license": {}
+    },
+    "host": "localhost:9100",
+    "basePath": "/api/v1",
+    "paths": {
+        "/kmob/usc/pmk": {
+            "post": {
+                "description": "Api Register Digisign",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Digisign"
+                ],
+                "parameters": [
+                    {
+                        "description": "Body payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Register"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Api"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/response.ErrorValidation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "request.Register": {
+            "type": "object",
+            "required": [
+                "address",
+                "birth_date",
+                "birth_place",
+                "city",
+                "email",
+                "kecamatan",
+                "kelurahan",
+                "mobile_phone",
+                "name",
+                "provinci",
+                "zipcode"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "birth_date": {
+                    "type": "string"
+                },
+                "birth_place": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "id_ktp": {
+                    "type": "string"
+                },
+                "kecamatan": {
+                    "type": "string"
+                },
+                "kelurahan": {
+                    "type": "string"
+                },
+                "mobile_phone": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "npwp": {
+                    "type": "string"
+                },
+                "photo_ktp": {
+                    "type": "string"
+                },
+                "photo_npwp": {
+                    "type": "string"
+                },
+                "prospect_id": {
+                    "type": "string"
+                },
+                "provinci": {
+                    "type": "string"
+                },
+                "selfie": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "zipcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Api": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object"
+                },
+                "errors": {
+                    "type": "object"
+                },
+                "messages": {
+                    "type": "string"
+                },
+                "server_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ErrorValidation": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
