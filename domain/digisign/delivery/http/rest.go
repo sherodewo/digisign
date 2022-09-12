@@ -30,6 +30,7 @@ func DigisignHandler(route *echo.Group, multiUsecase interfaces.MultiUsecase, us
 		digiGroup.POST("/register", handler.Register)
 		digiGroup.POST("/sign", handler.SignDoc)
 		digiGroup.GET("/activation/callback", handler.ActivationCallback)
+		digiGroup.GET("/sign-document/callback", handler.SignCallback)
 	}
 }
 
@@ -86,11 +87,11 @@ func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
 	var req request.SignDocDto
 
 	if err := ctx.Bind(&req); err != nil {
-		return h.Json.InternalServerError(ctx, "LOS - Bind Sign Doc", err)
+		return h.Json.InternalServerError(ctx, "LOS - Sign Document", err)
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		return h.Json.BadRequestErrorValidation(ctx, "LOS - Validate Sign Doc", err)
+		return h.Json.BadRequestErrorValidation(ctx, "LOS - Sign Document", err)
 	}
 
 	sign, err := h.usecase.SignUseCase(req)
@@ -100,4 +101,18 @@ func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
 		Url:        sign.Data.MediaURL,
 	}
 	return h.Json.Ok(ctx, "SUCCESS", resp)
+}
+
+func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
+
+	msg := ctx.QueryParam("msg")
+
+	data, err := h.multiUsecase.ActivationRedirect(msg)
+
+	if err != nil {
+		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
+	}
+
+	return h.Json.Ok(ctx, "LOS Digisign", data)
+
 }

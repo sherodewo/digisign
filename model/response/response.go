@@ -77,6 +77,15 @@ type ActivationCallbackResponse struct {
 	Email  string `json:"email_user"`
 	NIK    string `json:"nik"`
 }
+
+type SignCallback struct {
+	DocumentID     string `json:"document_id"`
+	StatusDocument string `json:"status_document"`
+	Result         string `json:"result"`
+	Notif          string `json:"notif"`
+	Email          string `json:"email_user"`
+}
+
 type SignResponse struct {
 	ProspectID string `json:"prospect_id"`
 	Url        string `json:"url"`

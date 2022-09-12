@@ -23,11 +23,13 @@ type Register struct {
 }
 
 type DataFile struct {
-	PhotoKTP  []byte `json:"photo_ktp"`
-	Selfie    []byte `json:"selfie"`
-	Signature []byte `json:"signature"`
-	PhotoNPWP []byte `json:"photo_npwp"`
-	Name      string `json:"name"`
+	PhotoKTP   []byte `json:"photo_ktp"`
+	Selfie     []byte `json:"selfie"`
+	Signature  []byte `json:"signature"`
+	PhotoNPWP  []byte `json:"photo_npwp"`
+	DocumentPK []byte `json:"document_pk"`
+	DocumentID string `json:"document_id"`
+	Name       string `json:"name"`
 }
 
 type RegisterRequest struct {
@@ -94,7 +96,8 @@ type SignDocRequest struct {
 }
 
 type DownloadRequest struct {
-	JSONFile DownloadDto `json:"JSONFile"`
+	UserID     string `json:"user_id" validate:"email,max=80"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
 }
 
 type UploadMediaRequest struct {
@@ -116,9 +119,4 @@ type SignDocDto struct {
 	DocumentID string `json:"document_id" validate:"required,max=20"`
 	Email      string `json:"email_user" validate:"required,max=80"`
 	ViewOnly   bool   `json:"view_only"`
-}
-
-type DownloadDto struct {
-	UserID     string `json:"user_id" validate:"email,max=80"`
-	DocumentID string `json:"document_id" validate:"required,max=20"`
 }

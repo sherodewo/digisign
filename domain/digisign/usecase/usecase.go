@@ -23,7 +23,9 @@ import (
 
 type (
 	packages struct {
-		usecase interfaces.Usecase
+		repository interfaces.Repository
+		usecase    interfaces.Usecase
+		httpclient httpclient.HttpClient
 	}
 	usecase struct {
 		repository interfaces.Repository
@@ -37,8 +39,8 @@ type (
 	}
 )
 
-func NewPackages(usecase interfaces.Usecase) interfaces.Packages {
-	return &packages{usecase: usecase}
+func NewPackages(repository interfaces.Repository, usecase interfaces.Usecase, httpclient httpclient.HttpClient) interfaces.Packages {
+	return &packages{repository: repository, usecase: usecase, httpclient: httpclient}
 }
 
 func NewUsecase(repository interfaces.Repository, httpclient httpclient.HttpClient) interfaces.Usecase {
@@ -51,7 +53,7 @@ func NewUsecase(repository interfaces.Repository, httpclient httpclient.HttpClie
 func NewMultiUsecase(repository interfaces.Repository, httpclient httpclient.HttpClient) (interfaces.MultiUsecase, interfaces.Usecase) {
 
 	usecase := NewUsecase(repository, httpclient)
-	packages := NewPackages(usecase)
+	packages := NewPackages(repository, usecase, httpclient)
 
 	return &multiUsecase{
 		repository: repository,
@@ -108,7 +110,7 @@ func (u multiUsecase) Register(req request.Register) (data response.RegisterResp
 		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
 	}
 
-	resp, err := u.httpclient.RegisterAPI(os.Getenv("REGISTER_URL"), param, header, constant.METHOD_POST, 60, dataFile, req.ProspectID)
+	resp, err := u.httpclient.RegisterAPI(os.Getenv("REGISTER_URL"), param, header, constant.METHOD_POST, 30, dataFile, req.ProspectID)
 
 	if err != nil {
 		return
@@ -238,134 +240,275 @@ func (u multiUsecase) ActivationRedirect(msg string) (data interface{}, err erro
 
 	if activationCallback.Result == "00" && activationCallback.Notif == "Proses Aktivasi Berhasil" {
 
-		//find data by email and nik
+		var (
+			prospectID string
+			sendDoc    response.SendDocResponse
+			signDoc    response.SignDocResponse
+			documentId string
+		)
+		// 1. get Order id by email and nik
 
-		_, err = u.packages.SendDoc(request.SendDocRequest{
-			UserID:         os.Getenv("DIGISIGN_USER_ID"),
-			DocumentID:     strconv.FormatInt(time.Now().Unix(), 10),
-			Payment:        os.Getenv("PAYMENT_METHOD"),
-			Redirect:       true,
-			Branch:         "", // from db
-			SequenceOption: false,
-			SendTo: []request.SendTo{
-				{
-					Name:  "", // from legal name customer
-					Email: "", // from email customer
-				},
-				{
-					Name:  "", // from data bm
-					Email: "", // from data bm
-				},
-			},
-			ReqSign: []request.ReqSign{
-				{
-					Name:    "", // from data bm
-					Email:   "", // from data bm
-					User:    "prf1",
-					Page:    "1",
-					Llx:     "323",
-					Lly:     "135",
-					Urx:     "420",
-					Ury:     "184",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data customer
-					Email:   "", // email customer
-					User:    "ttd1",
-					Page:    "1",
-					Llx:     "458",
-					Lly:     "135",
-					Urx:     "557",
-					Ury:     "184",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data customer
-					Email:   "", // email customer
-					User:    "ttd2",
-					Page:    "5",
-					Llx:     "70",
-					Lly:     "356.7",
-					Urx:     "183",
-					Ury:     "457.5",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data bm
-					Email:   "", // from data bm
-					User:    "prf2",
-					Page:    "5",
-					Llx:     "428.4",
-					Lly:     "356.7",
-					Urx:     "541.4",
-					Ury:     "457.5",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data bm
-					Email:   "", // from data bm
-					User:    "prf3",
-					Page:    "7",
-					Llx:     "33",
-					Lly:     "448.6",
-					Urx:     "126.7",
-					Ury:     "495.4",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data customer
-					Email:   "", // email customer
-					User:    "ttd3",
-					Page:    "7",
-					Llx:     "457",
-					Lly:     "448.6",
-					Urx:     "580",
-					Ury:     "495.4",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data customer
-					Email:   "", // email customer
-					User:    "ttd4",
-					Page:    "9",
-					Llx:     "71.3",
-					Lly:     "251",
-					Urx:     "160",
-					Ury:     "283",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data bm
-					Email:   "", // from data bm
-					User:    "prf4",
-					Page:    "9",
-					Llx:     "33",
-					Lly:     "445",
-					Urx:     "546",
-					Ury:     "283",
-					Visible: "1",
-				},
-				{
-					Name:    "", // from data customer
-					Email:   "", // email customer
-					User:    "ttd5",
-					Page:    "10",
-					Llx:     "31",
-					Lly:     "180",
-					Urx:     "118",
-					Ury:     "276,5",
-					Visible: "1",
-				},
-			},
-			SigningSeq: 0,
-		})
+		// send doc
+		sendDoc, documentId, err = u.packages.SendDoc(prospectID)
+
+		if err != nil {
+			return
+		}
+
+		// sign doc
+		if sendDoc.JsonFile.Result == "00" {
+			signDoc, err = u.usecase.SignDocV2(request.JsonFileSign{
+				UserID:     os.Getenv("DIGISIGN_USER_ID"),
+				DocumentID: documentId,
+				Email:      activationCallback.Email,
+				ViewOnly:   false,
+			}, prospectID)
+
+			if err != nil {
+				return nil, err
+			}
+
+			data = signDoc.JsonFile
+
+			return
+
+		}
+
+		// return send_doc gagal
 	}
+
+	// return callback activation gagal
 
 	return
 }
 
-func (u packages) SendDoc(req request.SendDocRequest) (data response.SendDocResponse, err error) {
+func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, err error) {
+
+	// 1. Find data by prospectid
+
+	return
+}
+
+func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, documentID string, err error) {
+
+	// 1. find data by email and nik
+
+	// 2. generate pdf
+	document, documentID, err := u.usecase.GeneratePK(prospectID)
+	if err != nil {
+		return
+	}
+
+	dataFile := request.DataFile{
+		DocumentPK: document,
+		DocumentID: documentID,
+	}
+
+	jsonFile := request.SendDocRequest{
+		UserID:         os.Getenv("DIGISIGN_USER_ID"),
+		DocumentID:     strconv.FormatInt(time.Now().Unix(), 10),
+		Payment:        os.Getenv("PAYMENT_METHOD"),
+		Redirect:       true,
+		Branch:         "", // from db
+		SequenceOption: false,
+		SendTo: []request.SendTo{
+			{
+				Name:  "", // from legal name customer
+				Email: "", // from email customer
+			},
+			{
+				Name:  "", // from data bm
+				Email: "", // from data bm
+			},
+		},
+		ReqSign: []request.ReqSign{
+			{
+				Name:    "", // from data bm
+				Email:   "", // from data bm
+				User:    "prf1",
+				Page:    "1",
+				Llx:     "323",
+				Lly:     "135",
+				Urx:     "420",
+				Ury:     "184",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data customer
+				Email:   "", // email customer
+				User:    "ttd1",
+				Page:    "1",
+				Llx:     "458",
+				Lly:     "135",
+				Urx:     "557",
+				Ury:     "184",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data customer
+				Email:   "", // email customer
+				User:    "ttd2",
+				Page:    "5",
+				Llx:     "70",
+				Lly:     "356.7",
+				Urx:     "183",
+				Ury:     "457.5",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data bm
+				Email:   "", // from data bm
+				User:    "prf2",
+				Page:    "5",
+				Llx:     "428.4",
+				Lly:     "356.7",
+				Urx:     "541.4",
+				Ury:     "457.5",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data bm
+				Email:   "", // from data bm
+				User:    "prf3",
+				Page:    "7",
+				Llx:     "33",
+				Lly:     "448.6",
+				Urx:     "126.7",
+				Ury:     "495.4",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data customer
+				Email:   "", // email customer
+				User:    "ttd3",
+				Page:    "7",
+				Llx:     "457",
+				Lly:     "448.6",
+				Urx:     "580",
+				Ury:     "495.4",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data customer
+				Email:   "", // email customer
+				User:    "ttd4",
+				Page:    "9",
+				Llx:     "71.3",
+				Lly:     "251",
+				Urx:     "130",
+				Ury:     "283",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data bm
+				Email:   "", // from data bm
+				User:    "prf4",
+				Page:    "9",
+				Llx:     "33",
+				Lly:     "445",
+				Urx:     "546",
+				Ury:     "283",
+				Visible: "1",
+			},
+			{
+				Name:    "", // from data customer
+				Email:   "", // email customer
+				User:    "ttd5",
+				Page:    "10",
+				Llx:     "31",
+				Lly:     "180",
+				Urx:     "118",
+				Ury:     "276,5",
+				Visible: "1",
+			},
+		},
+		SigningSeq: 0,
+	}
+
+	jsonField, _ := json.Marshal(request.JsonFile{
+		JsonFile: jsonFile,
+	})
+
+	param := map[string]string{
+		"jsonfield": string(jsonField),
+	}
+
+	header := map[string]string{
+		"Content-Type":  "multipart/form-data",
+		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
+	}
+
+	resp, err := u.httpclient.SendDocAPI(os.Getenv("SEND_DOC_URL"), constant.METHOD_POST, param, header, 30, dataFile, prospectID)
+
+	if err != nil {
+		return
+	}
+
+	json.Unmarshal(resp.Body(), &data)
+
+	return
+}
+
+func (u usecase) SignDocV2(req request.JsonFileSign, prospectID string) (data response.SignDocResponse, err error) {
+
+	jsonField, _ := json.Marshal(request.JsonFile{
+		JsonFile: req,
+	})
+
+	param := map[string]string{
+		"jsonfield": string(jsonField),
+	}
+
+	header := map[string]string{
+		"Content-Type":  "multipart/form-data",
+		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
+	}
+
+	signDoc, err := u.httpclient.SignDocAPI(os.Getenv("SIGN_DOC_URL"), constant.METHOD_POST, param, header, 30, prospectID)
+
+	if err != nil {
+		return
+	}
+
+	json.Unmarshal(signDoc.Body(), &data)
+
+	return
+}
+
+func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResponse, err error) {
+
+	decodeValue, _ := base64.StdEncoding.DecodeString(msg)
+
+	byteDecrypt := utils.AesDecrypt(decodeValue, []byte(os.Getenv("DIGISIGN_AES_KEY")))
+
+	var signCallback response.SignCallback
+
+	json.Unmarshal(byteDecrypt, &signCallback)
+
+	if signCallback.StatusDocument == "complete" && signCallback.Result == "00" {
+
+		// 1. Find data by document id dan email
+		var (
+			prospectID string
+			download   string
+		)
+
+		download, err = u.usecase.DownloadDoc(prospectID, request.DownloadRequest{
+			DocumentID: signCallback.DocumentID,
+			UserID:     os.Getenv("DIGISIGN_USER_ID"),
+		})
+
+		if err != nil {
+			return
+		}
+
+		upload, err = u.usecase.UploadDoc(prospectID, download)
+
+		if err != nil {
+			return
+		}
+
+	}
 
 	return
 }
@@ -385,7 +528,9 @@ func (u usecase) SignUseCase(req request.SignDocDto) (uploadRes response.MediaSe
 			},
 		}
 
-		// 1. Sign Document to Digisign
+		// 1. Find Document by email and document_id
+
+		// 2. Sign Document to Digisign
 		signRes, err := u.SignDoc(req.ProspectID, data)
 		if err != nil {
 			return uploadRes, err
@@ -393,11 +538,10 @@ func (u usecase) SignUseCase(req request.SignDocDto) (uploadRes response.MediaSe
 		fmt.Println(signRes)
 		// 2. Download Document to local
 		downloadDto := request.DownloadRequest{
-			JSONFile: request.DownloadDto{
-				UserID:     req.UserID,
-				DocumentID: req.DocumentID,
-			},
+			UserID:     req.UserID,
+			DocumentID: req.DocumentID,
 		}
+
 		fileName, err = u.DownloadDoc(req.ProspectID, downloadDto)
 		if err != nil {
 			return uploadRes, err
@@ -436,29 +580,29 @@ func (u usecase) SignDoc(prospectID string, req request.SignDocRequest) (resp re
 	return
 }
 
-func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (name string, err error) {
-	url := os.Getenv("DIGISIGN_BASE_URL") + os.Getenv("SIGN_DOCUMENT_URL")
-	// Type belum ada di platform (Dummy DULU GAN)
+func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (pdfBase64 string, err error) {
+
 	param := map[string]interface{}{
 		"jsonfield": req,
 	}
 	header := map[string]string{
 		"Content-Type":  "multipart/form-data",
-		"Authorization": os.Getenv("Bearer ") + os.Getenv("DIGISIGN_TOKEN"),
+		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
 	}
-	restyResp, err := u.httpclient.DigiAPI(url, http.MethodGet, param, "", header, 30, prospectID)
+
+	restyResp, err := u.httpclient.DigiAPI(os.Getenv("DOWNLOAD_URL"), constant.METHOD_POST, param, "", header, 30, prospectID)
 	var respDownload response.DownloadResponse
 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
 		if err := json.Unmarshal(restyResp.Body(), &respDownload); err != nil {
-			return name, err
+			return pdfBase64, err
 		}
 	}
 	dec, err := base64.StdEncoding.DecodeString(respDownload.JsonFile.File)
 	if err != nil {
 		panic(err)
 	}
-	name = "document_signed_" + prospectID + "_" + time.Now().String()
-	f, err := os.Create(name)
+	pdfBase64 = "document_signed_" + prospectID + "_" + time.Now().String()
+	f, err := os.Create(pdfBase64)
 	if err != nil {
 		panic(err)
 	}

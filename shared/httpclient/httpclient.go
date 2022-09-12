@@ -28,6 +28,8 @@ type HttpClient interface {
 	EngineAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
 	RegisterAPI(url string, param map[string]string, header map[string]string, method string, timeOut int, dataFile request.DataFile, ProspectID string) (resp *resty.Response, err error)
 	MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
+	SendDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, dataFile request.DataFile, prospectID string) (resp *resty.Response, err error)
+	SignDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error)
 	DigiAPI(url, method string, param interface{}, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
 }
 
@@ -191,19 +193,77 @@ func (h httpClient) EngineAPI(url string, param interface{}, header map[string]s
 
 }
 
-func (h httpClient) DigiAPI(url, method string, param interface{}, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error) {
+func (h httpClient) SendDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, dataFile request.DataFile, prospectID string) (resp *resty.Response, err error) {
+
 	client := resty.New()
-	client.Debug = true
+	if os.Getenv("APP_ENV") != "production" {
+		client.SetDebug(true)
+	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
 
 	switch method {
-	case "POST":
+
+	case constant.METHOD_POST:
+		if dataFile.DocumentPK != nil {
+			resp, err = client.R().SetHeaders(header).
+				SetFormData(param).SetFileReader("file", "file_"+dataFile.DocumentID+".pdf", bytes.NewReader(dataFile.DocumentPK)).
+				Post(url)
+		} else {
+			return nil, fmt.Errorf("connection error")
+		}
+	}
+
+	if err != nil {
+		err = errors.New("connection error")
+		return
+	}
+
+	return
+
+}
+
+func (h httpClient) SignDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error) {
+
+	client := resty.New()
+	if os.Getenv("APP_ENV") != "production" {
+		client.SetDebug(true)
+	}
+
+	client.SetTimeout(time.Second * time.Duration(timeOut))
+
+	switch method {
+
+	case constant.METHOD_POST:
+		resp, err = client.R().SetHeaders(header).SetFormData(param).Post(url)
+	}
+
+	if err != nil {
+		err = errors.New("connection error")
+		return
+	}
+
+	return
+
+}
+
+func (h httpClient) DigiAPI(url, method string, param interface{}, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error) {
+
+	client := resty.New()
+	if os.Getenv("APP_ENV") != "production" {
+		client.SetDebug(true)
+	}
+
+	client.SetTimeout(time.Second * time.Duration(timeOut))
+
+	switch method {
+	case constant.METHOD_POST:
 		if file != "" {
 			resp, err = client.R().SetHeaders(header).SetBody(param).SetFile("file", file).Post(url)
 		}
+
 		resp, err = client.R().SetHeaders(header).SetBody(param).Post(url)
-	case "GET":
+	case constant.METHOD_GET:
 		resp, err = client.R().SetHeaders(header).Get(url)
 	}
 
