@@ -26,8 +26,9 @@ func NewHttpClient() HttpClient {
 type HttpClient interface {
 	MediaAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
 	EngineAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
-	MediaClient(url, method string, param interface{}, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
 	RegisterAPI(url string, param map[string]string, header map[string]string, method string, timeOut int, dataFile request.DataFile, ProspectID string) (resp *resty.Response, err error)
+	MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
+	DigiAPI(url, method string, param interface{}, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
 }
 
 func (h httpClient) MediaAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error) {
@@ -61,13 +62,14 @@ func (h httpClient) MediaAPI(url string, param interface{}, header map[string]st
 	return
 }
 
-func (h httpClient) MediaClient(url, method string, param interface{}, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error) {
-
+func (h httpClient) MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error) {
 	client := resty.New()
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
 
 	switch method {
+	case constant.METHOD_POST:
+		resp, err = client.R().SetHeaders(header).SetFormData(param).SetFile("file", file).Post(url)
 	case constant.METHOD_GET:
 		resp, err = client.R().SetHeaders(header).Get(url)
 	}
@@ -182,6 +184,31 @@ func (h httpClient) EngineAPI(url string, param interface{}, header map[string]s
 
 	if err != nil {
 		err = errors.New(constant.CONNECTION_ERROR)
+		return
+	}
+
+	return
+
+}
+
+func (h httpClient) DigiAPI(url, method string, param interface{}, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error) {
+	client := resty.New()
+	client.Debug = true
+
+	client.SetTimeout(time.Second * time.Duration(timeOut))
+
+	switch method {
+	case "POST":
+		if file != "" {
+			resp, err = client.R().SetHeaders(header).SetBody(param).SetFile("file", file).Post(url)
+		}
+		resp, err = client.R().SetHeaders(header).SetBody(param).Post(url)
+	case "GET":
+		resp, err = client.R().SetHeaders(header).Get(url)
+	}
+
+	if err != nil {
+		err = errors.New("connection error")
 		return
 	}
 

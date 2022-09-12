@@ -39,12 +39,15 @@ type DownloadResponse struct {
 }
 
 type MediaServiceResponse struct {
-	Code      string      `json:"code"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data"`
-	Error     interface{} `json:"errors"`
-	RequestID string      `json:"request_id"`
-	Timestamp string      `json:"timestamp"`
+	Message string      `json:"message"`
+	Code    string      `json:"code"`
+	Errors  interface{} `json:"errors"`
+	Data    struct {
+		Type        string `json:"type"`
+		ReferenceNo string `json:"reference_no"`
+		MediaURL    string `json:"media_url"`
+		Path        string `json:"path"`
+	} `json:"data"`
 }
 
 type ImageDecodeResponse struct {
@@ -73,4 +76,8 @@ type ActivationCallbackResponse struct {
 	Notif  string `json:"notif"`
 	Email  string `json:"email_user"`
 	NIK    string `json:"nik"`
+}
+type SignResponse struct {
+	ProspectID string `json:"prospect_id"`
+	Url        string `json:"url"`
 }

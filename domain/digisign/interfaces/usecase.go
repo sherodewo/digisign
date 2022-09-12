@@ -7,6 +7,7 @@ import (
 
 type Usecase interface {
 	DecodeMedia(url string, customerID string) (base64Image string, err error)
+	SignUseCase(req request.SignDocDto) (uploadRes response.MediaServiceResponse,err error)
 }
 
 type MultiUsecase interface {

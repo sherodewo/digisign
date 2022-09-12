@@ -370,13 +370,126 @@ func (u packages) SendDoc(req request.SendDocRequest) (data response.SendDocResp
 	return
 }
 
-func (u multiUsecase) SignDoc(req request.SignDocRequest) (err error) {
+func (u usecase) SignUseCase(req request.SignDocDto) (uploadRes response.MediaServiceResponse, err error) {
+	// Check Dummy Setting
+	var fileName string
+	dummy := os.Getenv("DUMMY")
 
+	if dummy != "ON" {
+		data := request.SignDocRequest{
+			JsonFile: request.JsonFileSign{
+				UserID:     req.UserID,
+				DocumentID: req.DocumentID,
+				Email:      req.Email,
+				ViewOnly:   req.ViewOnly,
+			},
+		}
+
+		// 1. Sign Document to Digisign
+		signRes, err := u.SignDoc(req.ProspectID, data)
+		if err != nil {
+			return uploadRes, err
+		}
+		fmt.Println(signRes)
+		// 2. Download Document to local
+		downloadDto := request.DownloadRequest{
+			JSONFile: request.DownloadDto{
+				UserID:     req.UserID,
+				DocumentID: req.DocumentID,
+			},
+		}
+		fileName, err = u.DownloadDoc(req.ProspectID, downloadDto)
+		if err != nil {
+			return uploadRes, err
+		}
+	} else {
+		fileName = "dummy_file.pdf"
+	}
+
+	// 3. Upload Document to Platform
+	uploadRes, err = u.UploadDoc(req.ProspectID, fileName)
+	if err != nil {
+		return
+	}
+
+	// 4. Delete Document on Local
+	//defer os.Remove(fileName)
 	return
 }
 
-func (usecase) UploadDoc() (err error) {
+func (u usecase) SignDoc(prospectID string, req request.SignDocRequest) (resp response.SignDocResponse, err error) {
+	url := os.Getenv("DIGISIGN_BASE_URL") + os.Getenv("SIGN_DOCUMENT_URL")
+	// Type belum ada di platform (Dummy DULU GAN)
+	param := map[string]interface{}{
+		"jsonfield": req,
+	}
+	header := map[string]string{
+		"Content-Type":  "multipart/form-data",
+		"Authorization": os.Getenv("Bearer ") + os.Getenv("DIGISIGN_TOKEN"),
+	}
+	restyResp, err := u.httpclient.DigiAPI(url, http.MethodPost, param, "", header, 30, prospectID)
+	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
+		if err := json.Unmarshal(restyResp.Body(), &resp); err != nil {
+			return resp, err
+		}
+	}
+	return
+}
 
+func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (name string, err error) {
+	url := os.Getenv("DIGISIGN_BASE_URL") + os.Getenv("SIGN_DOCUMENT_URL")
+	// Type belum ada di platform (Dummy DULU GAN)
+	param := map[string]interface{}{
+		"jsonfield": req,
+	}
+	header := map[string]string{
+		"Content-Type":  "multipart/form-data",
+		"Authorization": os.Getenv("Bearer ") + os.Getenv("DIGISIGN_TOKEN"),
+	}
+	restyResp, err := u.httpclient.DigiAPI(url, http.MethodGet, param, "", header, 30, prospectID)
+	var respDownload response.DownloadResponse
+	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
+		if err := json.Unmarshal(restyResp.Body(), &respDownload); err != nil {
+			return name, err
+		}
+	}
+	dec, err := base64.StdEncoding.DecodeString(respDownload.JsonFile.File)
+	if err != nil {
+		panic(err)
+	}
+	name = "document_signed_" + prospectID + "_" + time.Now().String()
+	f, err := os.Create(name)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write(dec); err != nil {
+		panic(err)
+	}
+	if err := f.Sync(); err != nil {
+		panic(err)
+	}
+	return
+}
+
+func (u usecase) UploadDoc(prospectID string, fileName string) (uploadResp response.MediaServiceResponse, err error) {
+	url := os.Getenv("MEDIA_BASE_URL") + os.Getenv("MEDIA_UPLOAD_URL")
+	// Type belum ada di platform (Dummy DULU GAN)
+	param := map[string]string{
+		"type":         "ePO",
+		"reference_no": prospectID,
+	}
+	header := map[string]string{
+		"Content-Type":  "multipart/form-data",
+		"Authorization": os.Getenv("MEDIA_CLIENT_KEY"),
+	}
+	restyResp, err := u.httpclient.MediaClient(url, http.MethodPost, param, fileName, header, 30, prospectID)
+	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
+		if err := json.Unmarshal(restyResp.Body(), &uploadResp); err != nil {
+			return uploadResp, err
+		}
+	}
 	return
 }
 
@@ -411,7 +524,7 @@ func (u usecase) DecodeMedia(url string, customerID string) (base64Image string,
 		"Authorization": os.Getenv("MEDIA_KEY"),
 	}
 
-	image, err := u.httpclient.MediaClient(url+os.Getenv("MEDIA_PATH"), "GET", nil, header, timeOut, customerID)
+	image, err := u.httpclient.MediaClient(url+os.Getenv("MEDIA_PATH"), "GET", nil, "", header, timeOut, customerID)
 
 	if image.StatusCode() != 200 || err != nil {
 		err = errors.New("error")
