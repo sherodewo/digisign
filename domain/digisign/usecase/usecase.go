@@ -10,6 +10,7 @@ import (
 	"los-int-digisign/domain/digisign/interfaces"
 	"los-int-digisign/model/request"
 	"los-int-digisign/model/response"
+	"los-int-digisign/shared/constant"
 	"los-int-digisign/shared/httpclient"
 	"net/http"
 	"os"
@@ -127,7 +128,28 @@ func (u packages) GetRegisterPhoto(ktpUrl, selfieUrl, signatureUrl, npwpUrl, pro
 	return
 }
 
-func (u usecase) Activation(req request.ActivationRequest) (err error) {
+func (u usecase) Activation(req request.ActivationRequest) (res response.ActivationResponse, err error) {
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return
+	}
+
+	params := map[string]string{
+		"jsonfield": string(jsonData),
+	}
+
+	resp, err := u.httpclient.DigisignAPI(os.Getenv("DIGISIGN_BASE_URL")+"/gen/genACTPage.html", params, map[string]string{}, constant.METHOD_POST, 10, false, nil)
+	if err != nil || resp.StatusCode() != http.StatusOK {
+		err = errors.New("error while do activation: " + err.Error())
+		return
+	}
+
+	body := resp.Body()
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		err = errors.New("error while unmarshal activation response: " + err.Error())
+		return
+	}
 
 	return
 }

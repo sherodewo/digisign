@@ -129,6 +129,18 @@ func DigisignDBCredential() (string, string, string, string, string) {
 	host, _ := utils.DecryptCredential(os.Getenv("DB_HOST"))
 	port, _ := utils.DecryptCredential(os.Getenv("DB_PORT"))
 	database, _ := utils.DecryptCredential(os.Getenv("DB_DATABASE"))
-fmt.Println("DATA : ",user, pwd, host, port, database)
+	fmt.Println("DATA : ", user, pwd, host, port, database)
 	return user, pwd, host, port, database
+}
+
+func DecryptDigisignCredentials() (UserID, AesKey, Token string, err error) {
+	decryptDigisignUserID, err := utils.DecryptCredential(os.Getenv("DIGISIGN_USER_ID"))
+	decryptDigisignKey, err := utils.DecryptCredential(os.Getenv("DIGISIGN_AES_KEY"))
+	decryptDigisignToken, err := utils.DecryptCredential(os.Getenv("DIGISIGN_TOKEN"))
+	//set to global var
+	UserID = decryptDigisignUserID
+	AesKey = decryptDigisignKey
+	Token = decryptDigisignToken
+
+	return
 }
