@@ -223,7 +223,29 @@ func (u packages) GetRegisterPhoto(ktpUrl, selfieUrl, signatureUrl, npwpUrl, pro
 	return
 }
 
-func (u usecase) Activation(req request.ActivationRequest) (err error) {
+func (u usecase) Activation(req request.ActivationRequest) (res response.ActivationResponse, err error) {
+	url := os.Getenv("DIGISIGN_BASE_URL") + os.Getenv("DIGISIGN_ACTIVATION_URL")
+
+	params := map[string]interface{}{
+		"jsonfield": req,
+	}
+
+	header := map[string]string{
+		"Content-Type":  "multipart/form-data",
+		"Authorization": os.Getenv("Bearer ") + os.Getenv("DIGISIGN_TOKEN"),
+	}
+
+	resp, err := u.httpclient.DigiAPI(url, http.MethodPost, params, "", header, 30, "")
+	if err != nil || resp.StatusCode() != http.StatusOK {
+		err = errors.New("error while do activation: " + err.Error())
+		return
+	}
+
+	err = json.Unmarshal(resp.Body(), &res)
+	if err != nil {
+		err = errors.New("error while unmarshal activation response: " + err.Error())
+		return
+	}
 
 	return
 }

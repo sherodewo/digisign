@@ -56,10 +56,12 @@ type JsonFile struct {
 }
 
 type ActivationRequest struct {
-	JsonFile struct {
-		UserID string `json:"user_id" validate:"email,max=80"`
-		Email  string `json:"email_user" validate:"required,max=80"`
-	} `json:"JSONFile"`
+	JsonFile JsonFileActivation `json:"JSONFile"`
+}
+
+type JsonFileActivation struct {
+	UserID string `json:"user_id" validate:"email,max=80"`
+	Email  string `json:"email_user" validate:"required,max=80"`
 }
 
 type SendDocRequest struct {

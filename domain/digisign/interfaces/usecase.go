@@ -12,6 +12,7 @@ type Usecase interface {
 	SignDocV2(req request.JsonFileSign, prospectID string) (data response.SignDocResponse, err error)
 	DownloadDoc(prospectID string, req request.DownloadRequest) (pdfBase64 string, err error)
 	UploadDoc(prospectID string, fileName string) (uploadResp response.MediaServiceResponse, err error)
+	Activation(req request.ActivationRequest) (res response.ActivationResponse, err error)
 }
 
 type MultiUsecase interface {
