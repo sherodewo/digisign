@@ -55,3 +55,22 @@ type ImageDecodeResponse struct {
 	Errors interface{} `json:"errors"`
 	Code   string      `json:"code"`
 }
+
+type Api struct {
+	Message    string      `json:"messages"`
+	Errors     interface{} `json:"errors"`
+	Data       interface{} `json:"data"`
+	ServerTime string      `json:"server_time"`
+}
+
+type ErrorValidation struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+type ActivationCallbackResponse struct {
+	Result string `json:"result"`
+	Notif  string `json:"notif"`
+	Email  string `json:"email_user"`
+	NIK    string `json:"nik"`
+}

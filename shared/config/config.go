@@ -4,7 +4,6 @@ import (
 	"io"
 	"los-int-digisign/shared/constant"
 	"los-int-digisign/shared/utils"
-
 	"os"
 	"strconv"
 	"strings"
@@ -27,6 +26,11 @@ func LoadEnv() {
 	if err != nil {
 		log.Fatal("Error loading env file")
 	}
+}
+
+func SetupTimezone() {
+	location, _ := time.LoadLocation("Asia/Jakarta")
+	time.Local = location
 }
 
 func NewConfiguration(appEnv string) {
@@ -124,6 +128,16 @@ func DigisignDBCredential() (string, string, string, string, string) {
 	host, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_HOST"))
 	port, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_PORT"))
 	database, _ := utils.DecryptCredential(os.Getenv("DIGISIGN_DB_DATABASE"))
+	return user, pwd, host, port, database
+}
+
+func GetLosDB() (string, string, string, int, string) {
+	user, _ := utils.DecryptCredential(os.Getenv("LOS_DB_USERNAME"))
+	pwd, _ := utils.DecryptCredential(os.Getenv("LOS_DB_PASSWORD"))
+	host, _ := utils.DecryptCredential(os.Getenv("LOS_DB_HOST"))
+	strPort, _ := utils.DecryptCredential(os.Getenv("LOS_DB_PORT"))
+	port, _ := strconv.Atoi(strPort)
+	database, _ := utils.DecryptCredential(os.Getenv("LOS_DB_DATABASE"))
 
 	return user, pwd, host, port, database
 }

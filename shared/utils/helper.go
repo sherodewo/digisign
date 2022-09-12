@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func GetExtensionImageFromByte(byte []byte) string {
@@ -28,4 +29,11 @@ func Base64Decode(data string) ([]byte, error) {
 		return nil, err
 	}
 	return decode, nil
+}
+
+func GenerateTimeNow() string {
+	//fetching current time
+	currentTime := time.Now().Format(time.RFC3339)
+	//differnce between pastdate and current date
+	return currentTime
 }
