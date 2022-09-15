@@ -29,7 +29,61 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/kmob/usc/pmk": {
+        "/digisign/activation": {
+            "post": {
+                "description": "Api Activation Digisign",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Digisign"
+                ],
+                "parameters": [
+                    {
+                        "description": "Body payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ActivationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Api"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/response.ErrorValidation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    }
+                }
+            }
+        },
+        "/digisign/register": {
             "post": {
                 "description": "Api Register Digisign",
                 "produces": [
@@ -85,6 +139,20 @@ var doc = `{
         }
     },
     "definitions": {
+        "request.ActivationRequest": {
+            "type": "object",
+            "required": [
+                "email_user"
+            ],
+            "properties": {
+                "email_user": {
+                    "type": "string"
+                },
+                "prospect_id": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Register": {
             "type": "object",
             "required": [
@@ -97,7 +165,6 @@ var doc = `{
                 "kelurahan",
                 "mobile_phone",
                 "name",
-                "provinci",
                 "zipcode"
             ],
             "properties": {
@@ -144,9 +211,6 @@ var doc = `{
                     "type": "string"
                 },
                 "prospect_id": {
-                    "type": "string"
-                },
-                "provinci": {
                     "type": "string"
                 },
                 "selfie": {

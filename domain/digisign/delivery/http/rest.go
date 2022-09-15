@@ -70,7 +70,7 @@ func (h *digisignHandler) Register(ctx echo.Context) (err error) {
 // @Description Api Activation Digisign
 // @Tags Digisign
 // @Produce json
-// @Param body body request.JsonFileActivation true "Body payload"
+// @Param body body request.ActivationRequest true "Body payload"
 // @Success 200 {object} response.Api{}
 // @Failure 400 {object} response.Api{error=response.ErrorValidation}
 // @Failure 500 {object} response.Api{}
