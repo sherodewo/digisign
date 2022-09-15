@@ -10,7 +10,6 @@ type Register struct {
 	Name       string `json:"name" validate:"required,max=80"`
 	Phone      string `json:"mobile_phone" validate:"required,max=15"`
 	BirthDate  string `json:"birth_date" validate:"required,max=10"`
-	Provinci   string `json:"provinci" validate:"required"`
 	IDKtp      string `json:"id_ktp" validate:"len=16"`
 	BirthPlace string `json:"birth_place" validate:"required,max=30"`
 	Email      string `json:"email" validate:"required,max=80"`
@@ -56,12 +55,14 @@ type JsonFile struct {
 }
 
 type ActivationRequest struct {
-	JsonFile JsonFileActivation `json:"JSONFile"`
+	ProspectID string `json:"prospect_id"`
+	Email      string `json:"email_user" validate:"required,max=80"`
 }
 
-type JsonFileActivation struct {
-	UserID string `json:"user_id" validate:"email,max=80"`
-	Email  string `json:"email_user" validate:"required,max=80"`
+type SendDoc struct {
+	ProspectID string `json:"prospect_id"`
+	Email      string `json:"email" validate:"required,max=80"`
+	IDKtp      string `json:"id_ktp" validate:"required,len=16"`
 }
 
 type SendDocRequest struct {
@@ -84,6 +85,8 @@ type SendTo struct {
 type ReqSign struct {
 	Name    string `json:"name" validate:"required,max=80"`
 	Email   string `json:"email" validate:"required,max=80"`
+	AksiTtd string `json:"aksi_ttd" validate:"required"`
+	Kuser   string `json:"kuser" validate:"required"`
 	User    string `json:"user" validate:"required,max=30"`
 	Llx     string `json:"llx" validate:"max=30"`
 	Lly     string `json:"lly" validate:"max=30"`

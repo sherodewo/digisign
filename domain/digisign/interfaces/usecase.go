@@ -12,15 +12,15 @@ type Usecase interface {
 	SignDocV2(req request.JsonFileSign, prospectID string) (data response.SignDocResponse, err error)
 	DownloadDoc(prospectID string, req request.DownloadRequest) (pdfBase64 string, err error)
 	UploadDoc(prospectID string, fileName string) (uploadResp response.MediaServiceResponse, err error)
-	Activation(req request.ActivationRequest) (res response.ActivationResponse, err error)
+	Activation(req request.ActivationRequest) (data response.DataActivationResponse, err error)
 }
 
 type MultiUsecase interface {
-	Register(req request.Register) (data response.RegisterResponse, err error)
+	Register(req request.Register) (data response.DataRegisterResponse, err error)
 	ActivationRedirect(msg string) (data interface{}, err error)
 }
 
 type Packages interface {
 	GetRegisterPhoto(ktpUrl, selfieUrl, signatureUrl, npwpUrl, prospectID string) (ktpByte, selfieByte, signatureByte, npwpByte []byte, err error)
-	SendDoc(prospectID string) (data response.SendDocResponse, documentID string, err error)
+	SendDoc(req request.SendDoc) (data response.SendDocResponse, documentID string, err error)
 }

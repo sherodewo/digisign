@@ -62,7 +62,7 @@ func (h *digisignHandler) Register(ctx echo.Context) (err error) {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_timeout - Register Timeout"))
 	}
 
-	return h.Json.Ok(ctx, "LOS Digisign", data.JsonFile)
+	return h.Json.Ok(ctx, "LOS Digisign - Register", data)
 
 }
 
@@ -70,12 +70,13 @@ func (h *digisignHandler) Register(ctx echo.Context) (err error) {
 // @Description Api Activation Digisign
 // @Tags Digisign
 // @Produce json
-// @Param body body request.ActivationRequest true "Body payload"
+// @Param body body request.JsonFileActivation true "Body payload"
 // @Success 200 {object} response.Api{}
 // @Failure 400 {object} response.Api{error=response.ErrorValidation}
 // @Failure 500 {object} response.Api{}
 // @Router /digisign/activation [post]
 func (h *digisignHandler) Activation(ctx echo.Context) (err error) {
+
 	var req request.ActivationRequest
 
 	if err := ctx.Bind(&req); err != nil {
@@ -91,7 +92,7 @@ func (h *digisignHandler) Activation(ctx echo.Context) (err error) {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_timeout - Activation Timeout"))
 	}
 
-	return h.Json.Ok(ctx, "LOS Digisign", data.JsonFile)
+	return h.Json.Ok(ctx, "LOS Digisign", data)
 }
 
 func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {

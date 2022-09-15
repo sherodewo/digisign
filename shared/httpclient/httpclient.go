@@ -26,6 +26,7 @@ func NewHttpClient() HttpClient {
 type HttpClient interface {
 	MediaAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
 	EngineAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
+	ActivationAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error)
 	RegisterAPI(url string, param map[string]string, header map[string]string, method string, timeOut int, dataFile request.DataFile, ProspectID string) (resp *resty.Response, err error)
 	MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
 	SendDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, dataFile request.DataFile, prospectID string) (resp *resty.Response, err error)
@@ -224,6 +225,30 @@ func (h httpClient) SendDocAPI(url, method string, param map[string]string, head
 }
 
 func (h httpClient) SignDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error) {
+
+	client := resty.New()
+	if os.Getenv("APP_ENV") != "production" {
+		client.SetDebug(true)
+	}
+
+	client.SetTimeout(time.Second * time.Duration(timeOut))
+
+	switch method {
+
+	case constant.METHOD_POST:
+		resp, err = client.R().SetHeaders(header).SetFormData(param).Post(url)
+	}
+
+	if err != nil {
+		err = errors.New("connection error")
+		return
+	}
+
+	return
+
+}
+
+func (h httpClient) ActivationAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error) {
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {

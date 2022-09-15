@@ -2,9 +2,11 @@ package response
 
 type RegisterResponse struct {
 	JsonFile struct {
-		Result string `json:"result"`
-		Notif  string `json:"notif"`
-		RefTrx string `json:"refTrx"`
+		Result          string `json:"result"`
+		Notif           string `json:"notif"`
+		RefTrx          string `json:"refTrx"`
+		Info            string `json:"info"`
+		EmailRegistered string `json:"email_registered"`
 	} `json:"JSONFile"`
 }
 
@@ -89,4 +91,20 @@ type SignCallback struct {
 type SignResponse struct {
 	ProspectID string `json:"prospect_id"`
 	Url        string `json:"url"`
+}
+
+type DataRegisterResponse struct {
+	ProspectID     string `json:"prospect_id"`
+	Code           string `json:"code"`
+	Decision       string `json:"decision"`
+	DecisionReason string `json:"decision_reason"`
+	IsRegistered   bool   `json:"is_registered"`
+}
+
+type DataActivationResponse struct {
+	ProspectID     string `json:"prospect_id"`
+	Code           string `json:"code"`
+	Decision       string `json:"decision"`
+	DecisionReason string `json:"decision_reason"`
+	Link           string `json:"activation_url"`
 }

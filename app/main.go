@@ -88,7 +88,7 @@ func main() {
 
 	utils.NewCache(cache, los, config.IsDevelopment)
 
-	digiRepo := digisignRepository.NewRepository(digisign)
+	digiRepo := digisignRepository.NewRepository(digisign, los)
 
 	httpClient := httpclient.NewHttpClient()
 

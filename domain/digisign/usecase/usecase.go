@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"los-int-digisign/domain/digisign/interfaces"
+
+	"los-int-digisign/model/entity"
 	"los-int-digisign/model/request"
 	"los-int-digisign/model/response"
 	"los-int-digisign/shared/constant"
@@ -63,7 +65,7 @@ func NewMultiUsecase(repository interfaces.Repository, httpclient httpclient.Htt
 	}, usecase
 }
 
-func (u multiUsecase) Register(req request.Register) (data response.RegisterResponse, err error) {
+func (u multiUsecase) Register(req request.Register) (data response.DataRegisterResponse, err error) {
 
 	registerParam := request.RegisterRequest{
 		UserID:     os.Getenv("DIGISIGN_USER_ID"),
@@ -75,7 +77,7 @@ func (u multiUsecase) Register(req request.Register) (data response.RegisterResp
 		Name:       req.Name,
 		Phone:      req.Phone,
 		TglLahir:   req.BirthDate,
-		Provinci:   req.Provinci,
+		Provinci:   "INDONESIA",
 		IDKtp:      req.IDKtp,
 		BirthPlace: req.BirthPlace,
 		Email:      req.Email,
@@ -116,11 +118,97 @@ func (u multiUsecase) Register(req request.Register) (data response.RegisterResp
 		return
 	}
 
-	json.Unmarshal(resp.Body(), &data)
+	var digiResp response.RegisterResponse
+
+	json.Unmarshal(resp.Body(), &digiResp)
+
+	data = RegisterMappingResponse(digiResp, req.ProspectID)
 
 	return
 }
 
+func RegisterMappingResponse(data response.RegisterResponse, prospectID string) (resp response.DataRegisterResponse) {
+
+	resp = response.DataRegisterResponse{
+		ProspectID: prospectID,
+		Decision:   constant.DECISION_REJECT,
+	}
+
+	switch data.JsonFile.Result {
+
+	case constant.CODE_00:
+
+		resp.Decision = constant.DECISION_PASS
+
+		if data.JsonFile.Notif == constant.REASON_SUCCESS_REGISTER {
+			resp.DecisionReason = constant.REASON_SUCCESS_REGISTER
+			resp.Code = constant.CODE_SUCCESS_REGISTER
+		} else if data.JsonFile.Notif == constant.REASON_EMAIL_REGISTERED {
+			resp.DecisionReason = constant.REASON_EMAIL_REGISTERED
+			resp.Code = constant.CODE_EMAIL_REGISTERED
+		} else if data.JsonFile.Notif == constant.REASON_REGISTERED_BEFORE {
+			resp.DecisionReason = constant.REASON_REGISTERED_BEFORE
+			resp.Code = constant.CODE_REGISTERED_BEFORE
+			resp.IsRegistered = true
+		} else {
+			resp.DecisionReason = constant.CODE_REGISTERED
+			resp.Code = constant.CODE_REGISTERED
+			resp.IsRegistered = true
+		}
+
+	case constant.CODE_12:
+
+		resp.DecisionReason = fmt.Sprintf("%s %s", data.JsonFile.Notif, data.JsonFile.Info)
+
+		if data.JsonFile.Info == constant.REASON_REGISTER_FAILED {
+			resp.Code = constant.CODE_REGISTER_FAILED
+		} else if data.JsonFile.Notif == constant.REASON_REGISTER_FAILED_NIK {
+			resp.Code = constant.CODE_REGISTER_FAILED_NIK
+			resp.DecisionReason = constant.REASON_REGISTER_FAILED_NIK
+		} else if data.JsonFile.Info == constant.REASON_REGISTER_FAILED_NOFACE_SELFIE {
+			resp.Code = constant.CODE_REGISTER_FAILED_NOFACE_SELFIE
+		} else if data.JsonFile.Info == constant.CODE_REGISTER_FAILED_NOFACE_KTP {
+			resp.Code = constant.CODE_REGISTER_FAILED_NOFACE_KTP
+		} else if data.JsonFile.Info == constant.REASON_REGISTER_FAILED_FACE_INVALID {
+			resp.Code = constant.CODE_REGISTER_FAILED_FACE_INVALID
+		} else if data.JsonFile.Info == constant.REASON_REGISTER_FAILED_MIN_SIZE {
+			resp.Code = constant.CODE_REGISTER_FAILED_MIN_SIZE
+		} else if data.JsonFile.Info == constant.REASON_REGISTER_FAILED_JPEG_FORMAT {
+			resp.Code = constant.CODE_REGISTER_FAILED_JPEG_FORMAT
+		} else {
+			resp.Code = constant.CODE_REGISTER_FAILED_NAMA
+			resp.DecisionReason = constant.REASON_REGISTER_FAILED_NAMA
+		}
+
+	case constant.CODE_14:
+
+		if strings.Contains(data.JsonFile.Notif, "NIK sudah terdaftar") {
+			resp.Code = constant.CODE_REGISTER_FAILED_NIK_REGISTERED
+			resp.DecisionReason = fmt.Sprintf("%s %s", constant.REASON_REGISTER_FAILED_NIK_REGISTERED, data.JsonFile.EmailRegistered)
+		} else {
+			resp.Code = constant.CODE_REGISTER_FAILED_EMAIL_REGISTERED
+			resp.DecisionReason = constant.REASON_REGISTER_FAILED_EMAIL_REGISTERED
+		}
+
+	case constant.CODE_15:
+
+		resp.Code = constant.CODE_REGISTER_FAILED_MOBILE_PHONE_REGISTERED
+		resp.DecisionReason = constant.REASON_REGISTER_FAILED_MOBILE_PHONE_REGISTERED
+
+	case constant.CODE_20:
+
+		resp.Code = constant.CODE_REGISTER_FAILED_MAX_LIMIT
+		resp.DecisionReason = constant.REASON_REGISTER_FAILED_MAX_LIMIT
+
+	case constant.CODE_91:
+
+		resp.Code = constant.CODE_REGISTER_FAILED_TIMEOUT
+		resp.DecisionReason = constant.REASON_REGISTER_FAILED_TIMEOUT
+	}
+
+	return
+
+}
 func (u packages) GetRegisterPhoto(ktpUrl, selfieUrl, signatureUrl, npwpUrl, prospectID string) (ktpByte, selfieByte, signatureByte, npwpByte []byte, err error) {
 
 	var (
@@ -223,31 +311,64 @@ func (u packages) GetRegisterPhoto(ktpUrl, selfieUrl, signatureUrl, npwpUrl, pro
 	return
 }
 
-func (u usecase) Activation(req request.ActivationRequest) (res response.ActivationResponse, err error) {
-	url := os.Getenv("DIGISIGN_BASE_URL") + os.Getenv("DIGISIGN_ACTIVATION_URL")
+func (u usecase) Activation(req request.ActivationRequest) (data response.DataActivationResponse, err error) {
 
-	params := map[string]interface{}{
-		"jsonfield": req,
+	jsonFile, _ := json.Marshal(map[string]interface{}{
+		"JSONFile": map[string]interface{}{
+			"user_id":    os.Getenv("DIGISIGN_USER_ID"),
+			"email_user": req.Email,
+		},
+	})
+
+	param := map[string]string{
+		"jsonfield": string(jsonFile),
 	}
 
 	header := map[string]string{
 		"Content-Type":  "multipart/form-data",
-		"Authorization": os.Getenv("Bearer ") + os.Getenv("DIGISIGN_TOKEN"),
+		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
 	}
 
-	resp, err := u.httpclient.DigiAPI(url, http.MethodPost, params, "", header, 30, "")
-	if err != nil || resp.StatusCode() != http.StatusOK {
-		err = errors.New("error while do activation: " + err.Error())
-		return
-	}
+	resp, err := u.httpclient.ActivationAPI(os.Getenv("ACTIVATION_URL"), constant.METHOD_POST, param, header, 30, req.ProspectID)
 
-	err = json.Unmarshal(resp.Body(), &res)
 	if err != nil {
-		err = errors.New("error while unmarshal activation response: " + err.Error())
 		return
+	}
+
+	var digiResp response.ActivationResponse
+
+	json.Unmarshal(resp.Body(), &digiResp)
+
+	data = ActivationMappingResponse(digiResp, req.ProspectID)
+
+	return
+}
+
+func ActivationMappingResponse(data response.ActivationResponse, prospectID string) (resp response.DataActivationResponse) {
+
+	resp = response.DataActivationResponse{
+		ProspectID: prospectID,
+		Decision:   constant.DECISION_PASS,
+	}
+
+	switch data.JsonFile.Result {
+
+	case constant.CODE_00:
+		resp.DecisionReason = constant.REASON_SUCCESS_ACTIVATION
+		resp.Code = constant.CODE_SUCCESS_ACTIVATION
+		resp.Link = data.JsonFile.Link
+
+	case constant.CODE_06:
+		resp.DecisionReason = constant.REASON_ACTIVATION_FAILED_GENERAL_ERROR
+		resp.Code = constant.CODE_ACTIVATION_FAILED_GENERAL_ERROR
+
+	case constant.CODE_14:
+		resp.DecisionReason = constant.REASON_ACTIVATION_EXIST
+		resp.Code = constant.CODE_ACTIVATION_EXIST
 	}
 
 	return
+
 }
 
 func (u multiUsecase) ActivationRedirect(msg string) (data interface{}, err error) {
@@ -260,18 +381,25 @@ func (u multiUsecase) ActivationRedirect(msg string) (data interface{}, err erro
 
 	json.Unmarshal(byteDecrypt, &activationCallback)
 
-	if activationCallback.Result == "00" && activationCallback.Notif == "Proses Aktivasi Berhasil" {
+	if activationCallback.Result == constant.CODE_00 && activationCallback.Notif == constant.ACTIVATION_SUCCESS {
 
 		var (
-			prospectID string
-			sendDoc    response.SendDocResponse
-			signDoc    response.SignDocResponse
-			documentId string
+			dataCustomer entity.CustomerPersonal
+			sendDoc      response.SendDocResponse
+			signDoc      response.SignDocResponse
+			documentId   string
 		)
 		// 1. get Order id by email and nik
-
+		dataCustomer, err = u.repository.GetCustomerPersonalByEmailAndNik(activationCallback.Email, activationCallback.NIK)
+		if err != nil {
+			return
+		}
 		// send doc
-		sendDoc, documentId, err = u.packages.SendDoc(prospectID)
+		sendDoc, documentId, err = u.packages.SendDoc(request.SendDoc{
+			ProspectID: dataCustomer.ProspectID,
+			Email:      activationCallback.Email,
+			IDKtp:      activationCallback.NIK,
+		})
 
 		if err != nil {
 			return
@@ -284,7 +412,7 @@ func (u multiUsecase) ActivationRedirect(msg string) (data interface{}, err erro
 				DocumentID: documentId,
 				Email:      activationCallback.Email,
 				ViewOnly:   false,
-			}, prospectID)
+			}, dataCustomer.ProspectID)
 
 			if err != nil {
 				return nil, err
@@ -311,12 +439,16 @@ func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, e
 	return
 }
 
-func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, documentID string, err error) {
+func (u packages) SendDoc(req request.SendDoc) (data response.SendDocResponse, documentID string, err error) {
 
 	// 1. find data by email and nik
+	sendDoc, err := u.repository.GetSendDocData(req.ProspectID)
+	if err != nil {
+		return
+	}
 
 	// 2. generate pdf
-	document, documentID, err := u.usecase.GeneratePK(prospectID)
+	document, documentID, err := u.usecase.GeneratePK(req.ProspectID)
 	if err != nil {
 		return
 	}
@@ -331,22 +463,24 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 		DocumentID:     strconv.FormatInt(time.Now().Unix(), 10),
 		Payment:        os.Getenv("PAYMENT_METHOD"),
 		Redirect:       true,
-		Branch:         "", // from db
+		Branch:         sendDoc.BranchID,
 		SequenceOption: false,
 		SendTo: []request.SendTo{
 			{
-				Name:  "", // from legal name customer
-				Email: "", // from email customer
+				Name:  sendDoc.LegalName,
+				Email: sendDoc.Email,
 			},
 			{
-				Name:  "", // from data bm
-				Email: "", // from data bm
+				Name:  sendDoc.NameBM,
+				Email: sendDoc.EmailBM,
 			},
 		},
 		ReqSign: []request.ReqSign{
 			{
-				Name:    "", // from data bm
-				Email:   "", // from data bm
+				Name:    sendDoc.NameBM,
+				Email:   sendDoc.EmailBM,
+				AksiTtd: "at",
+				Kuser:   sendDoc.Kuser,
 				User:    "prf1",
 				Page:    "1",
 				Llx:     "323",
@@ -356,8 +490,9 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data customer
-				Email:   "", // email customer
+				Name:    sendDoc.LegalName,
+				Email:   sendDoc.Email,
+				AksiTtd: "mt",
 				User:    "ttd1",
 				Page:    "1",
 				Llx:     "458",
@@ -367,8 +502,9 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data customer
-				Email:   "", // email customer
+				Name:    sendDoc.LegalName,
+				Email:   sendDoc.Email,
+				AksiTtd: "mt",
 				User:    "ttd2",
 				Page:    "5",
 				Llx:     "70",
@@ -378,8 +514,10 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data bm
-				Email:   "", // from data bm
+				Name:    sendDoc.NameBM,
+				Email:   sendDoc.EmailBM,
+				AksiTtd: "at",
+				Kuser:   sendDoc.Kuser,
 				User:    "prf2",
 				Page:    "5",
 				Llx:     "428.4",
@@ -389,8 +527,10 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data bm
-				Email:   "", // from data bm
+				Name:    sendDoc.NameBM,
+				Email:   sendDoc.EmailBM,
+				AksiTtd: "at",
+				Kuser:   sendDoc.Kuser,
 				User:    "prf3",
 				Page:    "7",
 				Llx:     "33",
@@ -400,8 +540,9 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data customer
-				Email:   "", // email customer
+				Name:    sendDoc.LegalName,
+				Email:   sendDoc.Email,
+				AksiTtd: "mt",
 				User:    "ttd3",
 				Page:    "7",
 				Llx:     "457",
@@ -411,8 +552,9 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data customer
-				Email:   "", // email customer
+				Name:    sendDoc.LegalName,
+				Email:   sendDoc.Email,
+				AksiTtd: "mt",
 				User:    "ttd4",
 				Page:    "9",
 				Llx:     "71.3",
@@ -422,8 +564,10 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data bm
-				Email:   "", // from data bm
+				Name:    sendDoc.NameBM,
+				Email:   sendDoc.EmailBM,
+				AksiTtd: "at",
+				Kuser:   sendDoc.Kuser,
 				User:    "prf4",
 				Page:    "9",
 				Llx:     "33",
@@ -433,8 +577,9 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 				Visible: "1",
 			},
 			{
-				Name:    "", // from data customer
-				Email:   "", // email customer
+				Name:    sendDoc.LegalName,
+				Email:   sendDoc.Email,
+				AksiTtd: "mt",
 				User:    "ttd5",
 				Page:    "10",
 				Llx:     "31",
@@ -460,7 +605,7 @@ func (u packages) SendDoc(prospectID string) (data response.SendDocResponse, doc
 		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
 	}
 
-	resp, err := u.httpclient.SendDocAPI(os.Getenv("SEND_DOC_URL"), constant.METHOD_POST, param, header, 30, dataFile, prospectID)
+	resp, err := u.httpclient.SendDocAPI(os.Getenv("SEND_DOC_URL"), constant.METHOD_POST, param, header, 30, dataFile, req.ProspectID)
 
 	if err != nil {
 		return

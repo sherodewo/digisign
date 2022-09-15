@@ -45,3 +45,8 @@ func (_m *MockHttpClient) SignDocAPI(url, method string, param map[string]string
 	args := _m.Called(url, method, param, header, timeOut, prospectID)
 	return args.Get(0).(*resty.Response), args.Error(1)
 }
+
+func (_m *MockHttpClient) ActivationAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error) {
+	args := _m.Called(url, method, param, header, timeOut, prospectID)
+	return args.Get(0).(*resty.Response), args.Error(1)
+}
