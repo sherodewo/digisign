@@ -141,3 +141,14 @@ func GetLosDB() (string, string, string, int, string) {
 
 	return user, pwd, host, port, database
 }
+
+func GetLosLogDB() (string, string, string, int, string) {
+	user, _ := utils.DecryptCredential(os.Getenv("LOS_LOG_DB_USERNAME"))
+	pwd, _ := utils.DecryptCredential(os.Getenv("LOS_LOG_DB_PASSWORD"))
+	host, _ := utils.DecryptCredential(os.Getenv("LOS_LOG_DB_HOST"))
+	strPort, _ := utils.DecryptCredential(os.Getenv("LOS_LOG_DB_PORT"))
+	port, _ := strconv.Atoi(strPort)
+	database, _ := utils.DecryptCredential(os.Getenv("LOS_LOG_DB_DATABASE"))
+
+	return user, pwd, host, port, database
+}

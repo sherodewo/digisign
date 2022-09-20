@@ -2,7 +2,7 @@ package request
 
 type Register struct {
 	Address    string `json:"address" validate:"required,max=50"`
-	Gender     string `json:"gender" validate:"validate:required,max=10"`
+	Gender     string `json:"gender" validate:"required,max=10"`
 	Kecamatan  string `json:"kecamatan" validate:"required"`
 	Kelurahan  string `json:"kelurahan" validate:"required"`
 	Zipcode    string `json:"zipcode" validate:"required,max=10"`
@@ -32,9 +32,9 @@ type DataFile struct {
 }
 
 type RegisterRequest struct {
-	UserID     string `json:"user_id" validate:"email,max=80"`
+	UserID     string `json:"userid" validate:"email,max=80"`
 	Address    string `json:"alamat" validate:"required,max=50"`
-	Gender     string `json:"jenis_kelamin" validate:"validate:required,max=10"`
+	Gender     string `json:"jenis_kelamin" validate:"required,max=10"`
 	Kecamatan  string `json:"kecamatan" validate:"required"`
 	Kelurahan  string `json:"kelurahan" validate:"required"`
 	Zipcode    string `json:"kode-pos" validate:"required,max=10"`
@@ -66,14 +66,14 @@ type SendDoc struct {
 }
 
 type SendDocRequest struct {
-	UserID         string    `json:"user_id" validate:"email,max=80"`
+	UserID         string    `json:"userid" validate:"email,max=80"`
 	DocumentID     string    `json:"document_id" validate:"required,max=20"`
 	Payment        string    `json:"payment" validate:"max=1"`
+	SendTo         []SendTo  `json:"send-to"`
+	ReqSign        []ReqSign `json:"req-sign"`
 	Redirect       bool      `json:"redirect"`
 	Branch         string    `json:"branch"`
 	SequenceOption bool      `json:"sequence_option"`
-	SendTo         []SendTo  `json:"sent-to"`
-	ReqSign        []ReqSign `json:"req-sign"`
 	SigningSeq     int       `json:"signing_seq"`
 }
 
@@ -86,22 +86,24 @@ type ReqSign struct {
 	Name    string `json:"name" validate:"required,max=80"`
 	Email   string `json:"email" validate:"required,max=80"`
 	AksiTtd string `json:"aksi_ttd" validate:"required"`
-	Kuser   string `json:"kuser" validate:"required"`
+	Kuser   string `json:"kuser"`
 	User    string `json:"user" validate:"required,max=30"`
+	Page    string `json:"page" validate:"max=3"`
 	Llx     string `json:"llx" validate:"max=30"`
 	Lly     string `json:"lly" validate:"max=30"`
 	Urx     string `json:"urx" validate:"max=30"`
 	Ury     string `json:"ury" validate:"max=30"`
-	Page    string `json:"page" validate:"max=3"`
 	Visible string `json:"visible" validate:"max=1"`
 }
 
 type SignDocRequest struct {
-	JsonFile JsonFileSign `json:"JSONFile"`
+	DocumentID string `json:"document_id" validate:"required,max=20"`
+	Email      string `json:"email_user" validate:"required,max=80"`
+	ProspectID string `json:"prospect_id"`
 }
 
 type DownloadRequest struct {
-	UserID     string `json:"user_id" validate:"email,max=80"`
+	UserID     string `json:"userid" validate:"email,max=80"`
 	DocumentID string `json:"document_id" validate:"required,max=20"`
 }
 
