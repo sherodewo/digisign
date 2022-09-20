@@ -39,7 +39,16 @@ func (r repoHandler) GetSendDocData(prospectID string) (data entity.SendDocData,
 
 func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data entity.CustomerPersonal, err error) {
 
-	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM customer_personal WHERE IDNumber = '%s' AND Email = '%s'`, nik, email)).Scan(&data).Error; err != nil {
+	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM customer_personal WITH (nolock) WHERE IDNumber = '%s' AND Email = '%s'`, nik, email)).Scan(&data).Error; err != nil {
+		return
+	}
+
+	return
+}
+
+func (r repoHandler) GetTrxMetadata(prospectID string) (data entity.TrxMetadata, err error) {
+
+	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 redirect_url FROM trx_metadata WITH (nolock) WHERE ProspectID = '%s'`, prospectID)).Scan(&data).Error; err != nil {
 		return
 	}
 
@@ -78,6 +87,31 @@ func (r repoHandler) UpdateStatusDigisignActivation(prospectID string) error {
 			Activity: "PRCD",
 			Decision: "PAS",
 			NextStep: "SND",
+		}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (r repoHandler) UpdateStatusDigisignSignDoc(prospectID string) error {
+
+	return r.db.Transaction(func(tx *gorm.DB) error {
+
+		if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "ACT").Update(&entity.TrxDetail{
+			SourceDecision: "SID",
+			Activity:       "STOP",
+			Decision:       "APR",
+			NextStep:       nil,
+		}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Table("trx_status").Where("ProspectID = ? AND source_decision = ?", prospectID, "SID").Update(&entity.TrxStatus{
+			Activity: "STOP",
+			Decision: "APR",
+			NextStep: nil,
 		}).Error; err != nil {
 			return err
 		}

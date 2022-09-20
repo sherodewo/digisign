@@ -9,4 +9,6 @@ type Repository interface {
 	SaveTrx(data []entity.TrxDetail) (err error)
 	GetCustomerPersonalByEmail(documentID string) (data entity.TrxDetail, err error)
 	GetDigisignDummy(email string, action string) (data entity.DigisignDummy, err error)
+	GetTrxMetadata(prospectID string) (data entity.TrxMetadata, err error)
+	UpdateStatusDigisignSignDoc(prospectID string) error
 }

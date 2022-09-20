@@ -556,7 +556,7 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 
 			details = append(details, entity.TrxDetail{
 				ProspectID: dataCustomer.ProspectID, StatusProcess: signStatusProcess, Activity: signActivity, Decision: signDecision,
-				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nextStep, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
+				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
 			})
 
 			err = u.repository.SaveTrx(details)
@@ -897,7 +897,7 @@ func SignDocumentMappingResponse(data response.SignDocResponse, prospectID strin
 
 }
 
-func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResponse, err error) {
+func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResponse, redirectUrl string, err error) {
 
 	decodeValue, _ := base64.StdEncoding.DecodeString(msg)
 
@@ -917,6 +917,8 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			return
 		}
 
+		_ = u.repository.UpdateStatusDigisignSignDoc(data.ProspectID)
+
 		var download string
 
 		download, err = u.usecase.DownloadDoc(data.ProspectID, request.DownloadRequest{
@@ -927,6 +929,10 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 		if err != nil {
 			return
 		}
+
+		metadata, _ := u.repository.GetTrxMetadata(data.ProspectID)
+
+		redirectUrl = metadata.RedirectUrl
 
 		upload, err = u.usecase.UploadDoc(data.ProspectID, download)
 
@@ -1057,7 +1063,7 @@ func (u usecase) UploadDoc(prospectID string, fileName string) (uploadResp respo
 	}
 	header := map[string]string{
 		"Content-Type":  "multipart/form-data",
-		"Authorization": os.Getenv("MEDIA_CLIENT_KEY"),
+		"Authorization": os.Getenv("MEDIA_KEY"),
 	}
 	restyResp, err := u.httpclient.MediaClient(url, http.MethodPost, param, fileName, header, 30, prospectID)
 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {

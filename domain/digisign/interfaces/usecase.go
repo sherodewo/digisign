@@ -18,7 +18,7 @@ type Usecase interface {
 type MultiUsecase interface {
 	Register(req request.Register) (data response.DataRegisterResponse, err error)
 	ActivationRedirect(msg string) (data response.DataSignDocResponse, err error)
-	SignCallback(msg string) (upload response.MediaServiceResponse, err error)
+	SignCallback(msg string) (upload response.MediaServiceResponse, redirectUrl string, err error)
 }
 
 type Packages interface {

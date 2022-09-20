@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"los-int-digisign/model/request"
 	"los-int-digisign/model/response"
@@ -282,7 +283,8 @@ func (h httpClient) DigiAPI(url, method string, param map[string]string, file st
 
 	switch method {
 	case constant.METHOD_POST:
-		resp, err = client.R().SetHeaders(header).SetFormData(param).Post(url)
+		bs := []byte(strconv.Itoa(0))
+		resp, err = client.R().SetHeaders(header).SetFormData(param).SetFileReader("file", "file_", bytes.NewReader(bs)).Post(url)
 	case constant.METHOD_GET:
 		resp, err = client.R().SetHeaders(header).Get(url)
 	}

@@ -182,12 +182,15 @@ func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 
 	msg := ctx.QueryParam("msg")
 
-	data, err := h.multiUsecase.SignCallback(msg)
+	data, redirect, err := h.multiUsecase.SignCallback(msg)
 
 	if err != nil {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
 	}
 
-	return h.Json.Ok(ctx, "LOS Digisign", data.Data)
-	// return ctx.Redirect(307, data.Data.MediaURL)
+	if data.Data.MediaURL == "" {
+		return h.Json.Ok(ctx, "LOS Digisign", data.Data)
+	}
+
+	return ctx.Redirect(307, redirect)
 }

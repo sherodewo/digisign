@@ -93,5 +93,5 @@ const (
 	REASON_REGISTER_EXIST                          = "Email sudah terdaftar gunakan email lain atau silahkan login dengan akun anda"
 	REASON_SIGN_DOC_GENERAL_ERROR                  = "General Error"
 	SIGN_DOC_COMPLETE                              = "complete"
-	ACTIVATION_CALLLBACK_SUCCESS                   = "success"
+	ACTIVATION_CALLLBACK_SUCCESS                   = "Proses Aktivasi Berhasil"
 )
