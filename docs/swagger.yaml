@@ -53,11 +53,36 @@ definitions:
     - birth_place
     - city
     - email
+    - gender
     - kecamatan
     - kelurahan
     - mobile_phone
     - name
     - zipcode
+    type: object
+  request.SendDoc:
+    properties:
+      email:
+        type: string
+      id_ktp:
+        type: string
+      prospect_id:
+        type: string
+    required:
+    - email
+    - id_ktp
+    type: object
+  request.SignDocRequest:
+    properties:
+      document_id:
+        type: string
+      email_user:
+        type: string
+      prospect_id:
+        type: string
+    required:
+    - document_id
+    - email_user
     type: object
   response.Api:
     properties:
@@ -127,6 +152,70 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.Register'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+  /digisign/send-doc:
+    post:
+      description: Api Send Doc Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.SendDoc'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+  /digisign/sign-doc:
+    post:
+      description: Api sign Doc Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignDocRequest'
       produces:
       - application/json
       responses:

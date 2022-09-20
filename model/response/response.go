@@ -22,12 +22,14 @@ type SendDocResponse struct {
 		Result string `json:"result"`
 		Notif  string `json:"notif"`
 		RefTrx string `json:"refTrx"`
+		Info   string `json:"info"`
 	} `json:"JSONFile"`
 }
 
 type SignDocResponse struct {
 	JsonFile struct {
 		Result string `json:"result"`
+		Notif  string `json:"notif"`
 		Link   string `json:"link"`
 	} `json:"JSONFile"`
 }
@@ -107,4 +109,32 @@ type DataActivationResponse struct {
 	Decision       string `json:"decision"`
 	DecisionReason string `json:"decision_reason"`
 	Link           string `json:"activation_url"`
+}
+
+type DataSendDocResponse struct {
+	ProspectID     string `json:"prospect_id"`
+	Code           string `json:"code"`
+	Decision       string `json:"decision"`
+	DecisionReason string `json:"decision_reason"`
+	DocumentID     string `json:"document_id"`
+	AgreementNo    string `json:"agreement_no"`
+}
+
+type DataSignDocResponse struct {
+	ProspectID     string `json:"prospect_id"`
+	Code           string `json:"code"`
+	Decision       string `json:"decision"`
+	DecisionReason string `json:"decision_reason"`
+	Link           string `json:"sign_doc_url"`
+}
+
+type DocumentGenerateResponse struct {
+	DocumentPK  string `json:"doc_pk"`
+	DocumentID  string `json:"doc_id"`
+	AgreementNo string `json:"agreement_no"`
+}
+
+type SendDocInfo struct {
+	DocumentID  string `json:"document_id"`
+	AgreementNo string `json:"AgreementNo"`
 }

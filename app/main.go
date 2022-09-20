@@ -20,6 +20,7 @@ import (
 	"los-int-digisign/docs"
 
 	"github.com/allegro/bigcache"
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
@@ -54,16 +55,20 @@ func main() {
 
 	e.Debug = config.IsDevelopment
 
-	digisign, err := database.OpenDigisign()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// digisign, err := database.OpenDigisign()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	los, err := database.OpenLos()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	logDB, err := database.OpenLosLog()
+	if err != nil {
+		log.Fatal(err)
+	}
 	//Set Middleware
 	// e.Use(middleware.BodyDumpWithConfig(bodydump.NewBodyDumpMiddleware(logs).BodyDumpConfig()))
 	e.Use(middleware.Recover())
@@ -88,17 +93,19 @@ func main() {
 
 	utils.NewCache(cache, los, config.IsDevelopment)
 
-	digiRepo := digisignRepository.NewRepository(digisign, los)
+	var digisign *gorm.DB
+
+	digiRepo := digisignRepository.NewRepository(digisign, los, logDB)
 
 	httpClient := httpclient.NewHttpClient()
 
-	digiMulti, digiUseCase := digisignMultiUsecase.NewMultiUsecase(digiRepo, httpClient)
+	digiMulti, digiPackage, digiUseCase := digisignMultiUsecase.NewMultiUsecase(digiRepo, httpClient)
 
 	commonJson := jsonResponse.NewResponse()
 
 	apiGroup := e.Group("/api/v1")
 
-	digisignHttpDelivery.DigisignHandler(apiGroup, digiMulti, digiUseCase, commonJson, digiRepo)
+	digisignHttpDelivery.DigisignHandler(apiGroup, digiMulti, digiPackage, digiUseCase, commonJson, digiRepo)
 
 	if config.IsDevelopment {
 		// programatically set swagger info

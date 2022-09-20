@@ -136,6 +136,114 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/digisign/send-doc": {
+            "post": {
+                "description": "Api Send Doc Digisign",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Digisign"
+                ],
+                "parameters": [
+                    {
+                        "description": "Body payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SendDoc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Api"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/response.ErrorValidation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    }
+                }
+            }
+        },
+        "/digisign/sign-doc": {
+            "post": {
+                "description": "Api sign Doc Digisign",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Digisign"
+                ],
+                "parameters": [
+                    {
+                        "description": "Body payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SignDocRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Api"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/response.ErrorValidation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Api"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -161,6 +269,7 @@ var doc = `{
                 "birth_place",
                 "city",
                 "email",
+                "gender",
                 "kecamatan",
                 "kelurahan",
                 "mobile_phone",
@@ -220,6 +329,42 @@ var doc = `{
                     "type": "string"
                 },
                 "zipcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SendDoc": {
+            "type": "object",
+            "required": [
+                "email",
+                "id_ktp"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id_ktp": {
+                    "type": "string"
+                },
+                "prospect_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SignDocRequest": {
+            "type": "object",
+            "required": [
+                "document_id",
+                "email_user"
+            ],
+            "properties": {
+                "document_id": {
+                    "type": "string"
+                },
+                "email_user": {
+                    "type": "string"
+                },
+                "prospect_id": {
                     "type": "string"
                 }
             }
