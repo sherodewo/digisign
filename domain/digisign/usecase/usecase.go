@@ -779,6 +779,7 @@ func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, a
 		return
 	}
 	docID = documentData.DocumentID
+	agreementNo = documentData.AgreementNo
 
 	return
 }
