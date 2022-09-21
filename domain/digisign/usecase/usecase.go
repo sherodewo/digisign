@@ -128,7 +128,11 @@ func (u multiUsecase) Register(req request.Register) (data response.DataRegister
 
 		json.Unmarshal([]byte(dummy.Response), &digiResp)
 
-		fmt.Println(digiResp)
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: req.ProspectID,
+			Response:   dummy.Response,
+			Activity:   "REGISTER",
+		})
 
 		data = RegisterMappingResponse(digiResp, req.ProspectID)
 
@@ -137,11 +141,15 @@ func (u multiUsecase) Register(req request.Register) (data response.DataRegister
 
 	resp, err := u.httpclient.RegisterAPI(os.Getenv("REGISTER_URL"), param, header, constant.METHOD_POST, timeOut, dataFile, req.ProspectID)
 
-	fmt.Println(string(resp.Body()))
-
 	if err != nil {
 		return
 	}
+
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: req.ProspectID,
+		Response:   string(resp.Body()),
+		Activity:   "REGISTER",
+	})
 
 	json.Unmarshal(resp.Body(), &digiResp)
 
@@ -477,6 +485,13 @@ func (u multiUsecase) Activation(req request.ActivationRequest) (data response.D
 
 		json.Unmarshal([]byte(dummy.Response), &digiResp)
 
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: req.ProspectID,
+			Response:   dummy.Response,
+			Activity:   "ACTIVATION",
+			Link:       digiResp.JsonFile.Link,
+		})
+
 		data = ActivationMappingResponse(digiResp, req.ProspectID)
 
 		return
@@ -486,13 +501,18 @@ func (u multiUsecase) Activation(req request.ActivationRequest) (data response.D
 
 	resp, err := u.httpclient.ActivationAPI(os.Getenv("ACTIVATION_URL"), constant.METHOD_POST, param, header, timeOut, req.ProspectID)
 
-	fmt.Println(string(resp.Body()))
-
 	if err != nil {
 		return
 	}
 
 	json.Unmarshal(resp.Body(), &digiResp)
+
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: req.ProspectID,
+		Response:   string(resp.Body()),
+		Activity:   "ACTIVATION",
+		Link:       digiResp.JsonFile.Link,
+	})
 
 	data = ActivationMappingResponse(digiResp, req.ProspectID)
 
@@ -627,6 +647,12 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 		if err != nil {
 			return
 		}
+
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: dataCustomer.ProspectID,
+			Response:   string(byteDecrypt),
+			Activity:   "CALLBACK_ACTIVATION",
+		})
 
 		err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID)
 		if err != nil {
@@ -855,6 +881,12 @@ func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocRespons
 
 		data = SendDocMappingResponse(digiResponse, req.ProspectID)
 
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: req.ProspectID,
+			Response:   dummy.Response,
+			Activity:   "SEND_DOC",
+		})
+
 		data.DocumentID = documentID
 		data.AgreementNo = agreementNo
 
@@ -872,6 +904,12 @@ func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocRespons
 	}
 
 	json.Unmarshal(resp.Body(), &digiResponse)
+
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: req.ProspectID,
+		Response:   string(resp.Body()),
+		Activity:   "SEND_DOC",
+	})
 
 	data = SendDocMappingResponse(digiResponse, req.ProspectID)
 
@@ -1044,6 +1082,12 @@ func (u packages) SignDocument(req request.JsonFileSign, prospectID string) (dat
 
 		json.Unmarshal([]byte(dummy.Response), &digiResp)
 
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: prospectID,
+			Response:   dummy.Response,
+			Activity:   "SIGN_DOC",
+		})
+
 		data = SignDocumentMappingResponse(digiResp, prospectID)
 
 		return
@@ -1051,12 +1095,18 @@ func (u packages) SignDocument(req request.JsonFileSign, prospectID string) (dat
 
 	signDoc, err := u.httpclient.SignDocAPI(os.Getenv("SIGN_DOC_URL"), constant.METHOD_POST, param, header, timeOut, prospectID)
 
-	fmt.Println(string(signDoc.Body()))
 	if err != nil {
 		return
 	}
 
 	json.Unmarshal(signDoc.Body(), &digiResp)
+
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: prospectID,
+		Response:   string(signDoc.Body()),
+		Activity:   "SIGN_DOC",
+		Link:       digiResp.JsonFile.Link,
+	})
 
 	data = SignDocumentMappingResponse(digiResp, prospectID)
 
@@ -1220,6 +1270,12 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 		if err != nil {
 			return
 		}
+
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: data.ProspectID,
+			Response:   string(byteDecrypt),
+			Activity:   "SIGN_CALLBACK",
+		})
 
 		go u.usecase.CallbackDigisignSignDocSuccess(data.ProspectID)
 

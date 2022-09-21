@@ -139,8 +139,20 @@ func (c *TrxWorker) TableName() string {
 }
 
 type DataWorker struct {
-	TransactionType string `gorm:"type:varchar(30);column:transaction_type"`
-	CustomerID      int    `gorm:"column:customer_id"`
-	AF              int    `gorm:"column:AF"`
-	TenorLimit      int    `gorm:"column:tenor_limit"`
+	TransactionType string  `gorm:"type:varchar(30);column:transaction_type"`
+	CustomerID      int     `gorm:"column:customer_id"`
+	AF              float64 `gorm:"column:AF"`
+	TenorLimit      int     `gorm:"column:tenor_limit"`
+}
+
+type TrxDigisign struct {
+	ProspectID string      `gorm:"type:varchar(20);column:ProspectID"`
+	Response   string      `gorm:"type:varchar(2000);column:response"`
+	Activity   string      `gorm:"type:varchar(20);column:activity"`
+	Link       interface{} `gorm:"type:varchar(2000);column:link"`
+	CreatedAt  time.Time   `gorm:"column:created_at"`
+}
+
+func (c *TrxDigisign) TableName() string {
+	return "trx_digisign"
 }

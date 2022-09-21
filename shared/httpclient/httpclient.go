@@ -40,7 +40,7 @@ func (h httpClient) MediaAPI(url string, param interface{}, header map[string]st
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 	if retry {
 		client.SetRetryCount(countRetry.(int))
@@ -66,13 +66,18 @@ func (h httpClient) MediaAPI(url string, param interface{}, header map[string]st
 }
 
 func (h httpClient) MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error) {
+
 	client := resty.New()
+	if os.Getenv("APP_ENV") != "production" {
+		client.SetDebug(false)
+	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
 
 	switch method {
 	case constant.METHOD_POST:
 		resp, err = client.R().SetHeaders(header).SetFormData(param).SetFile("file", file).Post(url)
+		fmt.Println(string(resp.Body()))
 	case constant.METHOD_GET:
 		resp, err = client.R().SetHeaders(header).Get(url)
 	}
@@ -94,7 +99,7 @@ func (h httpClient) RegisterAPI(url string, param map[string]string, header map[
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
@@ -164,7 +169,7 @@ func (h httpClient) EngineAPI(url string, param interface{}, header map[string]s
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 	if retry {
 		client.SetRetryCount(countRetry.(int))
@@ -198,7 +203,7 @@ func (h httpClient) SendDocAPI(url, method string, param map[string]string, head
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
@@ -228,7 +233,7 @@ func (h httpClient) SignDocAPI(url, method string, param map[string]string, head
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
@@ -252,7 +257,7 @@ func (h httpClient) ActivationAPI(url, method string, param map[string]string, h
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
@@ -276,7 +281,7 @@ func (h httpClient) DigiAPI(url, method string, param map[string]string, file st
 
 	client := resty.New()
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
@@ -303,7 +308,7 @@ func (h httpClient) DocumentAPI(url, method string, param interface{}, header ma
 	client := resty.New()
 
 	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(true)
+		client.SetDebug(false)
 	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))

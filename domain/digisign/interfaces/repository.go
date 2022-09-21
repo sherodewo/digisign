@@ -13,4 +13,5 @@ type Repository interface {
 	UpdateStatusDigisignSignDoc(prospectID string) error
 	SaveToWorker(data []entity.TrxWorker) (err error)
 	GetDataWorker(prospectID string) (data entity.DataWorker, err error)
+	SaveToTrxDigisign(data entity.TrxDigisign) (err error)
 }

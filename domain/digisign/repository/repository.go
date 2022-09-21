@@ -183,3 +183,12 @@ func (r repoHandler) GetDataWorker(prospectID string) (data entity.DataWorker, e
 	}
 	return
 }
+
+func (r repoHandler) SaveToTrxDigisign(data entity.TrxDigisign) (err error) {
+
+	if err = r.db.Create(&data).Error; err != nil {
+		return
+	}
+
+	return
+}
