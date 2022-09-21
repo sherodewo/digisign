@@ -39,7 +39,7 @@ func (r repoHandler) GetSendDocData(prospectID string) (data entity.SendDocData,
 
 func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data entity.CustomerPersonal, err error) {
 
-	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM customer_personal WITH (nolock) WHERE IDNumber = '%s' AND Email = '%s'`, nik, email)).Scan(&data).Error; err != nil {
+	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM customer_personal WITH (nolock) WHERE IDNumber = '%s' AND Email = '%s' ORDER BY created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
 		return
 	}
 
@@ -57,17 +57,17 @@ func (r repoHandler) GetTrxMetadata(prospectID string) (data entity.TrxMetadata,
 
 func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.TrxDetail, err error) {
 
-	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM trx_details WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND source_decision = 'SID' AND created_at > DATEADD(day, -2, GETDATE()) `, documentID)).Scan(&data).Error; err != nil {
+	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM trx_details WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND source_decision = 'SID' AND created_at > DATEADD(day, -2, GETDATE()) ORDER BY created_at DESC`, documentID)).Scan(&data).Error; err != nil {
 		return
 	}
 
 	return
 }
 
-func (r repoHandler) UpdateStatusDigisignActivation(prospectID string) error {
+func (r repoHandler) UpdateStatusDigisignActivation(email, nik, prospectID string) error {
 
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Table("digisign_customer").Where("ProspectID = ?", prospectID).Update(&entity.DigisignCustomer{
+		if err := tx.Table("digisign_customer").Where("Email = ? AND IDNumber = ?", email, nik).Update(&entity.DigisignCustomer{
 			Activation:         1,
 			DatetimeActivation: time.Now(),
 		}).Error; err != nil {
@@ -99,10 +99,11 @@ func (r repoHandler) UpdateStatusDigisignSignDoc(prospectID string) error {
 
 	return r.db.Transaction(func(tx *gorm.DB) error {
 
-		if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "ACT").Update(&entity.TrxDetail{
+		if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "SID").Update(&entity.TrxDetail{
 			SourceDecision: "SID",
 			Activity:       "STOP",
 			Decision:       "APR",
+			RuleCode:       "4404",
 			NextStep:       nil,
 		}).Error; err != nil {
 			return err
@@ -111,6 +112,7 @@ func (r repoHandler) UpdateStatusDigisignSignDoc(prospectID string) error {
 		if err := tx.Table("trx_status").Where("ProspectID = ? AND source_decision = ?", prospectID, "SID").Update(&entity.TrxStatus{
 			Activity: "STOP",
 			Decision: "APR",
+			RuleCode: "4404",
 			NextStep: nil,
 		}).Error; err != nil {
 			return err
@@ -154,5 +156,30 @@ func (r repoHandler) GetDigisignDummy(email string, action string) (data entity.
 		return
 	}
 
+	return
+}
+
+func (r repoHandler) SaveToWorker(data []entity.TrxWorker) (err error) {
+
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		for _, worker := range data {
+			if err := r.db.Create(&worker).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+}
+
+func (r repoHandler) GetDataWorker(prospectID string) (data entity.DataWorker, err error) {
+
+	if err = r.db.Raw(fmt.Sprintf(`SELECT transaction_type, AF, tenor_limit, customer_id FROM trx_master tm  WITH(nolock)
+	 INNER JOIN customer_kreditmu ck WITH (nolock) ON tm.ProspectID = ck.ProspectID
+	 INNER JOIN trx_apk ta WITH (nolock) ON tm.ProspectID = ta.ProspectID
+	 WHERE tm.ProspectID = '%s'`, prospectID)).Scan(&data).Error; err != nil {
+		return
+	}
 	return
 }

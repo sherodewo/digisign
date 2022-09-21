@@ -90,7 +90,7 @@ func (h *digisignHandler) Activation(ctx echo.Context) (err error) {
 		return h.Json.BadRequestErrorValidation(ctx, "LOS Digisign - Activation", err)
 	}
 
-	data, err := h.usecase.Activation(req)
+	data, err := h.multiUsecase.Activation(req)
 	if err != nil {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_timeout - Activation Timeout"))
 	}
@@ -165,7 +165,7 @@ func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
 		return h.Json.BadRequestErrorValidation(ctx, "LOS - Sign Document", err)
 	}
 
-	sign, err := h.usecase.SignDocument(request.JsonFileSign{
+	sign, err := h.packages.SignDocument(request.JsonFileSign{
 		UserID:     os.Getenv("DIGISIGN_USER_ID"),
 		DocumentID: req.DocumentID,
 		Email:      req.Email,
