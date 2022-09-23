@@ -22,9 +22,9 @@ func MultiData(c echo.Context, message string, data interface{}, respOri interfa
 			Code:    http.StatusOK,
 			Message: message,
 			Error:   error,
-			RespOri: respOri,
 		},
 		Data: data,
+		RespOri: respOri,
 	})
 }
 
