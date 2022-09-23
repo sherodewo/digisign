@@ -71,5 +71,5 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, "Success execute request", data, nil)
+	return response.MultiData(ctx, "Success execute request", data, jsonResponse, nil)
 }

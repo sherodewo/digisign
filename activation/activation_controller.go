@@ -64,7 +64,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, "Success execute request", resMap, nil)
+	return response.MultiData(ctx, "Success execute request", resMap, res.String(), nil)
 }
 
 func (c *Controller) Callback(ctx echo.Context) error {
@@ -72,9 +72,9 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	decodeValue, err := base64.StdEncoding.DecodeString(encodedValue)
 	if err != nil {
 		tags := map[string]string{
-			"app.pkg":    "activation",
-			"app.func":   "Callback",
-			"app.action": "decode",
+			"app.pkg":     "activation",
+			"app.func":    "Callback",
+			"app.action":  "decode",
 			"app.process": "activation-callback",
 		}
 		extra := map[string]interface{}{
@@ -107,5 +107,5 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, utils.OK, echo.Map{"message": "Callback success send"}, nil)
+	return response.MultiData(ctx, utils.OK, echo.Map{"message": "Callback success send"}, resLos.String(), nil)
 }

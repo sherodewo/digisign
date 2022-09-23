@@ -4,6 +4,7 @@ type Meta struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Error   interface{} `json:"error"`
+	RespOri interface{} `json:"resp_ori,omitempty"`
 }
 
 type Paginator struct {

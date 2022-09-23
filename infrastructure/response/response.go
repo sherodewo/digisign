@@ -16,6 +16,18 @@ func SingleData(c echo.Context, message string, data interface{}, error interfac
 	})
 }
 
+func MultiData(c echo.Context, message string, data interface{}, respOri interface{}, error interface{}) error {
+	return c.JSON(http.StatusOK, Single{
+		Meta: Meta{
+			Code:    http.StatusOK,
+			Message: message,
+			Error:   error,
+			RespOri: respOri,
+		},
+		Data: data,
+	})
+}
+
 func NotFound(c echo.Context, message string, data interface{}, error interface{}) error {
 	return c.JSON(http.StatusNotFound, Single{
 		Meta: Meta{
