@@ -13,6 +13,8 @@ type Repository interface {
 	FindLastByCreatedAt(string, string) (model.Activation, error)
 	Update(model.Activation) (model.Activation, error)
 	Delete(model.Activation) error
+	SaveDigisign(model.TrxDigisign) (model.TrxDigisign, error)
+	FindCustomer(nik string, email string) (model.CustomerPersonal, error)
 }
 
 type activationRepository struct {
@@ -57,5 +59,17 @@ func (r activationRepository) SaveCallback(callback model.ActivationCallback) (m
 func (r activationRepository) FindLastByCreatedAt(prospectId string, emailUser string) (model.Activation, error) {
 	var entity model.Activation
 	err := r.DB.Where("prospect_id =?", prospectId).Where("email_user =?", emailUser).Order("created_at DESC").First(&entity).Error
+	return entity, err
+}
+
+
+func (r activationRepository) SaveDigisign(entity model.TrxDigisign) (model.TrxDigisign, error) {
+	err := r.DB.Create(&entity).Error
+	return entity, err
+}
+
+func (r activationRepository) FindCustomer(nik string, email string) (model.CustomerPersonal, error) {
+	var entity model.CustomerPersonal
+	err := r.DB.Raw("SELECT TOP 1 prospect_id WHERE nik = ? AND email = ?", nik, email).Error
 	return entity, err
 }

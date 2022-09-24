@@ -3,6 +3,8 @@ package sign_document
 import (
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/model"
+	"los-int-digisign/shared/constant"
+	"time"
 
 	"github.com/labstack/echo"
 )
@@ -110,4 +112,25 @@ func (s *service) SaveSignDocumentCallback(documentId string, email string, stat
 	}
 	return echo.Map{"id": data.ID, "document_id": data.DocumentID, "email": data.Email, "status_document": statusDocument,
 		"result": result}, err
+}
+
+func (s *service) SaveTrxDigisign(nik string, resp string ) error{
+	// Get Propsect ID in Customer Personal
+	customer, err := s.signDocumentRepository.FindCustomer(nik)
+	if err != nil {
+		return err
+	}
+
+	entity := model.TrxDigisign{
+		ProspectID: customer.ProspectID,
+		Response:   resp,
+		Activity:   constant.ACTIVITY_SEND_DOC,
+		CreatedAt:  time.Now(),
+	}
+
+	_, err = s.signDocumentRepository.SaveDigisign(entity)
+	if err != nil {
+		return err
+	}
+	return nil
 }

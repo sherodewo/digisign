@@ -12,6 +12,8 @@ type Repository interface {
 	SaveCallback(callback model.SignDocumentCallback) (model.SignDocumentCallback, error)
 	Update(model.SignDocument) (model.SignDocument, error)
 	Delete(model.SignDocument) error
+	SaveDigisign(model.TrxDigisign) (model.TrxDigisign, error)
+	FindCustomer(string) (model.CustomerPersonal, error)
 }
 
 type signDocumentRepository struct {
@@ -51,4 +53,15 @@ func (r signDocumentRepository) Delete(entity model.SignDocument) error {
 func (r signDocumentRepository) SaveCallback(callback model.SignDocumentCallback) (model.SignDocumentCallback, error) {
 	err := r.DB.Create(&callback).Error
 	return callback, err
+}
+
+func (r signDocumentRepository) SaveDigisign(entity model.TrxDigisign) (model.TrxDigisign, error) {
+	err := r.DB.Create(&entity).Error
+	return entity, err
+}
+
+func (r signDocumentRepository) FindCustomer(nik string) (model.CustomerPersonal, error) {
+	var entity model.CustomerPersonal
+	err := r.DB.Raw("SELECT TOP 1 prospect_id WHERE nik = ?", nik).Error
+	return entity, err
 }

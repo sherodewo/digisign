@@ -101,6 +101,10 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if resLos.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
 	}
+
+	// insert trx_digisign
+	err = c.service.SaveTrxDigisign(dataMap["nik"].(string), resLos.String())
+
 	_, err = c.service.SaveSignDocumentCallback(dataMap["document_id"].(string), dataMap["email_user"].(string),
 		dataMap["status_document"].(string), dataMap["result"].(string), dataMap["notif"].(string))
 	if err != nil {
