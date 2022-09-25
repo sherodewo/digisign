@@ -138,3 +138,11 @@ type SendDocInfo struct {
 	DocumentID  string `json:"document_id"`
 	AgreementNo string `json:"AgreementNo"`
 }
+
+type DataDigisignCheck struct {
+	ProspectID    string      `json:"prospect_id"`
+	Step          string      `json:"step"`
+	Decision      string      `json:"decision"`
+	ActivationUrl interface{} `json:"activation_url"`
+	SignDocUrl    interface{} `json:"sign_doc_url"`
+}

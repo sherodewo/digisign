@@ -121,4 +121,5 @@ const (
 	INSERT_STAGING                                 = "INSERT_STAGING"
 	RETURN_LIMIT                                   = "RETURN_LIMIT"
 	USE_LIMIT                                      = "USE_LIMIT"
+	DIGISIGN_RECORD_NOT_FOUND                      = "digisign record not found"
 )

@@ -35,6 +35,7 @@ func DigisignHandler(route *echo.Group, multiUsecase interfaces.MultiUsecase, pa
 		digiGroup.GET("/sign-document/callback", handler.SignCallback)
 		digiGroup.POST("/activation", handler.Activation)
 		digiGroup.POST("/send-doc", handler.SendDoc)
+		digiGroup.POST("/step-check", handler.CheckDigisignIndex)
 	}
 }
 
@@ -141,7 +142,7 @@ func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
 		return h.Json.Ok(ctx, "LOS Digisign", data)
 	}
 
-	return ctx.Redirect(307, data.Link)
+	return ctx.Redirect(301, data.Link)
 }
 
 // Digisign godoc
@@ -192,5 +193,37 @@ func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 		return h.Json.Ok(ctx, "LOS Digisign", data.Data)
 	}
 
-	return ctx.Redirect(307, redirect)
+	return ctx.Redirect(301, redirect)
+}
+
+// Digisign godoc
+// @Description Api Check Step Digisign
+// @Tags Digisign
+// @Produce json
+// @Param body body request.DigisignCheck true "Body payload"
+// @Success 200 {object} response.Api{}
+// @Failure 400 {object} response.Api{error=response.ErrorValidation}
+// @Failure 500 {object} response.Api{}
+// @Router /digisign/step-check [post]
+func (h *digisignHandler) CheckDigisignIndex(ctx echo.Context) (err error) {
+
+	var req request.DigisignCheck
+
+	if err := ctx.Bind(&req); err != nil {
+		return h.Json.InternalServerError(ctx, "LOS - Digisign Check", err)
+	}
+
+	if err := ctx.Validate(&req); err != nil {
+		return h.Json.BadRequestErrorValidation(ctx, "LOS - Digisign Check", err)
+	}
+
+	data, err := h.usecase.DigisignCheck(req.Email, req.ProspectID)
+
+	if err != nil {
+		return h.Json.NotFound(ctx, "LOS - Digisign Check")
+
+	}
+
+	return h.Json.Ok(ctx, "LOS - Digisign Check", data)
+
 }

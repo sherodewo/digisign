@@ -167,7 +167,7 @@ func (u usecase) CallbackDigisignRegister(data response.DataRegisterResponse, pr
 		dataWorker, _ := u.repository.GetDataWorker(prospectID)
 
 		if dataWorker.TransactionType != "" {
-			timeOut, _ := strconv.Atoi("DEFAULT_TIMEOUT_30S")
+			timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 			header := map[string]string{
 				"Content-Type":  "application/json",
@@ -523,7 +523,7 @@ func (u multiUsecase) Activation(req request.ActivationRequest) (data response.D
 
 func (u usecase) CallbackDigisignActivation(data response.DataActivationResponse, prospectID string) (err error) {
 
-	timeOut, _ := strconv.Atoi("DEFAULT_TIMEOUT_30S")
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 	status := constant.WAITING_ACTIVATION
 	activity := constant.ACTIVITY_ONPROSES
@@ -648,16 +648,18 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			return
 		}
 
+		var details []entity.TrxDetail
+
 		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
 			ProspectID: dataCustomer.ProspectID,
 			Response:   string(byteDecrypt),
 			Activity:   "CALLBACK_ACTIVATION",
 		})
 
-		err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID)
-		if err != nil {
-			return
-		}
+		details = append(details, entity.TrxDetail{
+			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "PRCD", Decision: "PAS",
+			RuleCode: "4225", SourceDecision: "ACT", NextStep: nil, CreatedBy: "SYSTEM",
+		})
 
 		// send doc
 		sendDoc, err = u.packages.SendDoc(request.SendDoc{
@@ -675,81 +677,68 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			AgreementNo: sendDoc.AgreementNo,
 		})
 
-		var details []entity.TrxDetail
-
-		var nextStep interface{}
-
-		statusProcess := "ONP"
-		activity := "PRCD"
-		decision := "PAS"
-		nextStep = "SID"
-
 		if sendDoc.Decision == constant.DECISION_REJECT {
-			statusProcess = "FIN"
-			activity = "STOP"
-			decision = "REJ"
-			nextStep = nil
+			details = append(details, entity.TrxDetail{
+				ProspectID: dataCustomer.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "REJ",
+				RuleCode: sendDoc.Code, SourceDecision: "SND", NextStep: nil, CreatedBy: "SYSTEM",
+			})
+
+			data = response.DataSignDocResponse{
+				ProspectID:     sendDoc.ProspectID,
+				Code:           sendDoc.Code,
+				Decision:       sendDoc.Decision,
+				DecisionReason: sendDoc.DecisionReason,
+			}
+
+			err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+
+			return
 		}
 
 		details = append(details, entity.TrxDetail{
-			ProspectID: dataCustomer.ProspectID, StatusProcess: statusProcess, Activity: activity, Decision: decision,
-			RuleCode: sendDoc.Code, SourceDecision: "SND", NextStep: nextStep, CreatedBy: "SYSTEM", Info: string(info),
+			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "PRCD", Decision: "PAS",
+			RuleCode: sendDoc.Code, SourceDecision: "SND", NextStep: "SID", CreatedBy: "SYSTEM", Info: string(info),
 		})
 
 		// sign doc
-		if sendDoc.Decision == constant.DECISION_PASS {
-			signDoc, err = u.packages.SignDocument(request.JsonFileSign{
-				UserID:     os.Getenv("DIGISIGN_USER_ID"),
-				DocumentID: sendDoc.DocumentID,
-				Email:      activationCallback.Email,
-				ViewOnly:   false,
-			}, dataCustomer.ProspectID)
-
-			if err != nil {
-				return
-			}
-
-			signStatusProcess := "ONP"
-			signActivity := "PRCD"
-			signDecision := "PAS"
-
-			if sendDoc.Decision == constant.DECISION_REJECT {
-				signStatusProcess = "FIN"
-				signActivity = "STOP"
-				signDecision = "REJ"
-			}
-
-			data = signDoc
-
-			details = append(details, entity.TrxDetail{
-				ProspectID: dataCustomer.ProspectID, StatusProcess: signStatusProcess, Activity: signActivity, Decision: signDecision,
-				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
-			})
-
-			err = u.repository.SaveTrx(details)
-
-			if err != nil {
-				return
-			}
-
-			return
-
-		}
-
-		data = response.DataSignDocResponse{
-			ProspectID:     sendDoc.ProspectID,
-			Code:           sendDoc.Code,
-			Decision:       sendDoc.Decision,
-			DecisionReason: sendDoc.DecisionReason,
-		}
-
-		err = u.repository.SaveTrx(details)
+		signDoc, err = u.packages.SignDocument(request.JsonFileSign{
+			UserID:     os.Getenv("DIGISIGN_USER_ID"),
+			DocumentID: sendDoc.DocumentID,
+			Email:      activationCallback.Email,
+			ViewOnly:   false,
+		}, dataCustomer.ProspectID)
 
 		if err != nil {
 			return
 		}
 
+		data = signDoc
+
+		if sendDoc.Decision == constant.DECISION_REJECT {
+
+			details = append(details, entity.TrxDetail{
+				ProspectID: dataCustomer.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "REJ",
+				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM",
+			})
+
+			err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+
+			return
+
+		}
+
+		details = append(details, entity.TrxDetail{
+			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "UNPR", Decision: "CPR",
+			RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
+		})
+
+		err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+		if err != nil {
+			return
+		}
+
 		return
+
 	}
 
 	return
@@ -786,13 +775,11 @@ func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, a
 
 func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocResponse, err error) {
 
-	// 1. find data by email and nik
 	sendDoc, err := u.repository.GetSendDocData(req.ProspectID)
 	if err != nil {
 		return
 	}
 
-	// 2. generate pdf
 	document, documentID, agreementNo, err := u.usecase.GeneratePK(req.ProspectID)
 	if err != nil {
 		return
@@ -929,7 +916,7 @@ func (u usecase) CallbackDigisignSendDoc(data response.DataSendDocResponse, pros
 		dataWorker, _ := u.repository.GetDataWorker(prospectID)
 
 		if dataWorker.TransactionType != "" {
-			timeOut, _ := strconv.Atoi("DEFAULT_TIMEOUT_30S")
+			timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 			header := map[string]string{
 				"Content-Type":  "application/json",
@@ -1118,7 +1105,7 @@ func (u packages) SignDocument(req request.JsonFileSign, prospectID string) (dat
 
 func (u usecase) CallbackDigisignSignDoc(data response.DataSignDocResponse, prospectID string) (err error) {
 
-	timeOut, _ := strconv.Atoi("DEFAULT_TIMEOUT_30S")
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 	status := constant.WAITING_SIGN_DOC
 	activity := constant.ACTIVITY_ONPROSES
@@ -1249,7 +1236,10 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			return
 		}
 
-		_ = u.repository.UpdateStatusDigisignSignDoc(data.ProspectID)
+		_ = u.repository.UpdateStatusDigisignSignDoc(entity.TrxDetail{
+			ProspectID: data.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "APR", RuleCode: "4404",
+			SourceDecision: "SID", CreatedBy: "SYSTEM",
+		})
 
 		var download string
 
@@ -1287,7 +1277,7 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 
 func (u usecase) CallbackDigisignSignDocSuccess(prospectID string) (err error) {
 
-	timeOut, _ := strconv.Atoi("DEFAULT_TIMEOUT_30S")
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 	dataWorker, _ := u.repository.GetDataWorker(prospectID)
 
@@ -1500,4 +1490,64 @@ func GetIsMedia(urlImage string) bool {
 	}
 
 	return false
+}
+
+func (u usecase) DigisignCheck(email, prospectID string) (data response.DataDigisignCheck, err error) {
+
+	getStatus, err := u.repository.GetTrxStatus(prospectID)
+
+	if err != nil {
+		err = fmt.Errorf(constant.DIGISIGN_RECORD_NOT_FOUND)
+		return
+	}
+
+	if getStatus.SourceDecision == "ACT" || getStatus.SourceDecision == "RGS" || getStatus.SourceDecision == "SID" || getStatus.SourceDecision == "SND" {
+
+		var step string
+		var activationUrl, signDocUrl interface{}
+
+		decision := "CREDIT_PROCESS"
+
+		if getStatus.Decision == "REJ" {
+			decision = "REJECTED"
+		}
+
+		switch getStatus.SourceDecision {
+		case "ACT":
+			step = "ACTIVATION"
+			digisign, _ := u.repository.GetLinkTrxDegisign(prospectID, "ACTIVATION")
+			if digisign.Link != "" {
+				activationUrl = digisign.Link
+			}
+
+		case "RGS":
+			step = "REGISTER"
+		case "SID":
+			step = "SIGN_DOC"
+			digisign, _ := u.repository.GetLinkTrxDegisign(prospectID, "SIGN_DOC")
+			if getStatus.Decision == "APR" {
+				decision = "APPROVED"
+			}
+			if digisign.Link != "" {
+				signDocUrl = digisign.Link
+			}
+
+		case "SND":
+			step = "SEND_DOC"
+		}
+
+		data = response.DataDigisignCheck{
+			ProspectID:    prospectID,
+			Step:          step,
+			Decision:      decision,
+			ActivationUrl: activationUrl,
+			SignDocUrl:    signDocUrl,
+		}
+	} else {
+		err = fmt.Errorf(constant.DIGISIGN_RECORD_NOT_FOUND)
+		return
+	}
+
+	return
+
 }

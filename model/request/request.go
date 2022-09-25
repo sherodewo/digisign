@@ -127,3 +127,8 @@ type SignDocDto struct {
 	Email      string `json:"email_user" validate:"required,max=80"`
 	ViewOnly   bool   `json:"view_only"`
 }
+
+type DigisignCheck struct {
+	ProspectID string `json:"prospect_id" validate:"required"`
+	Email      string `json:"email" validate:"required"`
+}

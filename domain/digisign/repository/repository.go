@@ -39,7 +39,10 @@ func (r repoHandler) GetSendDocData(prospectID string) (data entity.SendDocData,
 
 func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data entity.CustomerPersonal, err error) {
 
-	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM customer_personal WITH (nolock) WHERE IDNumber = '%s' AND Email = '%s' ORDER BY created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
+	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 cp.ProspectID FROM customer_personal cp WITH (nolock)
+	 INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID 
+	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(second, -290, GETDATE())
+	 ORDER BY cp.created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
 		return
 	}
 
@@ -64,62 +67,86 @@ func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.
 	return
 }
 
-func (r repoHandler) UpdateStatusDigisignActivation(email, nik, prospectID string) error {
+func (r repoHandler) UpdateStatusDigisignActivation(email, nik, prospectID string, data []entity.TrxDetail) error {
 
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Table("digisign_customer").Where("Email = ? AND IDNumber = ?", email, nik).Update(&entity.DigisignCustomer{
-			Activation:         1,
-			DatetimeActivation: time.Now(),
-		}).Error; err != nil {
-			return err
-		}
+	var digisignCustomer entity.DigisignCustomer
 
-		if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "ACT").Update(&entity.TrxDetail{
-			SourceDecision: "ACT",
-			Activity:       "PRCD",
-			Decision:       "PAS",
-			NextStep:       "SND",
-		}).Error; err != nil {
-			return err
-		}
+	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM digisign_customer WITH (nolock) WHERE Email = '%s' AND IDNumber = '%s' AND activation = 0", email, nik)).Scan(&digisignCustomer)
 
-		if err := tx.Table("trx_status").Where("ProspectID = ? AND source_decision = ?", prospectID, "ACT").Update(&entity.TrxStatus{
-			Activity: "PRCD",
-			Decision: "PAS",
-			NextStep: "SND",
-		}).Error; err != nil {
-			return err
-		}
+	if result.RowsAffected == 0 {
 
+		return r.db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Table("digisign_customer").Where("Email = ? AND IDNumber = ?", email, nik).Update(&entity.DigisignCustomer{
+				Activation:         1,
+				DatetimeActivation: time.Now(),
+			}).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "ACT").Update(&entity.TrxDetail{
+				SourceDecision: "ACT",
+				Activity:       "PRCD",
+				Decision:       "PAS",
+				NextStep:       "SND",
+			}).Error; err != nil {
+				return err
+			}
+
+			latestDetails := data[len(data)-1]
+
+			for _, details := range data {
+				if err := tx.Create(&details).Error; err != nil {
+					return err
+				}
+			}
+
+			if err := tx.Table("trx_status").Where("ProspectID = ?", latestDetails.ProspectID).Updates(&entity.TrxStatus{
+				ProspectID:     latestDetails.ProspectID,
+				StatusProcess:  latestDetails.StatusProcess,
+				Activity:       latestDetails.Activity,
+				Decision:       latestDetails.Decision,
+				RuleCode:       latestDetails.RuleCode,
+				SourceDecision: latestDetails.SourceDecision,
+				NextStep:       latestDetails.NextStep,
+			}).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+	} else {
 		return nil
-	})
+	}
+
 }
 
-func (r repoHandler) UpdateStatusDigisignSignDoc(prospectID string) error {
+func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail) error {
 
-	return r.db.Transaction(func(tx *gorm.DB) error {
+	var details entity.TrxDetail
 
-		if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "SID").Update(&entity.TrxDetail{
-			SourceDecision: "SID",
-			Activity:       "STOP",
-			Decision:       "APR",
-			RuleCode:       "4404",
-			NextStep:       nil,
-		}).Error; err != nil {
-			return err
-		}
+	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM trx_details WITH (nolock) WHERE ProspectID = '%s' AND rule_code = '%s'", data.ProspectID, data.RuleCode)).Scan(&details)
 
-		if err := tx.Table("trx_status").Where("ProspectID = ? AND source_decision = ?", prospectID, "SID").Update(&entity.TrxStatus{
-			Activity: "STOP",
-			Decision: "APR",
-			RuleCode: "4404",
-			NextStep: nil,
-		}).Error; err != nil {
-			return err
-		}
+	if result.RowsAffected == 0 {
+		return r.db.Transaction(func(tx *gorm.DB) error {
 
+			if err := tx.Create(&data).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Table("trx_status").Where("ProspectID = ? AND source_decision = ?", data.ProspectID, "SID").Updates(&entity.TrxStatus{
+				Activity: data.Activity, Decision: data.Decision, RuleCode: data.RuleCode, NextStep: nil,
+			}).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+	} else {
 		return nil
-	})
+	}
+
 }
 
 func (r repoHandler) SaveTrx(data []entity.TrxDetail) (err error) {
@@ -187,6 +214,24 @@ func (r repoHandler) GetDataWorker(prospectID string) (data entity.DataWorker, e
 func (r repoHandler) SaveToTrxDigisign(data entity.TrxDigisign) (err error) {
 
 	if err = r.db.Create(&data).Error; err != nil {
+		return
+	}
+
+	return
+}
+
+func (r repoHandler) GetTrxStatus(prospectID string) (status entity.TrxStatus, err error) {
+
+	if err = r.db.Raw(fmt.Sprintf("SELECT * FROM trx_status WITH (nolock) WHERE ProspectID = '%s'", prospectID)).Scan(&status).Error; err != nil {
+		return
+	}
+
+	return
+}
+
+func (r repoHandler) GetLinkTrxDegisign(prospectID, action string) (data entity.TrxDigisign, err error) {
+
+	if err = r.db.Raw(fmt.Sprintf("SELECT TOP 1 link FROM trx_digisign WITH (nolock) WHERE ProspectID = '%s' AND activity = '%s' ORDER BY created_at DESC", prospectID, action)).Scan(&data).Error; err != nil {
 		return
 	}
 
