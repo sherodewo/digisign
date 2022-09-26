@@ -74,6 +74,6 @@ func (r signDocumentRepository) FindCustomer(docID string) (model.TrxDetail, err
 	AND activity = 'PRGS' 
 	AND rule_code IN ( '1206', '1207' ) 
 	AND JSON_VALUE ( CAST ( info AS NVARCHAR ( MAX ) ), '$.document_id' ) = '%s'
-	AND  created_at >= DATEADD(day, -2, GETDATE())`, docID)).Error
+	AND  created_at >= DATEADD(day, -2, GETDATE())`, docID)).Scan(&entity).Error
 	return entity, err
 }
