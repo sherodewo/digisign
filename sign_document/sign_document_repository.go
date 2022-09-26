@@ -1,6 +1,7 @@
 package sign_document
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"los-int-digisign/model"
 )
@@ -13,7 +14,7 @@ type Repository interface {
 	Update(model.SignDocument) (model.SignDocument, error)
 	Delete(model.SignDocument) error
 	SaveDigisign(model.TrxDigisign) (model.TrxDigisign, error)
-	FindCustomer(string) (model.CustomerPersonal, error)
+	FindCustomer(string) (model.TrxDetail, error)
 }
 
 type signDocumentRepository struct {
@@ -60,8 +61,18 @@ func (r signDocumentRepository) SaveDigisign(entity model.TrxDigisign) (model.Tr
 	return entity, err
 }
 
-func (r signDocumentRepository) FindCustomer(nik string) (model.CustomerPersonal, error) {
-	var entity model.CustomerPersonal
-	err := r.DB.Raw("SELECT TOP 1 prospect_id WHERE nik = ?", nik).Error
+func (r signDocumentRepository) FindCustomer(docID string) (model.TrxDetail, error) {
+	var entity model.TrxDetail
+	err := r.DB.Raw(fmt.Sprintf(`
+	SELECT
+	* 
+	FROM
+	trx_details 
+	WHERE
+	status_process = 'ONP' 
+	AND activity = 'PRGS' 
+	AND rule_code IN ( '1206', '1207' ) 
+	AND JSON_VALUE ( CAST ( info AS NVARCHAR ( MAX ) ), '$.document_id' ) = '%s'
+	AND  created_at >= DATEADD(day, -2, GETDATE())`, docID)).Error
 	return entity, err
 }

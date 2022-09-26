@@ -114,9 +114,9 @@ func (s *service) SaveSignDocumentCallback(documentId string, email string, stat
 		"result": result}, err
 }
 
-func (s *service) SaveTrxDigisign(nik string, resp string ) error{
+func (s *service) SaveTrxDigisign(docID string, resp string ) error{
 	// Get Propsect ID in Customer Personal
-	customer, err := s.signDocumentRepository.FindCustomer(nik)
+	customer, err := s.signDocumentRepository.FindCustomer(docID)
 	if err != nil {
 		return err
 	}

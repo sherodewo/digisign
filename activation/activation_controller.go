@@ -3,6 +3,7 @@ package activation
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
@@ -94,6 +95,7 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	client := NewLosActivationCallbackRequest()
 	resLos, err := client.losActivationRequestCallback(dataMap["email_user"].(string), dataMap["result"].(string),
 		dataMap["notif"].(string))
+	fmt.Println("DATA MAP Activation  : ", dataMap)
 
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
