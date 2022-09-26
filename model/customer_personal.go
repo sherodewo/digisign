@@ -3,27 +3,29 @@ package model
 import "time"
 
 type CustomerPersonal struct {
-	ProspectID        string     `json:"prospect_id"`
-	IDType            string     `json:"id_type"`
-	IDNumber          string     `json:"id_number"`
-	IDTypeIssueDate   *time.Time `json:"id_type_issue_date"`
-	ExpiredDate       *time.Time `json:"expired_date"`
-	LegalName         string     `json:"legal_name"`
-	BirthPlace        string     `json:"birth_place"`
-	BirthDate         string     `json:"birth_date"`
-	SurgateMotherName string     `json:"surgate_mother_name"`
-	Gender            string     `json:"gender"`
-	PersonalNPWP      string     `json:"personal_npwp"`
-	MobilePhone       string     `json:"mobile_phone"`
-	Email             string     `json:"email"`
-	HomeStatus        string     `json:"home_status"`
-	StaySinceYear     string     `json:"stay_since_year"`
-	StaySinceMonth    string     `json:"stay_since_month"`
-	Education         string     `json:"education"`
-	MaritalStatus     string     `json:"marital_status"`
-	NumOfDependence   int        `json:"num_of_dependence"`
-	LivingCostAmount  float64    `json:"living_cost_amount"`
-	Religion          string     `json:"religion"`
+	ProspectID        string      `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
+	IDType            string      `gorm:"type:varchar(30);column:IDType"`
+	IDNumber          string      `gorm:"type:varchar(100);column:IDNumber"`
+	IDTypeIssueDate   interface{} `gorm:"column:IDTypeIssuedDate"`
+	ExpiredDate       interface{} `gorm:"column:ExpiredDate"`
+	LegalName         string      `gorm:"type:varchar(100);column:LegalName"`
+	FullName          string      `gorm:"type:varchar(100);column:FullName"`
+	BirthPlace        string      `gorm:"type:varchar(100);column:BirthPlace"`
+	BirthDate         time.Time   `gorm:"column:BirthDate"`
+	SurgateMotherName string      `gorm:"type:varchar(100);column:SurgateMotherName"`
+	Gender            string      `gorm:"type:varchar(10);column:Gender"`
+	PersonalNPWP      string      `gorm:"type:varchar(255);column:PersonalNPWP"`
+	MobilePhone       string      `gorm:"type:varchar(14);column:MobilePhone"`
+	Email             string      `gorm:"type:varchar(100);column:Email"`
+	HomeStatus        string      `gorm:"type:varchar(20);column:HomeStatus"`
+	StaySinceYear     string      `gorm:"type:varchar(10);column:StaySinceYear"`
+	StaySinceMonth    string      `gorm:"type:varchar(10);column:StaySinceMonth"`
+	Education         string      `gorm:"type:varchar(50);column:Education"`
+	MaritalStatus     string      `gorm:"type:varchar(10);column:MaritalStatus"`
+	NumOfDependence   int         `gorm:"column:NumOfDependence"`
+	LivingCostAmount  float64     `gorm:"column:LivingCostAmount"`
+	Religion          string      `gorm:"type:varchar(30);column:Religion"`
+	CreatedAt         time.Time   `gorm:"column:created_at"`
 }
 
 func (c CustomerPersonal) TableName() string {

@@ -3,6 +3,7 @@ package sign_document
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
@@ -88,6 +89,8 @@ func (c *Controller) Callback(ctx echo.Context) error {
 
 	var dataMap map[string]interface{}
 	err = json.Unmarshal(byteDecrypt, &dataMap)
+	fmt.Println("DATA MAP  : ", dataMap)
+
 	if err != nil {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
