@@ -70,6 +70,7 @@ func (c *Controller) Store(ctx echo.Context) error {
 
 func (c *Controller) Callback(ctx echo.Context) error {
 	encodedValue := ctx.Request().URL.Query().Get("msg")
+	fmt.Println("encode val : ", encodedValue)
 	decodeValue, err := base64.StdEncoding.DecodeString(encodedValue)
 	if err != nil {
 		tags := map[string]string{

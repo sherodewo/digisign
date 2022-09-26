@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func ApiRoute(e *echo.Echo, db *gorm.DB) {
+func ApiRoute(e *echo.Echo, db *gorm.DB, dbLos *gorm.DB) {
 
 	//Route group
 	api := e.Group("/api")
@@ -53,7 +53,7 @@ func ApiRoute(e *echo.Echo, db *gorm.DB) {
 	digisign.GET("/activation/callback", activationController.Callback)
 
 	//sign document
-	signDocumentController := config.InjectSignDocumentController(db)
+	signDocumentController := config.InjectSignDocumentController(db, dbLos)
 	digisign.GET("/sign-documents", signDocumentController.GetAll)
 	digisign.GET("/sign-document/:id", signDocumentController.GetById)
 	digisign.POST("/sign-document", signDocumentController.Store)

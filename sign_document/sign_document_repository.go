@@ -18,11 +18,12 @@ type Repository interface {
 }
 
 type signDocumentRepository struct {
-	*gorm.DB
+	DB *gorm.DB
+	DBlos *gorm.DB
 }
 
-func NewSignDocumentRepository(db *gorm.DB) Repository {
-	return &signDocumentRepository{DB: db}
+func NewSignDocumentRepository(db *gorm.DB, dbLos *gorm.DB) Repository {
+	return &signDocumentRepository{DB: db,DBlos: dbLos}
 }
 
 func (r signDocumentRepository) FindAll() ([]model.SignDocument, error) {
@@ -57,13 +58,13 @@ func (r signDocumentRepository) SaveCallback(callback model.SignDocumentCallback
 }
 
 func (r signDocumentRepository) SaveDigisign(entity model.TrxDigisign) (model.TrxDigisign, error) {
-	err := r.DB.Create(&entity).Error
+	err := r.DBlos.Create(&entity).Error
 	return entity, err
 }
 
 func (r signDocumentRepository) FindCustomer(docID string) (model.TrxDetail, error) {
 	var entity model.TrxDetail
-	err := r.DB.Raw(fmt.Sprintf(`
+	err := r.DBlos.Raw(fmt.Sprintf(`
 	SELECT
 	* 
 	FROM

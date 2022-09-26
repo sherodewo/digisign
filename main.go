@@ -64,6 +64,9 @@ func main() {
 		log.Info(err.Error())
 	}
 
+	// DB LOS
+	dbLos, err := database.NewLosDb()
+
 	// Setup log folder
 	if _, err := os.Stat(os.Getenv("LOG_FILE")); os.IsNotExist(err) {
 		err = os.MkdirAll(os.Getenv("LOG_FILE"), 0755)
@@ -117,7 +120,7 @@ func main() {
 	}))
 
 	//All api route
-	routes.ApiRoute(e, db)
+	routes.ApiRoute(e, db, dbLos)
 
 	//Start server
 	e.Logger.Fatal(e.Start(":" + os.Getenv("APP_PORT")))

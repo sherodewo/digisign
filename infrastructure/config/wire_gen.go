@@ -54,8 +54,8 @@ func InjectActivationController(db *gorm.DB) activation.Controller {
 	return controller
 }
 
-func InjectSignDocumentController(db *gorm.DB) sign_document.Controller {
-	repository := sign_document.NewSignDocumentRepository(db)
+func InjectSignDocumentController(db *gorm.DB, dbLos *gorm.DB) sign_document.Controller {
+	repository := sign_document.NewSignDocumentRepository(db, dbLos)
 	mapper := sign_document.NewSignDocumentMapper()
 	service := sign_document.NewSignDocumentService(repository, mapper)
 	controller := sign_document.NewSignDocumentController(service)
