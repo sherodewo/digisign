@@ -28,6 +28,7 @@ type MetaPaginator struct {
 type Single struct {
 	Meta Meta        `json:"meta"`
 	Data interface{} `json:"data, omitempty"`
+	RespOri interface{} `json:"resp_ori,omitempty"`
 }
 
 type Paging struct {

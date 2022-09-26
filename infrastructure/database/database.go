@@ -1,11 +1,15 @@
 package database
 
 import (
+	"fmt"
+	"log"
 	"los-int-digisign/model"
 	"los-int-digisign/utils"
 	"os"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -61,4 +65,39 @@ func AutoMigrate(db *gorm.DB) {
 		&model.ActivationCallback{},
 		&model.SignDocumentCallback{},
 	)
+}
+
+
+func NewLosDb() (*gorm.DB, error) {
+
+	decryptDbHost, err := utils.DecryptCredential(os.Getenv("LOS_DB_HOST"))
+
+	decryptDbPort, err := utils.DecryptCredential(os.Getenv("LOS_DB_PORT"))
+
+	decryptDbPassword, err := utils.DecryptCredential(os.Getenv("LOS_DB_PASSWORD"))
+
+	decryptDbUsername, err := utils.DecryptCredential(os.Getenv("LOS_DB_USERNAME"))
+
+	decryptDbName, err := utils.DecryptCredential(os.Getenv("LOS_DB_NAME"))
+
+	port, _ := strconv.Atoi(decryptDbPort)
+	args := fmt.Sprintf(
+		"sqlserver://%s:%s@%s:%d?database=%s",
+		decryptDbUsername,
+		decryptDbPassword,
+		decryptDbHost,
+		port,
+		decryptDbName,
+	)
+	db, err := gorm.Open("mssql", args)
+	if err != nil {
+		log.Println("Error", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+	db.DB().SetMaxIdleConns(3)
+	db.LogMode(true)
+
+	return db, err
 }

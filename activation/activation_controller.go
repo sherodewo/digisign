@@ -3,6 +3,7 @@ package activation
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
@@ -64,17 +65,18 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, "Success execute request", resMap, nil)
+	return response.MultiData(ctx, "Success execute request", resMap, res.String(), nil)
 }
 
 func (c *Controller) Callback(ctx echo.Context) error {
 	encodedValue := ctx.Request().URL.Query().Get("msg")
+	fmt.Println("encode val : ", encodedValue)
 	decodeValue, err := base64.StdEncoding.DecodeString(encodedValue)
 	if err != nil {
 		tags := map[string]string{
-			"app.pkg":    "activation",
-			"app.func":   "Callback",
-			"app.action": "decode",
+			"app.pkg":     "activation",
+			"app.func":    "Callback",
+			"app.action":  "decode",
 			"app.process": "activation-callback",
 		}
 		extra := map[string]interface{}{
@@ -94,6 +96,7 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	client := NewLosActivationCallbackRequest()
 	resLos, err := client.losActivationRequestCallback(dataMap["email_user"].(string), dataMap["result"].(string),
 		dataMap["notif"].(string))
+	fmt.Println("DATA MAP Activation  : ", dataMap)
 
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
@@ -101,11 +104,15 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if resLos.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
 	}
+
+	// Insert Trx Digisign
+	err = c.service.SaveTrxDigisign(dataMap["email_user"].(string), resLos.String())
+
 	_, err = c.service.SaveActivationCallback(dataMap["email_user"].(string), dataMap["result"].(string),
 		dataMap["notif"].(string))
 
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, utils.OK, echo.Map{"message": "Callback success send"}, nil)
+	return response.MultiData(ctx, utils.OK, echo.Map{"message": "Callback success send"}, resLos.String(), nil)
 }

@@ -3,6 +3,7 @@ package sign_document
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"los-int-digisign/infrastructure/config/digisign"
 	"los-int-digisign/infrastructure/response"
 	"los-int-digisign/utils"
@@ -64,17 +65,18 @@ func (c *Controller) Store(ctx echo.Context) error {
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, "Success execute request", resMap, nil)
+	return response.MultiData(ctx, "Success execute request", resMap, res.String(), nil)
 }
 
 func (c *Controller) Callback(ctx echo.Context) error {
 	encodedValue := ctx.Request().URL.Query().Get("msg")
+	fmt.Println("ENCODE MSG SIGN : ", encodedValue)
 	decodeValue, err := base64.StdEncoding.DecodeString(encodedValue)
 	if err != nil {
 		tags := map[string]string{
-			"app.pkg":    "sign_document",
-			"app.func":   "Callback",
-			"app.action": "decode",
+			"app.pkg":     "sign_document",
+			"app.func":    "Callback",
+			"app.action":  "decode",
 			"app.process": "sign-doc-callback",
 		}
 		extra := map[string]interface{}{
@@ -88,6 +90,8 @@ func (c *Controller) Callback(ctx echo.Context) error {
 
 	var dataMap map[string]interface{}
 	err = json.Unmarshal(byteDecrypt, &dataMap)
+	fmt.Println("DATA MAP  : ", dataMap)
+
 	if err != nil {
 		return response.BadRequest(ctx, utils.BadRequest, nil, err.Error())
 	}
@@ -101,10 +105,14 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	if resLos.IsError() {
 		return response.BadRequest(ctx, "Bad Request", nil, "Service callback api Error")
 	}
+
+	// insert trx_digisign
+	err = c.service.SaveTrxDigisign(dataMap["document_id"].(string), resLos.String())
+
 	_, err = c.service.SaveSignDocumentCallback(dataMap["document_id"].(string), dataMap["email_user"].(string),
 		dataMap["status_document"].(string), dataMap["result"].(string), dataMap["notif"].(string))
 	if err != nil {
 		return response.BadRequest(ctx, "Bad Request", nil, err.Error())
 	}
-	return response.SingleData(ctx, utils.OK, echo.Map{"message": "Callback success send"}, nil)
+	return response.MultiData(ctx, utils.OK, echo.Map{"message": "Callback success send"}, resLos.String(), nil)
 }
