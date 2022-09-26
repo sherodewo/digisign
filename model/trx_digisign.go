@@ -1,9 +1,6 @@
 package model
 
 import (
-	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
-	"log"
 	"time"
 )
 
@@ -18,12 +15,4 @@ type TrxDigisign struct {
 
 func (c TrxDigisign) TableName() string {
 	return "trx_digisign"
-}
-
-// BeforeCreate - Lifecycle callback - Generate UUID before persisting
-func (c *TrxDigisign) BeforeCreate(scope *gorm.Scope) error {
-	if err := scope.SetColumn("id", uuid.New().String()); err != nil {
-		log.Fatal("Error UUID Generate")
-	}
-	return nil
 }
