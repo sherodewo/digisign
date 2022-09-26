@@ -6,6 +6,7 @@ import (
 	"los-int-digisign/model"
 	"los-int-digisign/utils"
 	"os"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -78,13 +79,13 @@ func NewLosDb() (*gorm.DB, error) {
 
 	decryptDbName, err := utils.DecryptCredential(os.Getenv("LOS_DB_NAME"))
 
-
+	port, _ := strconv.Atoi(decryptDbPort)
 	args := fmt.Sprintf(
 		"sqlserver://%s:%s@%s:%d?database=%s",
 		decryptDbUsername,
 		decryptDbPassword,
 		decryptDbHost,
-		decryptDbPort,
+		port,
 		decryptDbName,
 	)
 	db, err := gorm.Open("mssql", args)
