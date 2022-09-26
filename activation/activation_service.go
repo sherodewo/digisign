@@ -114,9 +114,9 @@ func (s *service) SaveActivationCallback(email string, result string, notif stri
 	return echo.Map{"email": data.Email, "result": data.Result, "notif": data.Notif}, err
 }
 
-func (s *service) SaveTrxDigisign(nik string, email string, resp string) error {
+func (s *service) SaveTrxDigisign(email string, resp string) error {
 	// Get Propsect ID in Customer Personal
-	customer, err := s.activationRepository.FindCustomer(nik, email)
+	customer, err := s.activationRepository.FindCustomer(email)
 	if err != nil {
 		return err
 	}

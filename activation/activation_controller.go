@@ -106,7 +106,7 @@ func (c *Controller) Callback(ctx echo.Context) error {
 	}
 
 	// Insert Trx Digisign
-	err = c.service.SaveTrxDigisign(dataMap["nik"].(string), dataMap["email_user"].(string), resLos.String())
+	err = c.service.SaveTrxDigisign(dataMap["email_user"].(string), resLos.String())
 
 	_, err = c.service.SaveActivationCallback(dataMap["email_user"].(string), dataMap["result"].(string),
 		dataMap["notif"].(string))

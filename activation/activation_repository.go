@@ -14,7 +14,7 @@ type Repository interface {
 	Update(model.Activation) (model.Activation, error)
 	Delete(model.Activation) error
 	SaveDigisign(model.TrxDigisign) (model.TrxDigisign, error)
-	FindCustomer(nik string, email string) (model.CustomerPersonal, error)
+	FindCustomer(email string) (model.CustomerPersonal, error)
 }
 
 type activationRepository struct {
@@ -69,8 +69,8 @@ func (r activationRepository) SaveDigisign(entity model.TrxDigisign) (model.TrxD
 	return entity, err
 }
 
-func (r activationRepository) FindCustomer(nik string, email string) (model.CustomerPersonal, error) {
+func (r activationRepository) FindCustomer(email string) (model.CustomerPersonal, error) {
 	var entity model.CustomerPersonal
-	err := r.DBLos.Raw("SELECT TOP 1 prospect_id WHERE nik = ? AND email = ?", nik, email).Error
+	err := r.DBLos.Raw("SELECT TOP 1 prospect_id WHERE email = ?", email).Error
 	return entity, err
 }
