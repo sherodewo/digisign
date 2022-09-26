@@ -46,8 +46,8 @@ func InjectDownloadDocumentController() download_document.Controller {
 	return controller
 }
 
-func InjectActivationController(db *gorm.DB) activation.Controller {
-	repository := activation.NewActivationRepository(db)
+func InjectActivationController(db *gorm.DB, dbLos *gorm.DB) activation.Controller {
+	repository := activation.NewActivationRepository(db, dbLos)
 	mapper := activation.NewActivationMapper()
 	service := activation.NewActivationService(repository, mapper)
 	controller := activation.NewActivationController(service)

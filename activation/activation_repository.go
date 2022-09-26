@@ -18,11 +18,12 @@ type Repository interface {
 }
 
 type activationRepository struct {
-	*gorm.DB
+	DB *gorm.DB
+	DBLos *gorm.DB
 }
 
-func NewActivationRepository(db *gorm.DB) Repository {
-	return &activationRepository{DB: db}
+func NewActivationRepository(db *gorm.DB, dbLos *gorm.DB) Repository {
+	return &activationRepository{DB: db, DBLos: dbLos}
 }
 
 func (r activationRepository) FindAll() ([]model.Activation, error) {
@@ -64,12 +65,12 @@ func (r activationRepository) FindLastByCreatedAt(prospectId string, emailUser s
 
 
 func (r activationRepository) SaveDigisign(entity model.TrxDigisign) (model.TrxDigisign, error) {
-	err := r.DB.Create(&entity).Error
+	err := r.DBLos.Create(&entity).Error
 	return entity, err
 }
 
 func (r activationRepository) FindCustomer(nik string, email string) (model.CustomerPersonal, error) {
 	var entity model.CustomerPersonal
-	err := r.DB.Raw("SELECT TOP 1 prospect_id WHERE nik = ? AND email = ?", nik, email).Error
+	err := r.DBLos.Raw("SELECT TOP 1 prospect_id WHERE nik = ? AND email = ?", nik, email).Error
 	return entity, err
 }

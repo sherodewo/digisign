@@ -46,7 +46,7 @@ func ApiRoute(e *echo.Echo, db *gorm.DB, dbLos *gorm.DB) {
 	digisign.POST("/document/download/base64", downloadDocumentController.DownloadDocumentBase64)
 
 	//activation
-	activationController := config.InjectActivationController(db)
+	activationController := config.InjectActivationController(db, dbLos)
 	digisign.GET("/activations", activationController.GetAll)
 	digisign.GET("/activation/:id", activationController.GetById)
 	digisign.POST("/activation", activationController.Store)
