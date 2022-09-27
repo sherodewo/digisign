@@ -142,7 +142,7 @@ func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
 		return h.Json.Ok(ctx, "LOS Digisign", data)
 	}
 
-	return ctx.Redirect(301, data.Link)
+	return ctx.Redirect(307, data.Link)
 }
 
 // Digisign godoc
@@ -183,17 +183,13 @@ func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 
 	msg := ctx.QueryParam("msg")
 
-	data, redirect, err := h.multiUsecase.SignCallback(msg)
+	_, redirect, err := h.multiUsecase.SignCallback(msg)
 
 	if err != nil {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
 	}
 
-	if data.Data.MediaURL == "" {
-		return h.Json.Ok(ctx, "LOS Digisign", data.Data)
-	}
-
-	return ctx.Redirect(301, redirect)
+	return ctx.Redirect(307, redirect)
 }
 
 // Digisign godoc

@@ -41,6 +41,14 @@ func (c *CustomerPersonal) TableName() string {
 	return "customer_personal"
 }
 
+type CallbackData struct {
+	ProspectID         string  `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
+	Decision           string  `gorm:"type:varchar(3);column:decision"`
+	RedirectSuccessUrl string  `gorm:"type:varchar(250);column:redirect_success_url"`
+	RedirectFailedUrl  string  `gorm:"type:varchar(250);column:redirect_failed_url"`
+	DiffTime           float64 `gorm:"column:diff_time"`
+}
+
 type TrxDetail struct {
 	ProspectID     string      `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
 	StatusProcess  string      `gorm:"type:varchar(3);column:status_process"`
@@ -103,13 +111,14 @@ func (c *DigisignCustomer) TableName() string {
 }
 
 type TrxMetadata struct {
-	ProspectID   string    `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
-	CustomerIp   string    `gorm:"type:varchar(15);column:customer_ip"`
-	CustomerLat  string    `gorm:"type:varchar(10);column:customer_lat"`
-	CustomerLong string    `gorm:"type:varchar(10);column:customer_long"`
-	CallbackUrl  string    `gorm:"type:varchar(250);column:callback_url"`
-	RedirectUrl  string    `gorm:"type:varchar(250);column:redirect_url"`
-	CreatedAt    time.Time `gorm:"column:created_at"`
+	ProspectID         string    `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
+	CustomerIp         string    `gorm:"type:varchar(15);column:customer_ip"`
+	CustomerLat        string    `gorm:"type:varchar(10);column:customer_lat"`
+	CustomerLong       string    `gorm:"type:varchar(10);column:customer_long"`
+	CallbackUrl        string    `gorm:"type:varchar(250);column:callback_url"`
+	RedirectSuccessUrl string    `gorm:"type:varchar(250);column:redirect_success_url"`
+	RedirectFailedUrl  string    `gorm:"type:varchar(250);column:redirect_failed_url"`
+	CreatedAt          time.Time `gorm:"column:created_at"`
 }
 
 func (c *TrxMetadata) TableName() string {

@@ -37,11 +37,14 @@ func (r repoHandler) GetSendDocData(prospectID string) (data entity.SendDocData,
 	return
 }
 
-func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data entity.CustomerPersonal, err error) {
+func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data entity.CallbackData, err error) {
 
-	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 cp.ProspectID FROM customer_personal cp WITH (nolock)
-	 INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID 
-	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(second, -290, GETDATE())
+	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 cp.ProspectID, tm.redirect_success_url, tm.redirect_failed_url, ts.decision, DATEDIFF(minute, td.created_at, GETDATE()) AS diff_time
+	 FROM customer_personal cp WITH (nolock) 
+	 INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
+	 INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
+	 INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
+	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -10, GETDATE())
 	 ORDER BY cp.created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
 		return
 	}
@@ -58,9 +61,15 @@ func (r repoHandler) GetTrxMetadata(prospectID string) (data entity.TrxMetadata,
 	return
 }
 
-func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.TrxDetail, err error) {
+func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.CallbackData, err error) {
 
-	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 ProspectID FROM trx_details WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND source_decision = 'SID' AND created_at > DATEADD(day, -2, GETDATE()) ORDER BY created_at DESC`, documentID)).Scan(&data).Error; err != nil {
+	if err = r.db.Raw(fmt.Sprintf(`SELECT TOP 1 cp.ProspectID, tm.redirect_success_url, tm.redirect_failed_url, ts.decision, DATEDIFF(minute, td.created_at, GETDATE()) AS diff_time
+	FROM customer_personal cp WITH (nolock) 
+	INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
+	INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
+	INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
+	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -30, GETDATE())
+	ORDER BY cp.created_at DESC`, documentID)).Scan(&data).Error; err != nil {
 		return
 	}
 
@@ -129,6 +138,12 @@ func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail) error {
 
 	if result.RowsAffected == 0 {
 		return r.db.Transaction(func(tx *gorm.DB) error {
+
+			if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", data.ProspectID, "SID").Updates(&entity.TrxDetail{
+				Activity: "PRCD", Decision: "PAS",
+			}).Error; err != nil {
+				return err
+			}
 
 			if err := tx.Create(&data).Error; err != nil {
 				return err

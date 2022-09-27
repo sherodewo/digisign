@@ -29,7 +29,7 @@ type HttpClient interface {
 	EngineAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
 	ActivationAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error)
 	RegisterAPI(url string, param map[string]string, header map[string]string, method string, timeOut int, dataFile request.DataFile, ProspectID string) (resp *resty.Response, err error)
-	MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
+	MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, retry bool, countRetry interface{}, customerID string) (resp *resty.Response, err error)
 	SendDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, dataFile request.DataFile, prospectID string) (resp *resty.Response, err error)
 	SignDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error)
 	DigiAPI(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
@@ -65,19 +65,27 @@ func (h httpClient) MediaAPI(url string, param interface{}, header map[string]st
 	return
 }
 
-func (h httpClient) MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error) {
+func (h httpClient) MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, retry bool, countRetry interface{}, customerID string) (resp *resty.Response, err error) {
 
 	client := resty.New()
+
 	if os.Getenv("APP_ENV") != "production" {
 		client.SetDebug(false)
 	}
 
 	client.SetTimeout(time.Second * time.Duration(timeOut))
 
+	if retry {
+		client.SetRetryCount(countRetry.(int))
+		client.AddRetryCondition(
+			func(r *resty.Response, err error) bool {
+				return r.StatusCode() >= 500
+			})
+	}
+
 	switch method {
 	case constant.METHOD_POST:
 		resp, err = client.R().SetHeaders(header).SetFormData(param).SetFile("file", file).Post(url)
-		fmt.Println(string(resp.Body()))
 	case constant.METHOD_GET:
 		resp, err = client.R().SetHeaders(header).Get(url)
 	}

@@ -122,4 +122,9 @@ const (
 	RETURN_LIMIT                                   = "RETURN_LIMIT"
 	USE_LIMIT                                      = "USE_LIMIT"
 	DIGISIGN_RECORD_NOT_FOUND                      = "digisign record not found"
+	REJECT_DECISION_DB                             = "REJ"
+	CODE_EXPIRED_ACTIVATION                        = "4271"
+	DECISION_EXPIRED_ACTIVATION                    = "Konsumen belum melakukan aktifasi dari batas yang ditentukan"
+	CODE_EXPIRED_SIGN_DOC                          = "4471"
+	DECISION_EXPIRED_SIGN_DOC                      = "Konsumen belum menandatangani dokumen kontrak dari batas yang ditentukan"
 )
