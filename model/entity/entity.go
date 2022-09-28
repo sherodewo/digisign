@@ -152,6 +152,12 @@ type DataWorker struct {
 	CustomerID      int     `gorm:"column:customer_id"`
 	AF              float64 `gorm:"column:AF"`
 	TenorLimit      int     `gorm:"column:tenor_limit"`
+	CallbackUrl     string  `gorm:"column:callback_url"`
+}
+
+type CheckWorker struct {
+	ProspectID string `gorm:"column:ProspectID"`
+	Action     string `gorm:"column:action"`
 }
 
 type TrxDigisign struct {

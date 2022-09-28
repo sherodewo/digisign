@@ -127,4 +127,8 @@ const (
 	DECISION_EXPIRED_ACTIVATION                    = "Konsumen belum melakukan aktifasi dari batas yang ditentukan"
 	CODE_EXPIRED_SIGN_DOC                          = "4471"
 	DECISION_EXPIRED_SIGN_DOC                      = "Konsumen belum menandatangani dokumen kontrak dari batas yang ditentukan"
+	DECISION_REJECTED                              = "REJECTED"
+	DIGISIGN_VERIFICATION_FAILED                   = "DIGISIGN VERIFICATION FAILED"
+	CATEGORY_FRONT_APP                             = "FRONT_APPS"
+	ACTION_CALLBACK                                = "CALLBACK_FINAL_DECISION"
 )

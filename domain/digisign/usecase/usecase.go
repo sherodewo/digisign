@@ -183,6 +183,20 @@ func (u usecase) CallbackDigisignRegister(data response.DataRegisterResponse, pr
 				"activity":    constant.ACTIVITY_FINISHED,
 			})
 
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.DIGISIGN_VERIFICATION_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
 			var worker []entity.TrxWorker
 
 			if dataWorker.TransactionType == "USE_LIMIT" {
@@ -199,8 +213,8 @@ func (u usecase) CallbackDigisignRegister(data response.DataRegisterResponse, pr
 			}
 
 			var (
-				sequence       interface{}
-				activityWorker = constant.WORKER_UNPROCESS
+				sequence       int = 1
+				activityWorker     = constant.WORKER_UNPROCESS
 			)
 
 			if len(worker) > 0 {
@@ -212,6 +226,12 @@ func (u usecase) CallbackDigisignRegister(data response.DataRegisterResponse, pr
 				EndPointMethod: constant.METHOD_POST, Payload: string(param), Header: string(headerParam),
 				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
 				Category: constant.WORKER_CATEGORY_DIGISIGN, Action: constant.CALLBACK_STATUS_1200, Sequence: sequence,
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: sequence + 1,
 			})
 
 			go u.repository.SaveToWorker(worker)
@@ -531,7 +551,7 @@ func (u usecase) CallbackDigisignActivation(data response.DataActivationResponse
 	action := constant.CALLBACK_STATUS_1202
 
 	if data.Decision == constant.DECISION_REJECT {
-		status = constant.ACTIVATION_FAILED
+		status = constant.REGISTER_FAILED
 		activity = constant.ACTIVITY_FINISHED
 		action = constant.CALLBACK_STATUS_1201
 	}
@@ -582,6 +602,35 @@ func (u usecase) CallbackDigisignActivation(data response.DataActivationResponse
 			ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
 			Category: constant.WORKER_CATEGORY_DIGISIGN, Action: action, Sequence: sequence,
 		})
+
+		if data.Decision == constant.DECISION_REJECT {
+
+			var newSequence = 1
+			if sequence != nil {
+				newSequence = sequence.(int) + 1
+			}
+
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.DIGISIGN_VERIFICATION_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: newSequence,
+			})
+
+		}
 
 		go u.repository.SaveToWorker(worker)
 
@@ -695,6 +744,14 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			RuleCode: "4225", SourceDecision: "ACT", NextStep: nil, CreatedBy: "SYSTEM",
 		})
 
+		err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+
+		if err != nil {
+			return
+		}
+
+		details = []entity.TrxDetail{}
+
 		// send doc
 		sendDoc, err = u.packages.SendDoc(request.SendDoc{
 			ProspectID: dataCustomer.ProspectID,
@@ -724,7 +781,7 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 				DecisionReason: sendDoc.DecisionReason,
 			}
 
-			err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+			err = u.repository.SaveTrx(details)
 
 			return
 		}
@@ -748,14 +805,14 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 
 		data = signDoc
 
-		if sendDoc.Decision == constant.DECISION_REJECT {
+		if signDoc.Decision == constant.DECISION_REJECT {
 
 			details = append(details, entity.TrxDetail{
 				ProspectID: dataCustomer.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "REJ",
 				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM",
 			})
 
-			err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+			err = u.repository.SaveTrx(details)
 
 			return
 
@@ -766,7 +823,7 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
 		})
 
-		err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+		err = u.repository.SaveTrx(details)
 		if err != nil {
 			return
 		}
@@ -965,6 +1022,21 @@ func (u usecase) CallbackDigisignSendDoc(data response.DataSendDocResponse, pros
 				"status":      constant.SEND_DOC_FAILED,
 				"activity":    constant.ACTIVITY_FINISHED,
 			})
+
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.SEND_DOC_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
 			var worker []entity.TrxWorker
 
 			if dataWorker.TransactionType == "USE_LIMIT" {
@@ -981,8 +1053,8 @@ func (u usecase) CallbackDigisignSendDoc(data response.DataSendDocResponse, pros
 			}
 
 			var (
-				sequence       interface{}
-				activityWorker = constant.WORKER_UNPROCESS
+				sequence       int = 1
+				activityWorker     = constant.WORKER_UNPROCESS
 			)
 
 			if len(worker) > 0 {
@@ -994,6 +1066,12 @@ func (u usecase) CallbackDigisignSendDoc(data response.DataSendDocResponse, pros
 				EndPointMethod: constant.METHOD_POST, Payload: string(param), Header: string(headerParam),
 				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
 				Category: constant.WORKER_CATEGORY_DIGISIGN, Action: constant.CALLBACK_STATUS_1210, Sequence: sequence,
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: sequence + 1,
 			})
 
 			go u.repository.SaveToWorker(worker)
@@ -1198,6 +1276,35 @@ func (u usecase) CallbackDigisignSignDoc(data response.DataSignDocResponse, pros
 			Category: constant.WORKER_CATEGORY_DIGISIGN, Action: action, Sequence: sequence,
 		})
 
+		if data.Decision == constant.DECISION_REJECT {
+
+			var newSequence = 1
+			if sequence != nil {
+				newSequence = sequence.(int) + 1
+			}
+
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.DIGISIGN_VERIFICATION_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: newSequence,
+			})
+
+		}
+
 		go u.repository.SaveToWorker(worker)
 
 	}
@@ -1341,6 +1448,12 @@ func (u usecase) CallbackDigisignSignDocSuccess(prospectID string) (err error) {
 	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 	dataWorker, _ := u.repository.GetDataWorker(prospectID)
+
+	result := u.repository.CheckWorker1209(prospectID)
+
+	if result > 0 {
+		return
+	}
 
 	if dataWorker.TransactionType != "" {
 		header := map[string]string{

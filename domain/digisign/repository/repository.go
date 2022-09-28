@@ -217,12 +217,24 @@ func (r repoHandler) SaveToWorker(data []entity.TrxWorker) (err error) {
 
 func (r repoHandler) GetDataWorker(prospectID string) (data entity.DataWorker, err error) {
 
-	if err = r.db.Raw(fmt.Sprintf(`SELECT transaction_type, AF, tenor_limit, customer_id FROM trx_master tm  WITH(nolock)
+	if err = r.db.Raw(fmt.Sprintf(`SELECT transaction_type, AF, tenor_limit, customer_id, callback_url FROM trx_master tm WITH(nolock)
 	 INNER JOIN customer_kreditmu ck WITH (nolock) ON tm.ProspectID = ck.ProspectID
 	 INNER JOIN trx_apk ta WITH (nolock) ON tm.ProspectID = ta.ProspectID
+	 INNER JOIN trx_metadata tda WITH (nolock) ON tm.ProspectID = tda.ProspectID
 	 WHERE tm.ProspectID = '%s'`, prospectID)).Scan(&data).Error; err != nil {
 		return
 	}
+	return
+}
+
+func (r repoHandler) CheckWorker1209(prospectID string) (resultWorker int) {
+
+	var check entity.CheckWorker
+
+	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM trx_worker WITH (nolock) WHERE ProspectID = '%s' AND [action] = 'CALLBACK_STATUS_1209'", prospectID)).Scan(&check)
+
+	resultWorker = int(result.RowsAffected)
+
 	return
 }
 

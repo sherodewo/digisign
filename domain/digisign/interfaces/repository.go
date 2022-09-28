@@ -16,4 +16,5 @@ type Repository interface {
 	SaveToTrxDigisign(data entity.TrxDigisign) (err error)
 	GetTrxStatus(prospectID string) (status entity.TrxStatus, err error)
 	GetLinkTrxDegisign(prospectID, action string) (data entity.TrxDigisign, err error)
+	CheckWorker1209(prospectID string) (resultWorker int)
 }
