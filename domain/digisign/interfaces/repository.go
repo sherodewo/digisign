@@ -17,4 +17,5 @@ type Repository interface {
 	GetTrxStatus(prospectID string) (status entity.TrxStatus, err error)
 	GetLinkTrxDegisign(prospectID, action string) (data entity.TrxDigisign, err error)
 	CheckWorker1209(prospectID string) (resultWorker int)
+	CheckSND(prospectID string) (resultWorker int)
 }

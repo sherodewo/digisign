@@ -731,6 +731,12 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			return
 		}
 
+		result := u.repository.CheckSND(dataCustomer.ProspectID)
+
+		if result > 0 {
+			return
+		}
+
 		var details []entity.TrxDetail
 
 		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{

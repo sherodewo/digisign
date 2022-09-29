@@ -80,19 +80,19 @@ func (r repoHandler) UpdateStatusDigisignActivation(email, nik, prospectID strin
 
 	var digisignCustomer entity.DigisignCustomer
 
-	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM digisign_customer WITH (nolock) WHERE Email = '%s' AND IDNumber = '%s' AND activation = 0", email, nik)).Scan(&digisignCustomer)
+	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM digisign_customer WITH (nolock) WHERE Email = '%s' AND IDNumber = '%s' AND activation = 1", email, nik)).Scan(&digisignCustomer)
 
 	if result.RowsAffected == 0 {
 
 		return r.db.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Table("digisign_customer").Where("Email = ? AND IDNumber = ?", email, nik).Update(&entity.DigisignCustomer{
+			if err := tx.Table("digisign_customer").Where("Email = ? AND IDNumber = ?", email, nik).Updates(&entity.DigisignCustomer{
 				Activation:         1,
 				DatetimeActivation: time.Now(),
 			}).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "ACT").Update(&entity.TrxDetail{
+			if err := tx.Table("trx_details").Where("ProspectID = ? AND source_decision = ?", prospectID, "ACT").Updates(&entity.TrxDetail{
 				SourceDecision: "ACT",
 				Activity:       "PRCD",
 				Decision:       "PAS",
@@ -232,6 +232,17 @@ func (r repoHandler) CheckWorker1209(prospectID string) (resultWorker int) {
 	var check entity.CheckWorker
 
 	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM trx_worker WITH (nolock) WHERE ProspectID = '%s' AND [action] = 'CALLBACK_STATUS_1209'", prospectID)).Scan(&check)
+
+	resultWorker = int(result.RowsAffected)
+
+	return
+}
+
+func (r repoHandler) CheckSND(prospectID string) (resultWorker int) {
+
+	var check entity.CheckWorker
+
+	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM trx_details WITH (nolock) WHERE ProspectID = '%s' AND source_decision = 'SND'", prospectID)).Scan(&check)
 
 	resultWorker = int(result.RowsAffected)
 

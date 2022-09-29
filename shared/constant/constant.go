@@ -52,7 +52,7 @@ const (
 	CODE_SIGN_DOC_NOTFOUND                         = "4401"
 	CODE_SIGN_DOC_INVALID                          = "4402"
 	CODE_SIGN_DOC_EXIST                            = "4403"
-	CODE_SIGN_DOC_GENERAL_ERROR                    = "4380"
+	CODE_SIGN_DOC_GENERAL_ERROR                    = "4480"
 	CODE_REGISTER_EXIST                            = "4125"
 	CODE_SIGNED                                    = "4404"
 	FLAG_SEND_DOC_REREGISTRATION                   = "silahkan melakukan registrasi ulang"
