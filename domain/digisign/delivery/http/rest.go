@@ -179,6 +179,15 @@ func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
 	return h.Json.Ok(ctx, "LOS - Sign Document", sign)
 }
 
+// SignCallback godoc
+// @Description Api SignCallback
+// @Tags Digisign
+// @Produce json
+// @Param msg query string true
+// @Success 200 {object} response.Api{}
+// @Failure 400 {object} response.Api{error=response.ErrorValidation}
+// @Failure 500 {object} response.Api{}
+// @Router /digisign/sign-document/callback [post]
 func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 
 	msg := ctx.QueryParam("msg")
