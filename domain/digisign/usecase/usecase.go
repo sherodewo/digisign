@@ -1412,11 +1412,6 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 
 		}
 
-		_ = u.repository.UpdateStatusDigisignSignDoc(entity.TrxDetail{
-			ProspectID: data.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "APR", RuleCode: "4404",
-			SourceDecision: "SID", CreatedBy: "SYSTEM",
-		})
-
 		var download string
 
 		download, err = u.usecase.DownloadDoc(data.ProspectID, request.DownloadRequest{
@@ -1433,6 +1428,11 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 		if err != nil {
 			return
 		}
+
+		_ = u.repository.UpdateStatusDigisignSignDoc(entity.TrxDetail{
+			ProspectID: data.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "APR", RuleCode: "4404",
+			SourceDecision: "SID", CreatedBy: "SYSTEM", Info: upload.Data.MediaURL,
+		})
 
 		redirectUrl = data.RedirectSuccessUrl
 

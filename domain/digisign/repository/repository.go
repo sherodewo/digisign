@@ -30,7 +30,7 @@ func (r repoHandler) GetSendDocData(prospectID string) (data entity.SendDocData,
 	ON tm.ProspectID = cp.ProspectID
 	LEFT JOIN user_bm ub
 	ON tm.BranchID = ub.branch_id
-	WHERE tm.ProspectID = '%s'`, prospectID)).Scan(&data).Error; err != nil {
+	WHERE tm.ProspectID = '%s' AND is_active = 1`, prospectID)).Scan(&data).Error; err != nil {
 		return
 	}
 
@@ -44,7 +44,7 @@ func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data e
 	 INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	 INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	 INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -10, GETDATE())
+	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -7, GETDATE())
 	 ORDER BY cp.created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
 		return
 	}
@@ -68,7 +68,7 @@ func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.
 	INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -30, GETDATE())
+	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -17, GETDATE())
 	ORDER BY cp.created_at DESC`, documentID)).Scan(&data).Error; err != nil {
 		return
 	}
@@ -251,8 +251,15 @@ func (r repoHandler) CheckSND(prospectID string) (resultWorker int) {
 
 func (r repoHandler) SaveToTrxDigisign(data entity.TrxDigisign) (err error) {
 
-	if err = r.db.Create(&data).Error; err != nil {
-		return
+	var check entity.TrxDigisign
+
+	result := r.db.Raw(fmt.Sprintf("SELECT ProspectID FROM trx_digisign WITH (nolock) WHERE ProspectID = '%s' AND activity = '%s'", data.ProspectID, data.Activity)).Scan(&check)
+
+	if result.RowsAffected == 0 {
+		if err = r.db.Create(&data).Error; err != nil {
+			return
+		}
+
 	}
 
 	return
