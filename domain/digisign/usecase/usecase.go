@@ -1442,14 +1442,14 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			Activity:   "SIGN_CALLBACK",
 		})
 
-		go u.usecase.CallbackDigisignSignDocSuccess(data.ProspectID)
+		go u.usecase.CallbackDigisignSignDocSuccess(data.ProspectID, upload.Data.MediaURL)
 
 	}
 
 	return
 }
 
-func (u usecase) CallbackDigisignSignDocSuccess(prospectID string) (err error) {
+func (u usecase) CallbackDigisignSignDocSuccess(prospectID string, url string) (err error) {
 
 	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
@@ -1470,10 +1470,11 @@ func (u usecase) CallbackDigisignSignDocSuccess(prospectID string) (err error) {
 		headerParam, _ := json.Marshal(header)
 
 		param, _ := json.Marshal(map[string]interface{}{
-			"prospect_id": prospectID,
-			"code":        constant.CODE_SIGNED,
-			"status":      constant.SIGN_DOC_SUCCESS,
-			"activity":    constant.ACTIVITY_FINISHED,
+			"prospect_id":      prospectID,
+			"code":             constant.CODE_SIGNED,
+			"status":           constant.SIGN_DOC_SUCCESS,
+			"final_pk_tte_url": url,
+			"activity":         constant.ACTIVITY_FINISHED,
 		})
 
 		paramEpo, _ := json.Marshal(map[string]interface{}{

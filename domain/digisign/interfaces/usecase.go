@@ -14,7 +14,7 @@ type Usecase interface {
 	CallbackDigisignActivation(data response.DataActivationResponse, prospectID string) (err error)
 	CallbackDigisignSendDoc(data response.DataSendDocResponse, prospectID string) (err error)
 	CallbackDigisignSignDoc(data response.DataSignDocResponse, prospectID string) (err error)
-	CallbackDigisignSignDocSuccess(prospectID string) (err error)
+	CallbackDigisignSignDocSuccess(prospectID string, url string) (err error)
 	DigisignCheck(email, prospectID string) (data response.DataDigisignCheck, err error)
 }
 
