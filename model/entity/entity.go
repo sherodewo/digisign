@@ -41,6 +41,14 @@ func (c *CustomerPersonal) TableName() string {
 	return "customer_personal"
 }
 
+type CallbackData struct {
+	ProspectID         string  `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
+	Decision           string  `gorm:"type:varchar(3);column:decision"`
+	RedirectSuccessUrl string  `gorm:"type:varchar(250);column:redirect_success_url"`
+	RedirectFailedUrl  string  `gorm:"type:varchar(250);column:redirect_failed_url"`
+	DiffTime           float64 `gorm:"column:diff_time"`
+}
+
 type TrxDetail struct {
 	ProspectID     string      `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
 	StatusProcess  string      `gorm:"type:varchar(3);column:status_process"`
@@ -100,4 +108,66 @@ type DigisignCustomer struct {
 
 func (c *DigisignCustomer) TableName() string {
 	return "digisign_customer"
+}
+
+type TrxMetadata struct {
+	ProspectID         string    `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
+	CustomerIp         string    `gorm:"type:varchar(15);column:customer_ip"`
+	CustomerLat        string    `gorm:"type:varchar(10);column:customer_lat"`
+	CustomerLong       string    `gorm:"type:varchar(10);column:customer_long"`
+	CallbackUrl        string    `gorm:"type:varchar(250);column:callback_url"`
+	RedirectSuccessUrl string    `gorm:"type:varchar(250);column:redirect_success_url"`
+	RedirectFailedUrl  string    `gorm:"type:varchar(250);column:redirect_failed_url"`
+	CreatedAt          time.Time `gorm:"column:created_at"`
+}
+
+func (c *TrxMetadata) TableName() string {
+	return "trx_metadata"
+}
+
+type TrxWorker struct {
+	ProspectID      string      `gorm:"type:varchar(20);column:ProspectID;primary_key:true"`
+	Activity        string      `gorm:"type:varchar(10);column:activity"`
+	EndPointTarget  string      `gorm:"type:varchar(100);column:endpoint_target"`
+	EndPointMethod  string      `gorm:"type:varchar(10);column:endpoint_method"`
+	Payload         string      `gorm:"type:text;column:payload"`
+	Header          string      `gorm:"type:text;column:header"`
+	ResponseTimeout int         `gorm:"column:response_timeout"`
+	APIType         string      `gorm:"type:varchar(3);column:api_type"`
+	MaxRetry        int         `gorm:"max_retry"`
+	CountRetry      int         `gorm:"count_retry"`
+	CreatedAt       time.Time   `gorm:"column:created_at"`
+	Category        string      `gorm:"type:varchar(30);column:category"`
+	Action          string      `gorm:"type:varchar(50);column:action"`
+	StatusCode      string      `gorm:"type:varchar(4);column:status_code"`
+	Sequence        interface{} `gorm:"column:sequence"`
+}
+
+func (c *TrxWorker) TableName() string {
+	return "trx_worker"
+}
+
+type DataWorker struct {
+	TransactionType string  `gorm:"type:varchar(30);column:transaction_type"`
+	CustomerID      int     `gorm:"column:customer_id"`
+	AF              float64 `gorm:"column:AF"`
+	TenorLimit      int     `gorm:"column:tenor_limit"`
+	CallbackUrl     string  `gorm:"column:callback_url"`
+}
+
+type CheckWorker struct {
+	ProspectID string `gorm:"column:ProspectID"`
+	Action     string `gorm:"column:action"`
+}
+
+type TrxDigisign struct {
+	ProspectID string      `gorm:"type:varchar(20);column:ProspectID"`
+	Response   string      `gorm:"type:varchar(2000);column:response"`
+	Activity   string      `gorm:"type:varchar(20);column:activity"`
+	Link       interface{} `gorm:"type:varchar(2000);column:link"`
+	CreatedAt  time.Time   `gorm:"column:created_at"`
+}
+
+func (c *TrxDigisign) TableName() string {
+	return "trx_digisign"
 }

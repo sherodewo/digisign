@@ -35,6 +35,7 @@ func DigisignHandler(route *echo.Group, multiUsecase interfaces.MultiUsecase, pa
 		digiGroup.GET("/sign-document/callback", handler.SignCallback)
 		digiGroup.POST("/activation", handler.Activation)
 		digiGroup.POST("/send-doc", handler.SendDoc)
+		digiGroup.POST("/step-check", handler.CheckDigisignIndex)
 	}
 }
 
@@ -90,7 +91,7 @@ func (h *digisignHandler) Activation(ctx echo.Context) (err error) {
 		return h.Json.BadRequestErrorValidation(ctx, "LOS Digisign - Activation", err)
 	}
 
-	data, err := h.usecase.Activation(req)
+	data, err := h.multiUsecase.Activation(req)
 	if err != nil {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_timeout - Activation Timeout"))
 	}
@@ -165,7 +166,7 @@ func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
 		return h.Json.BadRequestErrorValidation(ctx, "LOS - Sign Document", err)
 	}
 
-	sign, err := h.usecase.SignDocument(request.JsonFileSign{
+	sign, err := h.packages.SignDocument(request.JsonFileSign{
 		UserID:     os.Getenv("DIGISIGN_USER_ID"),
 		DocumentID: req.DocumentID,
 		Email:      req.Email,
@@ -191,12 +192,43 @@ func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 
 	msg := ctx.QueryParam("msg")
 
-	data, err := h.multiUsecase.SignCallback(msg)
+	_, redirect, err := h.multiUsecase.SignCallback(msg)
 
 	if err != nil {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
 	}
 
-	return h.Json.Ok(ctx, "LOS Digisign", data.Data)
-	// return ctx.Redirect(307, data.Data.MediaURL)
+	return ctx.Redirect(307, redirect)
+}
+
+// Digisign godoc
+// @Description Api Check Step Digisign
+// @Tags Digisign
+// @Produce json
+// @Param body body request.DigisignCheck true "Body payload"
+// @Success 200 {object} response.Api{}
+// @Failure 400 {object} response.Api{error=response.ErrorValidation}
+// @Failure 500 {object} response.Api{}
+// @Router /digisign/step-check [post]
+func (h *digisignHandler) CheckDigisignIndex(ctx echo.Context) (err error) {
+
+	var req request.DigisignCheck
+
+	if err := ctx.Bind(&req); err != nil {
+		return h.Json.InternalServerError(ctx, "LOS - Digisign Check", err)
+	}
+
+	if err := ctx.Validate(&req); err != nil {
+		return h.Json.BadRequestErrorValidation(ctx, "LOS - Digisign Check", err)
+	}
+
+	data, err := h.usecase.DigisignCheck(req.Email, req.ProspectID)
+
+	if err != nil {
+		return h.Json.NotFound(ctx, "LOS - Digisign Check")
+
+	}
+
+	return h.Json.Ok(ctx, "LOS - Digisign Check", data)
+
 }

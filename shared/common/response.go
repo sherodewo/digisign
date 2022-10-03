@@ -12,4 +12,5 @@ type JSON interface {
 	BadRequestErrorValidation(ctx echo.Context, message string, err error) error
 	ServerSideError(ctx echo.Context, message string, err error) error
 	Unauthorized(ctx echo.Context, message string, err error) error
+	NotFound(ctx echo.Context, message string) error
 }

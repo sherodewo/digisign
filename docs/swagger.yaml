@@ -9,6 +9,16 @@ definitions:
     required:
     - email_user
     type: object
+  request.DigisignCheck:
+    properties:
+      email:
+        type: string
+      prospect_id:
+        type: string
+    required:
+    - email
+    - prospect_id
+    type: object
   request.Register:
     properties:
       address:
@@ -216,6 +226,38 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.SignDocRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+  /digisign/step-check:
+    post:
+      description: Api Check Step Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.DigisignCheck'
       produces:
       - application/json
       responses:

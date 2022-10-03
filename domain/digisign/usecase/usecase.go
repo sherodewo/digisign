@@ -69,6 +69,8 @@ func NewMultiUsecase(repository interfaces.Repository, httpclient httpclient.Htt
 
 func (u multiUsecase) Register(req request.Register) (data response.DataRegisterResponse, err error) {
 
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
 	registerParam := request.RegisterRequest{
 		UserID:     os.Getenv("DIGISIGN_USER_ID"),
 		Address:    req.Address,
@@ -126,26 +128,120 @@ func (u multiUsecase) Register(req request.Register) (data response.DataRegister
 
 		json.Unmarshal([]byte(dummy.Response), &digiResp)
 
-		fmt.Println(digiResp)
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: req.ProspectID,
+			Response:   dummy.Response,
+			Activity:   "REGISTER",
+		})
 
 		data = RegisterMappingResponse(digiResp, req.ProspectID)
 
 		return
 	}
 
-	resp, err := u.httpclient.RegisterAPI(os.Getenv("REGISTER_URL"), param, header, constant.METHOD_POST, 30, dataFile, req.ProspectID)
-
-	fmt.Println(string(resp.Body()))
+	resp, err := u.httpclient.RegisterAPI(os.Getenv("REGISTER_URL"), param, header, constant.METHOD_POST, timeOut, dataFile, req.ProspectID)
 
 	if err != nil {
 		return
 	}
 
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: req.ProspectID,
+		Response:   string(resp.Body()),
+		Activity:   "REGISTER",
+	})
+
 	json.Unmarshal(resp.Body(), &digiResp)
 
 	data = RegisterMappingResponse(digiResp, req.ProspectID)
 
+	go u.usecase.CallbackDigisignRegister(data, req.ProspectID)
+
 	return
+}
+
+func (u usecase) CallbackDigisignRegister(data response.DataRegisterResponse, prospectID string) (err error) {
+
+	if data.Decision == constant.DECISION_REJECT {
+
+		dataWorker, _ := u.repository.GetDataWorker(prospectID)
+
+		if dataWorker.TransactionType != "" {
+			timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
+			header := map[string]string{
+				"Content-Type":  "application/json",
+				"Authorization": os.Getenv("AUTH_KPM"),
+			}
+
+			headerParam, _ := json.Marshal(header)
+
+			param, _ := json.Marshal(map[string]interface{}{
+				"prospect_id": prospectID,
+				"code":        data.Code,
+				"status":      constant.REGISTER_FAILED,
+				"activity":    constant.ACTIVITY_FINISHED,
+			})
+
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.DIGISIGN_VERIFICATION_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
+			var worker []entity.TrxWorker
+
+			if dataWorker.TransactionType == "USE_LIMIT" {
+				paramRTL, _ := json.Marshal(map[string]interface{}{
+					"amount": dataWorker.AF, "customer_id": dataWorker.CustomerID, "source_process": "LOS", "prospect_id": prospectID,
+				})
+
+				worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_UNPROCESS, EndPointTarget: os.Getenv("KREDITMU_RETURN_URL"),
+					EndPointMethod: "PUT", Payload: string(paramRTL),
+					ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAE, MaxRetry: 6, CountRetry: 0,
+					Category: constant.WORKER_CATEGORY_KREDITMU, Action: constant.RETURN_LIMIT, Sequence: 1,
+				})
+
+			}
+
+			var (
+				sequence       int = 1
+				activityWorker     = constant.WORKER_UNPROCESS
+			)
+
+			if len(worker) > 0 {
+				sequence = 2
+				activityWorker = constant.WORKER_IDLE
+			}
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: activityWorker, EndPointTarget: os.Getenv("CALLBACK_URL_DIGISIGN"),
+				EndPointMethod: constant.METHOD_POST, Payload: string(param), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.WORKER_CATEGORY_DIGISIGN, Action: constant.CALLBACK_STATUS_1200, Sequence: sequence,
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: sequence + 1,
+			})
+
+			go u.repository.SaveToWorker(worker)
+
+		}
+
+	}
+
+	return
+
 }
 
 func RegisterMappingResponse(data response.RegisterResponse, prospectID string) (resp response.DataRegisterResponse) {
@@ -277,6 +373,7 @@ func RegisterMappingResponse(data response.RegisterResponse, prospectID string) 
 	return
 
 }
+
 func (u packages) GetRegisterPhoto(ktpUrl, selfieUrl, signatureUrl, npwpUrl, prospectID string) (ktpByte, selfieByte, signatureByte, npwpByte []byte, err error) {
 
 	var (
@@ -379,7 +476,7 @@ func (u packages) GetRegisterPhoto(ktpUrl, selfieUrl, signatureUrl, npwpUrl, pro
 	return
 }
 
-func (u usecase) Activation(req request.ActivationRequest) (data response.DataActivationResponse, err error) {
+func (u multiUsecase) Activation(req request.ActivationRequest) (data response.DataActivationResponse, err error) {
 
 	jsonFile, _ := json.Marshal(map[string]interface{}{
 		"JSONFile": map[string]interface{}{
@@ -409,14 +506,21 @@ func (u usecase) Activation(req request.ActivationRequest) (data response.DataAc
 
 		json.Unmarshal([]byte(dummy.Response), &digiResp)
 
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: req.ProspectID,
+			Response:   dummy.Response,
+			Activity:   "ACTIVATION",
+			Link:       digiResp.JsonFile.Link,
+		})
+
 		data = ActivationMappingResponse(digiResp, req.ProspectID)
 
 		return
 	}
 
-	resp, err := u.httpclient.ActivationAPI(os.Getenv("ACTIVATION_URL"), constant.METHOD_POST, param, header, 30, req.ProspectID)
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
-	fmt.Println(string(resp.Body()))
+	resp, err := u.httpclient.ActivationAPI(os.Getenv("ACTIVATION_URL"), constant.METHOD_POST, param, header, timeOut, req.ProspectID)
 
 	if err != nil {
 		return
@@ -424,9 +528,116 @@ func (u usecase) Activation(req request.ActivationRequest) (data response.DataAc
 
 	json.Unmarshal(resp.Body(), &digiResp)
 
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: req.ProspectID,
+		Response:   string(resp.Body()),
+		Activity:   "ACTIVATION",
+		Link:       digiResp.JsonFile.Link,
+	})
+
 	data = ActivationMappingResponse(digiResp, req.ProspectID)
 
+	go u.usecase.CallbackDigisignActivation(data, req.ProspectID)
+
 	return
+}
+
+func (u usecase) CallbackDigisignActivation(data response.DataActivationResponse, prospectID string) (err error) {
+
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
+	status := constant.WAITING_ACTIVATION
+	activity := constant.ACTIVITY_ONPROSES
+	action := constant.CALLBACK_STATUS_1202
+
+	if data.Decision == constant.DECISION_REJECT {
+		status = constant.REGISTER_FAILED
+		activity = constant.ACTIVITY_FINISHED
+		action = constant.CALLBACK_STATUS_1201
+	}
+
+	dataWorker, _ := u.repository.GetDataWorker(prospectID)
+
+	if dataWorker.TransactionType != "" {
+		header := map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": os.Getenv("AUTH_KPM"),
+		}
+
+		headerParam, _ := json.Marshal(header)
+
+		param, _ := json.Marshal(map[string]interface{}{
+			"prospect_id": prospectID,
+			"code":        data.Code,
+			"status":      status,
+			"activity":    activity,
+		})
+
+		var worker []entity.TrxWorker
+
+		if data.Decision == constant.DECISION_REJECT && dataWorker.TransactionType == "USE_LIMIT" {
+			paramRTL, _ := json.Marshal(map[string]interface{}{
+				"amount": dataWorker.AF, "customer_id": dataWorker.CustomerID, "source_process": "LOS", "prospect_id": prospectID,
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_UNPROCESS, EndPointTarget: os.Getenv("KREDITMU_RETURN_URL"),
+				EndPointMethod: "PUT", Payload: string(paramRTL),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAE, MaxRetry: 6, CountRetry: 0,
+				Category: constant.WORKER_CATEGORY_KREDITMU, Action: constant.RETURN_LIMIT, Sequence: 1,
+			})
+		}
+
+		var (
+			sequence       interface{}
+			activityWorker = constant.WORKER_UNPROCESS
+		)
+
+		if len(worker) > 0 {
+			sequence = 2
+			activityWorker = constant.WORKER_IDLE
+		}
+
+		worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: activityWorker, EndPointTarget: os.Getenv("CALLBACK_URL_DIGISIGN"),
+			EndPointMethod: constant.METHOD_POST, Payload: string(param), Header: string(headerParam),
+			ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+			Category: constant.WORKER_CATEGORY_DIGISIGN, Action: action, Sequence: sequence,
+		})
+
+		if data.Decision == constant.DECISION_REJECT {
+
+			var newSequence = 1
+			if sequence != nil {
+				newSequence = sequence.(int) + 1
+			}
+
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.DIGISIGN_VERIFICATION_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: newSequence,
+			})
+
+		}
+
+		go u.repository.SaveToWorker(worker)
+
+	}
+
+	return
+
 }
 
 func ActivationMappingResponse(data response.ActivationResponse, prospectID string) (resp response.DataActivationResponse) {
@@ -453,6 +664,7 @@ func ActivationMappingResponse(data response.ActivationResponse, prospectID stri
 	case constant.CODE_14:
 		resp.DecisionReason = constant.REASON_ACTIVATION_EXIST
 		resp.Code = constant.CODE_ACTIVATION_EXIST
+		resp.IsRegistered = true
 		return
 
 	default:
@@ -477,20 +689,74 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 	if activationCallback.Result == constant.CODE_00 && activationCallback.Notif == constant.ACTIVATION_CALLLBACK_SUCCESS {
 
 		var (
-			dataCustomer entity.CustomerPersonal
+			dataCustomer entity.CallbackData
 			sendDoc      response.DataSendDocResponse
 			signDoc      response.DataSignDocResponse
 		)
-		// 1. get Order id by email and nik
+
 		dataCustomer, err = u.repository.GetCustomerPersonalByEmailAndNik(activationCallback.Email, activationCallback.NIK)
+		if err != nil {
+			data = response.DataSignDocResponse{
+				ProspectID:     dataCustomer.ProspectID,
+				Code:           constant.CODE_EXPIRED_ACTIVATION,
+				DecisionReason: constant.DECISION_EXPIRED_ACTIVATION,
+				Decision:       constant.DECISION_REJECT,
+				Link:           dataCustomer.RedirectFailedUrl,
+			}
+			err = nil
+			return
+		}
+
+		if dataCustomer.DiffTime > 5 && dataCustomer.DiffTime <= 10 {
+			data = response.DataSignDocResponse{
+				ProspectID:     dataCustomer.ProspectID,
+				Code:           constant.CODE_EXPIRED_ACTIVATION,
+				DecisionReason: constant.DECISION_EXPIRED_ACTIVATION,
+				Decision:       constant.DECISION_REJECT,
+				Link:           dataCustomer.RedirectFailedUrl,
+			}
+
+			return
+
+		} else if dataCustomer.DiffTime > 10 {
+
+			data = response.DataSignDocResponse{
+				ProspectID:     dataCustomer.ProspectID,
+				Code:           constant.CODE_EXPIRED_ACTIVATION,
+				DecisionReason: constant.DECISION_EXPIRED_ACTIVATION,
+				Decision:       constant.DECISION_REJECT,
+				Link:           dataCustomer.RedirectFailedUrl,
+			}
+
+			return
+		}
+
+		result := u.repository.CheckSND(dataCustomer.ProspectID)
+
+		if result > 0 {
+			return
+		}
+
+		var details []entity.TrxDetail
+
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: dataCustomer.ProspectID,
+			Response:   string(byteDecrypt),
+			Activity:   "CALLBACK_ACTIVATION",
+		})
+
+		details = append(details, entity.TrxDetail{
+			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "PRCD", Decision: "PAS",
+			RuleCode: "4225", SourceDecision: "ACT", NextStep: nil, CreatedBy: "SYSTEM",
+		})
+
+		err = u.repository.UpdateStatusDigisignActivation(activationCallback.Email, activationCallback.NIK, dataCustomer.ProspectID, details)
+
 		if err != nil {
 			return
 		}
 
-		err = u.repository.UpdateStatusDigisignActivation(dataCustomer.ProspectID)
-		if err != nil {
-			return
-		}
+		details = []entity.TrxDetail{}
 
 		// send doc
 		sendDoc, err = u.packages.SendDoc(request.SendDoc{
@@ -508,85 +774,70 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			AgreementNo: sendDoc.AgreementNo,
 		})
 
-		var details []entity.TrxDetail
-
-		var nextStep interface{}
-
-		statusProcess := "ONP"
-		activity := "PRCD"
-		decision := "PAS"
-		nextStep = "SID"
-
 		if sendDoc.Decision == constant.DECISION_REJECT {
-			statusProcess = "FIN"
-			activity = "STOP"
-			decision = "REJ"
-			nextStep = nil
-		}
-
-		details = append(details, entity.TrxDetail{
-			ProspectID: dataCustomer.ProspectID, StatusProcess: statusProcess, Activity: activity, Decision: decision,
-			RuleCode: sendDoc.Code, SourceDecision: "SND", NextStep: nextStep, CreatedBy: "SYSTEM", Info: string(info),
-		})
-
-		// sign doc
-		if sendDoc.Decision == constant.DECISION_PASS {
-			signDoc, err = u.usecase.SignDocument(request.JsonFileSign{
-				UserID:     os.Getenv("DIGISIGN_USER_ID"),
-				DocumentID: sendDoc.DocumentID,
-				Email:      activationCallback.Email,
-				ViewOnly:   false,
-			}, dataCustomer.ProspectID)
-
-			if err != nil {
-				return
-			}
-
-			signStatusProcess := "ONP"
-			signActivity := "PRCD"
-			signDecision := "PAS"
-
-			if sendDoc.Decision == constant.DECISION_REJECT {
-				signStatusProcess = "FIN"
-				signActivity = "STOP"
-				signDecision = "REJ"
-			}
-
-			data = signDoc
-
 			details = append(details, entity.TrxDetail{
-				ProspectID: dataCustomer.ProspectID, StatusProcess: signStatusProcess, Activity: signActivity, Decision: signDecision,
-				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nextStep, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
+				ProspectID: dataCustomer.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "REJ",
+				RuleCode: sendDoc.Code, SourceDecision: "SND", NextStep: nil, CreatedBy: "SYSTEM",
 			})
+
+			data = response.DataSignDocResponse{
+				ProspectID:     sendDoc.ProspectID,
+				Code:           sendDoc.Code,
+				Decision:       sendDoc.Decision,
+				DecisionReason: sendDoc.DecisionReason,
+			}
 
 			err = u.repository.SaveTrx(details)
 
-			if err != nil {
-				return
-			}
-
 			return
-
 		}
 
-		data = response.DataSignDocResponse{
-			ProspectID:     sendDoc.ProspectID,
-			Code:           sendDoc.Code,
-			Decision:       sendDoc.Decision,
-			DecisionReason: sendDoc.DecisionReason,
-		}
+		details = append(details, entity.TrxDetail{
+			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "PRCD", Decision: "PAS",
+			RuleCode: sendDoc.Code, SourceDecision: "SND", NextStep: "SID", CreatedBy: "SYSTEM", Info: string(info),
+		})
 
-		err = u.repository.SaveTrx(details)
+		// sign doc
+		signDoc, err = u.packages.SignDocument(request.JsonFileSign{
+			UserID:     os.Getenv("DIGISIGN_USER_ID"),
+			DocumentID: sendDoc.DocumentID,
+			Email:      activationCallback.Email,
+			ViewOnly:   false,
+		}, dataCustomer.ProspectID)
 
 		if err != nil {
 			return
 		}
 
+		data = signDoc
+
+		if signDoc.Decision == constant.DECISION_REJECT {
+
+			details = append(details, entity.TrxDetail{
+				ProspectID: dataCustomer.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "REJ",
+				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM",
+			})
+
+			err = u.repository.SaveTrx(details)
+
+			return
+
+		}
+
+		details = append(details, entity.TrxDetail{
+			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "UNPR", Decision: "CPR",
+			RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
+		})
+
+		err = u.repository.SaveTrx(details)
+		if err != nil {
+			return
+		}
+
 		return
-		// return send_doc gagal
+
 	}
 
-	// return callback activation gagal
 	return
 }
 
@@ -596,7 +847,9 @@ func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, a
 		"ProspectID": prospectID,
 	})
 
-	resp, _ := u.httpclient.DocumentAPI(os.Getenv("GENERATE_PK_URL"), constant.METHOD_POST, param, map[string]string{}, 30, prospectID)
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
+	resp, _ := u.httpclient.DocumentAPI(os.Getenv("GENERATE_PK_URL"), constant.METHOD_POST, param, map[string]string{}, timeOut, prospectID)
 
 	if resp.StatusCode() != 200 {
 		err = fmt.Errorf("failed Generate PK")
@@ -612,19 +865,18 @@ func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, a
 		return
 	}
 	docID = documentData.DocumentID
+	agreementNo = documentData.AgreementNo
 
 	return
 }
 
 func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocResponse, err error) {
 
-	// 1. find data by email and nik
 	sendDoc, err := u.repository.GetSendDocData(req.ProspectID)
 	if err != nil {
 		return
 	}
 
-	// 2. generate pdf
 	document, documentID, agreementNo, err := u.usecase.GeneratePK(req.ProspectID)
 	if err != nil {
 		return
@@ -677,7 +929,7 @@ func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocRespons
 			},
 			{
 				Name: sendDoc.NameBM, Email: sendDoc.EmailBM, AksiTtd: "at", Kuser: sendDoc.Kuser, User: "prf4",
-				Page: "9", Llx: "33", Lly: "445", Urx: "546", Ury: "283", Visible: "1",
+				Page: "9", Llx: "445", Lly: "251", Urx: "546", Ury: "283", Visible: "1",
 			},
 			{
 				Name: sendDoc.LegalName, Email: req.Email, AksiTtd: "mt", User: "ttd5", Page: "10",
@@ -714,13 +966,21 @@ func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocRespons
 
 		data = SendDocMappingResponse(digiResponse, req.ProspectID)
 
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: req.ProspectID,
+			Response:   dummy.Response,
+			Activity:   "SEND_DOC",
+		})
+
 		data.DocumentID = documentID
 		data.AgreementNo = agreementNo
 
 		return
 	}
 
-	resp, err := u.httpclient.SendDocAPI(os.Getenv("SEND_DOC_URL"), constant.METHOD_POST, param, header, 30, dataFile, req.ProspectID)
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
+	resp, err := u.httpclient.SendDocAPI(os.Getenv("SEND_DOC_URL"), constant.METHOD_POST, param, header, timeOut, dataFile, req.ProspectID)
 
 	fmt.Println(string(resp.Body()))
 
@@ -730,12 +990,104 @@ func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocRespons
 
 	json.Unmarshal(resp.Body(), &digiResponse)
 
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: req.ProspectID,
+		Response:   string(resp.Body()),
+		Activity:   "SEND_DOC",
+	})
+
 	data = SendDocMappingResponse(digiResponse, req.ProspectID)
 
 	data.DocumentID = documentID
 	data.AgreementNo = agreementNo
 
+	go u.usecase.CallbackDigisignSendDoc(data, req.ProspectID)
+
 	return
+}
+
+func (u usecase) CallbackDigisignSendDoc(data response.DataSendDocResponse, prospectID string) (err error) {
+
+	if data.Decision == constant.DECISION_REJECT {
+
+		dataWorker, _ := u.repository.GetDataWorker(prospectID)
+
+		if dataWorker.TransactionType != "" {
+			timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
+			header := map[string]string{
+				"Content-Type":  "application/json",
+				"Authorization": os.Getenv("AUTH_KPM"),
+			}
+
+			headerParam, _ := json.Marshal(header)
+
+			param, _ := json.Marshal(map[string]interface{}{
+				"prospect_id": prospectID,
+				"code":        data.Code,
+				"status":      constant.SEND_DOC_FAILED,
+				"activity":    constant.ACTIVITY_FINISHED,
+			})
+
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.SEND_DOC_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
+			var worker []entity.TrxWorker
+
+			if dataWorker.TransactionType == "USE_LIMIT" {
+				paramRTL, _ := json.Marshal(map[string]interface{}{
+					"amount": dataWorker.AF, "customer_id": dataWorker.CustomerID, "source_process": "LOS", "prospect_id": prospectID,
+				})
+
+				worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_UNPROCESS, EndPointTarget: os.Getenv("KREDITMU_RETURN_URL"),
+					EndPointMethod: "PUT", Payload: string(paramRTL),
+					ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAE, MaxRetry: 6, CountRetry: 0,
+					Category: constant.WORKER_CATEGORY_KREDITMU, Action: constant.RETURN_LIMIT, Sequence: 1,
+				})
+
+			}
+
+			var (
+				sequence       int = 1
+				activityWorker     = constant.WORKER_UNPROCESS
+			)
+
+			if len(worker) > 0 {
+				sequence = 2
+				activityWorker = constant.WORKER_IDLE
+			}
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: activityWorker, EndPointTarget: os.Getenv("CALLBACK_URL_DIGISIGN"),
+				EndPointMethod: constant.METHOD_POST, Payload: string(param), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.WORKER_CATEGORY_DIGISIGN, Action: constant.CALLBACK_STATUS_1210, Sequence: sequence,
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: sequence + 1,
+			})
+
+			go u.repository.SaveToWorker(worker)
+
+		}
+
+	}
+
+	return
+
 }
 
 func SendDocMappingResponse(data response.SendDocResponse, prospectID string) (resp response.DataSendDocResponse) {
@@ -807,7 +1159,9 @@ func SendDocMappingResponse(data response.SendDocResponse, prospectID string) (r
 
 }
 
-func (u usecase) SignDocument(req request.JsonFileSign, prospectID string) (data response.DataSignDocResponse, err error) {
+func (u packages) SignDocument(req request.JsonFileSign, prospectID string) (data response.DataSignDocResponse, err error) {
+
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 	jsonField, _ := json.Marshal(request.JsonFile{
 		JsonFile: req,
@@ -834,23 +1188,135 @@ func (u usecase) SignDocument(req request.JsonFileSign, prospectID string) (data
 
 		json.Unmarshal([]byte(dummy.Response), &digiResp)
 
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: prospectID,
+			Response:   dummy.Response,
+			Activity:   "SIGN_DOC",
+		})
+
 		data = SignDocumentMappingResponse(digiResp, prospectID)
 
 		return
 	}
 
-	signDoc, err := u.httpclient.SignDocAPI(os.Getenv("SIGN_DOC_URL"), constant.METHOD_POST, param, header, 30, prospectID)
+	signDoc, err := u.httpclient.SignDocAPI(os.Getenv("SIGN_DOC_URL"), constant.METHOD_POST, param, header, timeOut, prospectID)
 
-	fmt.Println(string(signDoc.Body()))
 	if err != nil {
 		return
 	}
 
 	json.Unmarshal(signDoc.Body(), &digiResp)
 
+	go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+		ProspectID: prospectID,
+		Response:   string(signDoc.Body()),
+		Activity:   "SIGN_DOC",
+		Link:       digiResp.JsonFile.Link,
+	})
+
 	data = SignDocumentMappingResponse(digiResp, prospectID)
 
+	go u.usecase.CallbackDigisignSignDoc(data, prospectID)
+
 	return
+}
+
+func (u usecase) CallbackDigisignSignDoc(data response.DataSignDocResponse, prospectID string) (err error) {
+
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
+	status := constant.WAITING_SIGN_DOC
+	activity := constant.ACTIVITY_ONPROSES
+	action := constant.CALLBACK_STATUS_1206
+
+	if data.Decision == constant.DECISION_REJECT {
+		status = constant.SEND_DOC_FAILED
+		activity = constant.ACTIVITY_FINISHED
+		action = constant.CALLBACK_STATUS_1210
+	}
+
+	dataWorker, _ := u.repository.GetDataWorker(prospectID)
+
+	if dataWorker.TransactionType != "" {
+		header := map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": os.Getenv("AUTH_KPM"),
+		}
+
+		headerParam, _ := json.Marshal(header)
+
+		param, _ := json.Marshal(map[string]interface{}{
+			"prospect_id": prospectID,
+			"code":        data.Code,
+			"status":      status,
+			"activity":    activity,
+		})
+
+		var worker []entity.TrxWorker
+
+		if data.Decision == constant.DECISION_REJECT && dataWorker.TransactionType == "USE_LIMIT" {
+			paramRTL, _ := json.Marshal(map[string]interface{}{
+				"amount": dataWorker.AF, "customer_id": dataWorker.CustomerID, "source_process": "LOS", "prospect_id": prospectID,
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_UNPROCESS, EndPointTarget: os.Getenv("KREDITMU_RETURN_URL"),
+				EndPointMethod: "PUT", Payload: string(paramRTL),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAE, MaxRetry: 6, CountRetry: 0,
+				Category: constant.WORKER_CATEGORY_KREDITMU, Action: constant.RETURN_LIMIT, Sequence: 1,
+			})
+		}
+
+		var (
+			sequence       interface{}
+			activityWorker = constant.WORKER_UNPROCESS
+		)
+
+		if len(worker) > 0 {
+			sequence = 2
+			activityWorker = constant.WORKER_IDLE
+		}
+
+		worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: activityWorker, EndPointTarget: os.Getenv("CALLBACK_URL_DIGISIGN"),
+			EndPointMethod: constant.METHOD_POST, Payload: string(param), Header: string(headerParam),
+			ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+			Category: constant.WORKER_CATEGORY_DIGISIGN, Action: action, Sequence: sequence,
+		})
+
+		if data.Decision == constant.DECISION_REJECT {
+
+			var newSequence = 1
+			if sequence != nil {
+				newSequence = sequence.(int) + 1
+			}
+
+			paramCallbackStatus, _ := json.Marshal(map[string]interface{}{
+				"messages": "LOS DigiSign",
+				"errors":   nil,
+				"data": map[string]interface{}{
+					"prospect_id":     prospectID,
+					"code":            data.Code,
+					"decision":        constant.DECISION_REJECTED,
+					"decision_reason": constant.DIGISIGN_VERIFICATION_FAILED,
+					"journey":         "DGS",
+					"callback":        false,
+				},
+				"server_time": utils.GenerateTimeNow(),
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: dataWorker.CallbackUrl,
+				EndPointMethod: constant.METHOD_POST, Payload: string(paramCallbackStatus), Header: string(headerParam),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+				Category: constant.CATEGORY_FRONT_APP, Action: constant.ACTION_CALLBACK, Sequence: newSequence,
+			})
+
+		}
+
+		go u.repository.SaveToWorker(worker)
+
+	}
+
+	return
+
 }
 
 func SignDocumentMappingResponse(data response.SignDocResponse, prospectID string) (resp response.DataSignDocResponse) {
@@ -897,7 +1363,7 @@ func SignDocumentMappingResponse(data response.SignDocResponse, prospectID strin
 
 }
 
-func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResponse, err error) {
+func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResponse, redirectUrl string, err error) {
 
 	decodeValue, _ := base64.StdEncoding.DecodeString(msg)
 
@@ -909,13 +1375,47 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 
 	if signCallback.StatusDocument == constant.SIGN_DOC_COMPLETE && signCallback.Result == constant.CODE_00 {
 
-		var data entity.TrxDetail
+		var data entity.CallbackData
 
-		data, _ = u.repository.GetCustomerPersonalByEmail(signCallback.DocumentID)
+		data, err = u.repository.GetCustomerPersonalByEmail(signCallback.DocumentID)
 
-		if err != nil {
-			return
+		redirectUrl = data.RedirectFailedUrl
+
+		if data.Decision == "APR" {
+			redirectUrl = data.RedirectSuccessUrl
+		} else {
+			if err != nil {
+				upload = response.MediaServiceResponse{
+					Message: "LOS Digisign",
+					Code:    constant.CODE_EXPIRED_SIGN_DOC,
+				}
+				err = nil
+
+				return
+			}
+
+			if data.DiffTime > 15 && data.DiffTime <= 30 {
+				upload = response.MediaServiceResponse{
+					Message: "LOS Digisign",
+					Code:    constant.CODE_EXPIRED_SIGN_DOC,
+				}
+
+				return
+			} else if data.DiffTime > 30 {
+				upload = response.MediaServiceResponse{
+					Message: "LOS Digisign",
+					Code:    constant.CODE_EXPIRED_SIGN_DOC,
+				}
+
+				return
+			}
+
 		}
+
+		_ = u.repository.UpdateStatusDigisignSignDoc(entity.TrxDetail{
+			ProspectID: data.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "APR", RuleCode: "4404",
+			SourceDecision: "SID", CreatedBy: "SYSTEM",
+		})
 
 		var download string
 
@@ -934,79 +1434,116 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			return
 		}
 
+		redirectUrl = data.RedirectSuccessUrl
+
+		go u.repository.SaveToTrxDigisign(entity.TrxDigisign{
+			ProspectID: data.ProspectID,
+			Response:   string(byteDecrypt),
+			Activity:   "SIGN_CALLBACK",
+		})
+
+		go u.usecase.CallbackDigisignSignDocSuccess(data.ProspectID)
+
 	}
 
 	return
 }
 
-// func (u usecase) SignUseCase(req request.SignDocDto) (uploadRes response.MediaServiceResponse, err error) {
-// 	// Check Dummy Setting
-// 	var fileName string
-// 	dummy := os.Getenv("DUMMY")
+func (u usecase) CallbackDigisignSignDocSuccess(prospectID string) (err error) {
 
-// 	if dummy != "ON" {
-// 		data := request.JsonFile{
-// 			JsonFile: request.JsonFileSign{
-// 				UserID:     req.UserID,
-// 				DocumentID: req.DocumentID,
-// 				Email:      req.Email,
-// 				ViewOnly:   req.ViewOnly,
-// 			},
-// 		}
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
-// 		// 1. Find Document by email and document_id
+	dataWorker, _ := u.repository.GetDataWorker(prospectID)
 
-// 		// 2. Sign Document to Digisign
-// 		signRes, err := u.SignDoc(req.ProspectID, data)
-// 		if err != nil {
-// 			return uploadRes, err
-// 		}
-// 		fmt.Println(signRes)
-// 		// 2. Download Document to local
-// 		downloadDto := request.DownloadRequest{
-// 			UserID:     req.UserID,
-// 			DocumentID: req.DocumentID,
-// 		}
+	result := u.repository.CheckWorker1209(prospectID)
 
-// 		fileName, err = u.DownloadDoc(req.ProspectID, downloadDto)
-// 		if err != nil {
-// 			return uploadRes, err
-// 		}
-// 	} else {
-// 		fileName = "dummy_file.pdf"
-// 	}
+	if result > 0 {
+		return
+	}
 
-// 	// 3. Upload Document to Platform
-// 	uploadRes, err = u.UploadDoc(req.ProspectID, fileName)
-// 	if err != nil {
-// 		return
-// 	}
+	if dataWorker.TransactionType != "" {
+		header := map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": os.Getenv("AUTH_KPM"),
+		}
 
-// 	// 4. Delete Document on Local
-// 	//defer os.Remove(fileName)
-// 	return
-// }
+		headerParam, _ := json.Marshal(header)
 
-// func (u usecase) SignDoc(prospectID string, req request.JsonFile) (resp response.SignDocResponse, err error) {
-// 	url := os.Getenv("DIGISIGN_BASE_URL") + os.Getenv("SIGN_DOCUMENT_URL")
-// 	// Type belum ada di platform (Dummy DULU GAN)
-// 	param := map[string]interface{}{
-// 		"jsonfield": req,
-// 	}
-// 	header := map[string]string{
-// 		"Content-Type":  "multipart/form-data",
-// 		"Authorization": os.Getenv("Bearer ") + os.Getenv("DIGISIGN_TOKEN"),
-// 	}
-// 	restyResp, err := u.httpclient.DigiAPI(url, http.MethodPost, param, "", header, 30, prospectID)
-// 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
-// 		if err := json.Unmarshal(restyResp.Body(), &resp); err != nil {
-// 			return resp, err
-// 		}
-// 	}
-// 	return
-// }
+		param, _ := json.Marshal(map[string]interface{}{
+			"prospect_id": prospectID,
+			"code":        constant.CODE_SIGNED,
+			"status":      constant.SIGN_DOC_SUCCESS,
+			"activity":    constant.ACTIVITY_FINISHED,
+		})
+
+		paramEpo, _ := json.Marshal(map[string]interface{}{
+			"prospect_id":     prospectID,
+			"code":            constant.CODE_SIGNED,
+			"decision":        "APPROVED",
+			"decision_reason": constant.SIGN_DOC_SUCCESS,
+		})
+
+		paramStaging, _ := json.Marshal(map[string]interface{}{
+			"prospect_id": prospectID, "target": "CONFINS", "source": "DGS",
+		})
+
+		var worker []entity.TrxWorker
+
+		if dataWorker.TransactionType == "PRODUCT_LIMIT" {
+			paramUSL, _ := json.Marshal(map[string]interface{}{
+				"amount": dataWorker.AF, "application_source": "KPM", "customer_id": dataWorker.CustomerID, "source_process": "LOS", "tenor": dataWorker.TenorLimit, "prospect_id": prospectID,
+			})
+
+			worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_UNPROCESS, EndPointTarget: os.Getenv("KREDITMU_USE_URL"),
+				EndPointMethod: "PUT", Payload: string(paramUSL),
+				ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAE, MaxRetry: 6, CountRetry: 0,
+				Category: constant.WORKER_CATEGORY_KREDITMU, Action: constant.USE_LIMIT, Sequence: 1,
+			})
+
+		}
+
+		var (
+			sequence       int = 1
+			activityWorker     = constant.WORKER_UNPROCESS
+		)
+		if len(worker) > 0 {
+			sequence = 2
+			activityWorker = constant.WORKER_IDLE
+		}
+
+		worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: activityWorker, EndPointTarget: os.Getenv("CALLBACK_URL_DIGISIGN"),
+			EndPointMethod: constant.METHOD_POST, Payload: string(param), Header: string(headerParam),
+			ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+			Category: constant.WORKER_CATEGORY_DIGISIGN, Action: constant.CALLBACK_STATUS_1209, Sequence: sequence,
+		})
+
+		sequence = sequence + 1
+
+		worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: os.Getenv("EPO_URL"),
+			EndPointMethod: constant.METHOD_POST, Payload: string(paramEpo),
+			ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+			Category: constant.WORKER_CATEGORY_EPO, Action: constant.CREATE_EPO, Sequence: sequence,
+		})
+
+		sequence = sequence + 1
+
+		worker = append(worker, entity.TrxWorker{ProspectID: prospectID, Activity: constant.WORKER_IDLE, EndPointTarget: os.Getenv("INSERT_STAGING_URL"),
+			EndPointMethod: constant.METHOD_POST, Payload: string(paramStaging),
+			ResponseTimeout: timeOut, APIType: constant.WORKER_TYPE_RAW, MaxRetry: 6, CountRetry: 0,
+			Category: constant.WORKER_CATEGORY_CONFINS, Action: constant.INSERT_STAGING, Sequence: sequence,
+		})
+
+		go u.repository.SaveToWorker(worker)
+
+	}
+
+	return
+
+}
 
 func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (pdfBase64 string, err error) {
+
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
 
 	jsonFile, _ := json.Marshal(map[string]interface{}{
 		"JSONFile": req,
@@ -1021,7 +1558,7 @@ func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (pd
 		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
 	}
 
-	restyResp, err := u.httpclient.DigiAPI(os.Getenv("DOWNLOAD_URL"), constant.METHOD_POST, param, "", header, 30, prospectID)
+	restyResp, err := u.httpclient.DigiAPI(os.Getenv("DOWNLOAD_URL"), constant.METHOD_POST, param, "", header, timeOut, prospectID)
 	var respDownload response.DownloadResponse
 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
 		if err := json.Unmarshal(restyResp.Body(), &respDownload); err != nil {
@@ -1032,7 +1569,7 @@ func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (pd
 	if err != nil {
 		panic(err)
 	}
-	pdfBase64 = "document_signed_" + prospectID + "_" + time.Now().String()
+	pdfBase64 = "document_signed_" + prospectID + "_" + time.Now().String() + ".pdf"
 	f, err := os.Create(pdfBase64)
 	if err != nil {
 		panic(err)
@@ -1049,22 +1586,26 @@ func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (pd
 }
 
 func (u usecase) UploadDoc(prospectID string, fileName string) (uploadResp response.MediaServiceResponse, err error) {
-	url := os.Getenv("MEDIA_BASE_URL") + os.Getenv("MEDIA_UPLOAD_URL")
-	// Type belum ada di platform (Dummy DULU GAN)
+
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+
 	param := map[string]string{
 		"type":         "perjanjian",
 		"reference_no": prospectID,
 	}
 	header := map[string]string{
 		"Content-Type":  "multipart/form-data",
-		"Authorization": os.Getenv("MEDIA_CLIENT_KEY"),
+		"Authorization": os.Getenv("MEDIA_KEY"),
 	}
-	restyResp, err := u.httpclient.MediaClient(url, http.MethodPost, param, fileName, header, 30, prospectID)
+	restyResp, err := u.httpclient.MediaClient(os.Getenv("UPLOAD_PLATFORM_URL"), http.MethodPost, param, fileName, header, timeOut, true, 3, prospectID)
 	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
 		if err := json.Unmarshal(restyResp.Body(), &uploadResp); err != nil {
 			return uploadResp, err
 		}
 	}
+
+	os.Remove(fileName)
+
 	return
 }
 
@@ -1099,7 +1640,7 @@ func (u usecase) DecodeMedia(url string, customerID string) (base64Image string,
 		"Authorization": os.Getenv("MEDIA_KEY"),
 	}
 
-	image, err := u.httpclient.MediaClient(url+os.Getenv("MEDIA_PATH"), "GET", nil, "", header, timeOut, customerID)
+	image, err := u.httpclient.MediaClient(url+os.Getenv("MEDIA_PATH"), "GET", nil, "", header, timeOut, false, nil, customerID)
 
 	if image.StatusCode() != 200 || err != nil {
 		err = errors.New("error")
@@ -1129,4 +1670,64 @@ func GetIsMedia(urlImage string) bool {
 	}
 
 	return false
+}
+
+func (u usecase) DigisignCheck(email, prospectID string) (data response.DataDigisignCheck, err error) {
+
+	getStatus, err := u.repository.GetTrxStatus(prospectID)
+
+	if err != nil {
+		err = fmt.Errorf(constant.DIGISIGN_RECORD_NOT_FOUND)
+		return
+	}
+
+	if getStatus.SourceDecision == "ACT" || getStatus.SourceDecision == "RGS" || getStatus.SourceDecision == "SID" || getStatus.SourceDecision == "SND" {
+
+		var step string
+		var activationUrl, signDocUrl interface{}
+
+		decision := "CREDIT_PROCESS"
+
+		if getStatus.Decision == "REJ" {
+			decision = "REJECTED"
+		}
+
+		switch getStatus.SourceDecision {
+		case "ACT":
+			step = "ACTIVATION"
+			digisign, _ := u.repository.GetLinkTrxDegisign(prospectID, "ACTIVATION")
+			if digisign.Link != "" {
+				activationUrl = digisign.Link
+			}
+
+		case "RGS":
+			step = "REGISTER"
+		case "SID":
+			step = "SIGN_DOC"
+			digisign, _ := u.repository.GetLinkTrxDegisign(prospectID, "SIGN_DOC")
+			if getStatus.Decision == "APR" {
+				decision = "APPROVED"
+			}
+			if digisign.Link != "" {
+				signDocUrl = digisign.Link
+			}
+
+		case "SND":
+			step = "SEND_DOC"
+		}
+
+		data = response.DataDigisignCheck{
+			ProspectID:    prospectID,
+			Step:          step,
+			Decision:      decision,
+			ActivationUrl: activationUrl,
+			SignDocUrl:    signDocUrl,
+		}
+	} else {
+		err = fmt.Errorf(constant.DIGISIGN_RECORD_NOT_FOUND)
+		return
+	}
+
+	return
+
 }

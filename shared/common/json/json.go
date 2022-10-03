@@ -61,6 +61,15 @@ func (c *response) InternalServerError(ctx echo.Context, message string, err err
 	})
 }
 
+func (c *response) NotFound(ctx echo.Context, message string) error {
+	return ctx.JSON(http.StatusNotFound, resp.Api{
+		Message:    message,
+		Data:       nil,
+		Errors:     "not_found",
+		ServerTime: utils.GenerateTimeNow(),
+	})
+}
+
 func (c *response) BadRequestErrorValidation(ctx echo.Context, message string, err error) error {
 	var errors = make([]resp.ErrorValidation, len(err.(validator.ValidationErrors)))
 
