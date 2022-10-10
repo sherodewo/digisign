@@ -1,0 +1,283 @@
+basePath: /api/v1
+definitions:
+  request.ActivationRequest:
+    properties:
+      email_user:
+        type: string
+      prospect_id:
+        type: string
+    required:
+    - email_user
+    type: object
+  request.DigisignCheck:
+    properties:
+      email:
+        type: string
+      prospect_id:
+        type: string
+    required:
+    - email
+    - prospect_id
+    type: object
+  request.Register:
+    properties:
+      address:
+        type: string
+      birth_date:
+        type: string
+      birth_place:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      gender:
+        type: string
+      id_ktp:
+        type: string
+      kecamatan:
+        type: string
+      kelurahan:
+        type: string
+      mobile_phone:
+        type: string
+      name:
+        type: string
+      npwp:
+        type: string
+      photo_ktp:
+        type: string
+      photo_npwp:
+        type: string
+      prospect_id:
+        type: string
+      selfie:
+        type: string
+      signature:
+        type: string
+      zipcode:
+        type: string
+    required:
+    - address
+    - birth_date
+    - birth_place
+    - city
+    - email
+    - gender
+    - kecamatan
+    - kelurahan
+    - mobile_phone
+    - name
+    - zipcode
+    type: object
+  request.SendDoc:
+    properties:
+      email:
+        type: string
+      id_ktp:
+        type: string
+      prospect_id:
+        type: string
+    required:
+    - email
+    - id_ktp
+    type: object
+  request.SignDocRequest:
+    properties:
+      document_id:
+        type: string
+      email_user:
+        type: string
+      prospect_id:
+        type: string
+    required:
+    - document_id
+    - email_user
+    type: object
+  response.Api:
+    properties:
+      data:
+        type: object
+      errors:
+        type: object
+      messages:
+        type: string
+      server_time:
+        type: string
+    type: object
+  response.ErrorValidation:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+host: localhost:9100
+info:
+  contact:
+    email: support@kreditplus.com
+    name: Kredit Plus
+    url: https://kreditplus.com
+  license: {}
+paths:
+  /digisign/activation:
+    post:
+      description: Api Activation Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ActivationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+  /digisign/register:
+    post:
+      description: Api Register Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.Register'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+  /digisign/send-doc:
+    post:
+      description: Api Send Doc Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.SendDoc'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+  /digisign/sign-doc:
+    post:
+      description: Api sign Doc Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignDocRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+  /digisign/step-check:
+    post:
+      description: Api Check Step Digisign
+      parameters:
+      - description: Body payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.DigisignCheck'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Api'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Api'
+            - properties:
+                error:
+                  $ref: '#/definitions/response.ErrorValidation'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Api'
+      tags:
+      - Digisign
+swagger: "2.0"
