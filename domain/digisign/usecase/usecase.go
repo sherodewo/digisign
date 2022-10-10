@@ -12,16 +12,17 @@ import (
 	"los-int-digisign/model/entity"
 	"los-int-digisign/model/request"
 	"los-int-digisign/model/response"
+	"los-int-digisign/shared/config"
 	"los-int-digisign/shared/constant"
 	"los-int-digisign/shared/httpclient"
 	"los-int-digisign/shared/utils"
-	"time"
 
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -69,7 +70,7 @@ func NewMultiUsecase(repository interfaces.Repository, httpclient httpclient.Htt
 
 func (u multiUsecase) Register(req request.Register) (data response.DataRegisterResponse, err error) {
 
-	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_95S"))
 
 	registerParam := request.RegisterRequest{
 		UserID:     os.Getenv("DIGISIGN_USER_ID"),
@@ -152,6 +153,23 @@ func (u multiUsecase) Register(req request.Register) (data response.DataRegister
 	})
 
 	json.Unmarshal(resp.Body(), &digiResp)
+
+	isError := false
+
+	if resp.StatusCode() != 200 {
+		isError = true
+	}
+
+	logs := map[string]interface{}{
+		"ID":            req.ProspectID,
+		"request":       param,
+		"response":      digiResp,
+		"response_code": resp.StatusCode(),
+		"url":           os.Getenv("REGISTER_URL"),
+		"response_time": fmt.Sprintf("%dms", resp.Time().Milliseconds()),
+	}
+
+	go config.SetCustomLog("API_DIGISIGN", isError, logs, "REGISTER-API")
 
 	data = RegisterMappingResponse(digiResp, req.ProspectID)
 
@@ -535,6 +553,23 @@ func (u multiUsecase) Activation(req request.ActivationRequest) (data response.D
 		Link:       digiResp.JsonFile.Link,
 	})
 
+	isError := false
+
+	if resp.StatusCode() != 200 {
+		isError = true
+	}
+
+	logs := map[string]interface{}{
+		"ID":            req.ProspectID,
+		"request":       param,
+		"response":      digiResp,
+		"response_code": resp.StatusCode(),
+		"url":           os.Getenv("ACTIVATION_URL"),
+		"response_time": fmt.Sprintf("%dms", resp.Time().Milliseconds()),
+	}
+
+	go config.SetCustomLog("API_DIGISIGN", isError, logs, "ACTIVATION-API")
+
 	data = ActivationMappingResponse(digiResp, req.ProspectID)
 
 	go u.usecase.CallbackDigisignActivation(data, req.ProspectID)
@@ -731,11 +766,19 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			return
 		}
 
-		result := u.repository.CheckSND(dataCustomer.ProspectID)
-
-		if result > 0 {
-			return
+		logs := map[string]interface{}{
+			"ID":       dataCustomer.ProspectID,
+			"response": activationCallback,
+			"msg":      msg,
 		}
+
+		go config.SetCustomLog("API_DIGISIGN", false, logs, "ACTIVATION-CALLBACK-API")
+
+		// result := u.repository.CheckSND(dataCustomer.ProspectID)
+
+		// if result > 0 {
+		// 	return
+		// }
 
 		var details []entity.TrxDetail
 
@@ -785,6 +828,7 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 				Code:           sendDoc.Code,
 				Decision:       sendDoc.Decision,
 				DecisionReason: sendDoc.DecisionReason,
+				Link:           dataCustomer.RedirectFailedUrl,
 			}
 
 			err = u.repository.SaveTrx(details)
@@ -815,8 +859,16 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 
 			details = append(details, entity.TrxDetail{
 				ProspectID: dataCustomer.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "REJ",
-				RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM",
+				RuleCode: signDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM",
 			})
+
+			data = response.DataSignDocResponse{
+				ProspectID:     signDoc.ProspectID,
+				Code:           signDoc.Code,
+				Decision:       signDoc.Decision,
+				DecisionReason: signDoc.DecisionReason,
+				Link:           dataCustomer.RedirectFailedUrl,
+			}
 
 			err = u.repository.SaveTrx(details)
 
@@ -826,7 +878,7 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 
 		details = append(details, entity.TrxDetail{
 			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "UNPR", Decision: "CPR",
-			RuleCode: sendDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
+			RuleCode: signDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
 		})
 
 		err = u.repository.SaveTrx(details)
@@ -851,7 +903,16 @@ func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, a
 
 	resp, _ := u.httpclient.DocumentAPI(os.Getenv("GENERATE_PK_URL"), constant.METHOD_POST, param, map[string]string{}, timeOut, prospectID)
 
+	logs := map[string]interface{}{
+		"ID":            prospectID,
+		"request":       param,
+		"response_code": resp.StatusCode(),
+		"url":           os.Getenv("GENERATE_PK_URL"),
+		"response_time": fmt.Sprintf("%dms", resp.Time().Milliseconds()),
+	}
+
 	if resp.StatusCode() != 200 {
+		go config.SetCustomLog("API_DIGISIGN", true, logs, "GENERATE-PK-API")
 		err = fmt.Errorf("failed Generate PK")
 		return
 	}
@@ -864,8 +925,14 @@ func (u usecase) GeneratePK(prospectID string) (document []byte, docID string, a
 	if err != nil {
 		return
 	}
+
 	docID = documentData.DocumentID
 	agreementNo = documentData.AgreementNo
+
+	logs["document_Id"] = docID
+	logs["agreement_no"] = agreementNo
+
+	go config.SetCustomLog("API_DIGISIGN", false, logs, "GENERATE-PK-API")
 
 	return
 }
@@ -978,13 +1045,21 @@ func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocRespons
 		return
 	}
 
-	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
+	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_95S"))
 
 	resp, err := u.httpclient.SendDocAPI(os.Getenv("SEND_DOC_URL"), constant.METHOD_POST, param, header, timeOut, dataFile, req.ProspectID)
 
-	fmt.Println(string(resp.Body()))
+	logs := map[string]interface{}{
+		"ID":            req.ProspectID,
+		"request":       param,
+		"response":      string(resp.Body()),
+		"response_code": resp.StatusCode(),
+		"url":           os.Getenv("SEND_DOC_URL"),
+		"response_time": fmt.Sprintf("%dms", resp.Time().Milliseconds()),
+	}
 
 	if err != nil {
+		go config.SetCustomLog("API_DIGISIGN", true, logs, "SEND_DOC-API")
 		return
 	}
 
@@ -995,6 +1070,12 @@ func (u packages) SendDoc(req request.SendDoc) (data response.DataSendDocRespons
 		Response:   string(resp.Body()),
 		Activity:   "SEND_DOC",
 	})
+
+	logs["document_Id"] = documentID
+	logs["agreement_no"] = agreementNo
+	logs["response"] = digiResponse
+
+	go config.SetCustomLog("API_DIGISIGN", false, logs, "SEND_DOC-API")
 
 	data = SendDocMappingResponse(digiResponse, req.ProspectID)
 
@@ -1201,7 +1282,17 @@ func (u packages) SignDocument(req request.JsonFileSign, prospectID string) (dat
 
 	signDoc, err := u.httpclient.SignDocAPI(os.Getenv("SIGN_DOC_URL"), constant.METHOD_POST, param, header, timeOut, prospectID)
 
+	logs := map[string]interface{}{
+		"ID":            prospectID,
+		"request":       param,
+		"response":      string(signDoc.Body()),
+		"response_code": signDoc.StatusCode(),
+		"url":           os.Getenv("SIGN_DOC_URL"),
+		"response_time": fmt.Sprintf("%dms", signDoc.Time().Milliseconds()),
+	}
+
 	if err != nil {
+		go config.SetCustomLog("API_DIGISIGN", true, logs, "SIGN_DOC-API")
 		return
 	}
 
@@ -1213,6 +1304,10 @@ func (u packages) SignDocument(req request.JsonFileSign, prospectID string) (dat
 		Activity:   "SIGN_DOC",
 		Link:       digiResp.JsonFile.Link,
 	})
+
+	logs["response"] = digiResp
+
+	go config.SetCustomLog("API_DIGISIGN", false, logs, "SIGN_DOC-API")
 
 	data = SignDocumentMappingResponse(digiResp, prospectID)
 
@@ -1381,6 +1476,14 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 
 		redirectUrl = data.RedirectFailedUrl
 
+		logs := map[string]interface{}{
+			"ID":       data.ProspectID,
+			"response": signCallback,
+			"msg":      msg,
+		}
+
+		go config.SetCustomLog("API_DIGISIGN", false, logs, "SIGN-CALLBACK-API")
+
 		if data.Decision == "APR" {
 			redirectUrl = data.RedirectSuccessUrl
 		} else {
@@ -1429,10 +1532,27 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			return
 		}
 
+		details, _ := u.repository.GetAgreementNo(data.ProspectID)
+
+		var info response.SendDocInfo
+
+		if details.Info != nil {
+			json.Unmarshal([]byte(details.Info.(string)), &info)
+		}
+
+		doc := entity.TteDocPk{
+			ID:          uuid.New().String(),
+			ProspectID:  data.ProspectID,
+			NoAgreement: info.AgreementNo,
+			DocPKUrl:    upload.Data.MediaURL,
+			Tipe:        "DIGISIGN",
+			FilePath:    os.Getenv("SIGNED_PATH") + info.DocumentID + ".pdf",
+		}
+
 		_ = u.repository.UpdateStatusDigisignSignDoc(entity.TrxDetail{
 			ProspectID: data.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "APR", RuleCode: "4404",
-			SourceDecision: "SID", CreatedBy: "SYSTEM", Info: upload.Data.MediaURL,
-		})
+			SourceDecision: "SID", CreatedBy: "SYSTEM", Info: signCallback.DocumentID + ".pdf",
+		}, doc)
 
 		redirectUrl = data.RedirectSuccessUrl
 
@@ -1566,11 +1686,26 @@ func (u usecase) DownloadDoc(prospectID string, req request.DownloadRequest) (pd
 			return pdfBase64, err
 		}
 	}
+
+	logs := map[string]interface{}{
+		"ID":            prospectID,
+		"response_code": restyResp.StatusCode(),
+		"url":           os.Getenv("DOWNLOAD_URL"),
+		"response_time": fmt.Sprintf("%dms", restyResp.Time().Milliseconds()),
+		"document_id":   req.DocumentID,
+	}
+
+	go config.SetCustomLog("API_DIGISIGN", false, logs, "DOWNLOAD-API")
+
 	dec, err := base64.StdEncoding.DecodeString(respDownload.JsonFile.File)
 	if err != nil {
 		panic(err)
 	}
-	pdfBase64 = "document_signed_" + prospectID + "_" + time.Now().String() + ".pdf"
+
+	os.Remove(os.Getenv("SIGNED_PATH") + req.DocumentID + ".pdf")
+
+	pdfBase64 = os.Getenv("SIGNED_PATH") + req.DocumentID + ".pdf"
+
 	f, err := os.Create(pdfBase64)
 	if err != nil {
 		panic(err)
@@ -1605,7 +1740,15 @@ func (u usecase) UploadDoc(prospectID string, fileName string) (uploadResp respo
 		}
 	}
 
-	os.Remove(fileName)
+	logs := map[string]interface{}{
+		"ID":            prospectID,
+		"response":      uploadResp,
+		"response_code": restyResp.StatusCode(),
+		"url":           os.Getenv("UPLOAD_PLATFORM_URL"),
+		"response_time": fmt.Sprintf("%dms", restyResp.Time().Milliseconds()),
+	}
+
+	go config.SetCustomLog("API_DIGISIGN", false, logs, "UPLOAD-API")
 
 	return
 }
@@ -1643,8 +1786,17 @@ func (u usecase) DecodeMedia(url string, customerID string) (base64Image string,
 
 	image, err := u.httpclient.MediaClient(url+os.Getenv("MEDIA_PATH"), "GET", nil, "", header, timeOut, false, nil, customerID)
 
+	logs := map[string]interface{}{
+		"ID":            customerID,
+		"response_code": image.StatusCode(),
+		"url":           url + os.Getenv("UPLOAD_PLATFORM_URL"),
+		"response_time": fmt.Sprintf("%dms", image.Time().Milliseconds()),
+	}
+
+	go config.SetCustomLog("API_DIGISIGN", false, logs, "UPLOAD-API")
+
 	if image.StatusCode() != 200 || err != nil {
-		err = errors.New("error")
+		err = errors.New(constant.CONNECTION_ERROR)
 		return
 	}
 

@@ -7,6 +7,7 @@ require (
 	github.com/allegro/bigcache v1.2.1
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-resty/resty/v2 v2.3.0
+	github.com/google/uuid v1.3.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/jinzhu/gorm v1.9.16

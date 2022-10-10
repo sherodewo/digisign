@@ -16,16 +16,6 @@ func (_m *MockHttpClient) DigiAPI(url string, method string, param interface{}, 
 	return args.Get(0).(*resty.Response), args.Error(1)
 }
 
-func (_m *MockHttpClient) MediaAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error) {
-	args := _m.Called(url, param, header, method, timeOut, retry, countRetry)
-	return args.Get(0).(*resty.Response), args.Error(1)
-}
-
-func (_m *MockHttpClient) EngineAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error) {
-	args := _m.Called(url, param, header, method, timeOut, retry, countRetry)
-	return args.Get(0).(*resty.Response), args.Error(1)
-}
-
 func (_m *MockHttpClient) RegisterAPI(url string, param map[string]string, header map[string]string, method string, timeOut int, dataFile request.DataFile, ProspectID string) (resp *resty.Response, err error) {
 	args := _m.Called(url, param, header, method, timeOut, dataFile, ProspectID)
 	return args.Get(0).(*resty.Response), args.Error(1)

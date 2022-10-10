@@ -132,3 +132,8 @@ type DigisignCheck struct {
 	ProspectID string `json:"prospect_id" validate:"required"`
 	Email      string `json:"email" validate:"required"`
 }
+
+type DigisignDownload struct {
+	ProspectID string `json:"prospect_id" validate:"required"`
+	DocumentID string `json:"document_id" validate:"required"`
+}

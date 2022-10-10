@@ -147,3 +147,12 @@ type DataDigisignCheck struct {
 	ActivationUrl interface{} `json:"activation_url"`
 	SignDocUrl    interface{} `json:"sign_doc_url"`
 }
+
+type Logging struct {
+	ID           string      `json:"ID,omitempty"`
+	Request      interface{} `json:"request,omitempty"`
+	Response     interface{} `json:"response,omitempty"`
+	ResponseCode interface{} `json:"response_code,omitempty"`
+	Url          string      `json:"url,omitempty"`
+	ResponseTime string      `json:"response_time,omitempty"`
+}

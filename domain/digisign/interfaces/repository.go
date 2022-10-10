@@ -10,7 +10,7 @@ type Repository interface {
 	GetCustomerPersonalByEmail(documentID string) (data entity.CallbackData, err error)
 	GetDigisignDummy(email string, action string) (data entity.DigisignDummy, err error)
 	GetTrxMetadata(prospectID string) (data entity.TrxMetadata, err error)
-	UpdateStatusDigisignSignDoc(data entity.TrxDetail) error
+	UpdateStatusDigisignSignDoc(data entity.TrxDetail, doc entity.TteDocPk) error
 	SaveToWorker(data []entity.TrxWorker) (err error)
 	GetDataWorker(prospectID string) (data entity.DataWorker, err error)
 	SaveToTrxDigisign(data entity.TrxDigisign) (err error)
@@ -18,4 +18,5 @@ type Repository interface {
 	GetLinkTrxDegisign(prospectID, action string) (data entity.TrxDigisign, err error)
 	CheckWorker1209(prospectID string) (resultWorker int)
 	CheckSND(prospectID string) (resultWorker int)
+	GetAgreementNo(prospectID string) (data entity.TrxDetail, err error)
 }

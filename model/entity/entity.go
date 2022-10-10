@@ -171,3 +171,17 @@ type TrxDigisign struct {
 func (c *TrxDigisign) TableName() string {
 	return "trx_digisign"
 }
+
+type TteDocPk struct {
+	ID          string    `gorm:"type:varchar(50);column:id"`
+	ProspectID  string    `gorm:"type:varchar(20);column:prospect_id"`
+	NoAgreement string    `gorn:"type:varchar(50);column:no_agreement"`
+	DocPKUrl    string    `gorm:"type:varchar(255);column:doc_pk_url"`
+	Tipe        string    `gorm:"type:varchar(10);column:tipe"`
+	FilePath    string    `gorm:"type:varchar(255);column:file_path"`
+	CreatedAt   time.Time `gorm:"column:created_at"`
+}
+
+func (c *TteDocPk) TableName() string {
+	return "tte_doc_pk"
+}

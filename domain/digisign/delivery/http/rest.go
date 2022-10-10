@@ -36,6 +36,7 @@ func DigisignHandler(route *echo.Group, multiUsecase interfaces.MultiUsecase, pa
 		digiGroup.POST("/activation", handler.Activation)
 		digiGroup.POST("/send-doc", handler.SendDoc)
 		digiGroup.POST("/step-check", handler.CheckDigisignIndex)
+		digiGroup.POST("/download/base64", handler.DownloadDoc)
 	}
 }
 
@@ -231,4 +232,28 @@ func (h *digisignHandler) CheckDigisignIndex(ctx echo.Context) (err error) {
 
 	return h.Json.Ok(ctx, "LOS - Digisign Check", data)
 
+}
+
+func (h *digisignHandler) DownloadDoc(ctx echo.Context) (err error) {
+
+	var req request.DigisignDownload
+
+	if err := ctx.Bind(&req); err != nil {
+		return h.Json.InternalServerError(ctx, "LOS - Download Document", err)
+	}
+
+	if err := ctx.Validate(&req); err != nil {
+		return h.Json.BadRequestErrorValidation(ctx, "LOS - Download Document", err)
+	}
+
+	_, err = h.usecase.DownloadDoc(req.ProspectID, request.DownloadRequest{
+		UserID:     os.Getenv("DIGISIGN_USER_ID"),
+		DocumentID: req.DocumentID,
+	})
+
+	if err != nil {
+		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Download Document Error"))
+	}
+
+	return h.Json.Ok(ctx, "LOS - Download Document", "download document success")
 }

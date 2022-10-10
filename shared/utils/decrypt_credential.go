@@ -21,13 +21,13 @@ func decrypt(key, iv []byte, encrypted string) ([]byte, error) {
 		return nil, err
 	}
 	if len(string(data))%aes.BlockSize != 0 {
-		return nil, fmt.Errorf("bad blocksize(%v), aes.BlockSize = %v\n", len(data), aes.BlockSize)
+		return nil, fmt.Errorf("bad blocksize(%v), aes.BlockSize = %v", len(data), aes.BlockSize)
 	}
 
 	c, err := aes.NewCipher(key)
 
 	if err != nil {
-		fmt.Println("error chipper ", err.Error())
+		fmt.Println("error chipper :", err.Error())
 		return nil, err
 	}
 
@@ -54,7 +54,9 @@ func DecryptCredential(encryptedText string) (string, error) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	decodeIv, err := hex.DecodeString(iv)
+
+	decodeIv, _ := hex.DecodeString(iv)
+
 	decryptedText, err := decrypt(keys, decodeIv, src)
 	return string(decryptedText), err
 }

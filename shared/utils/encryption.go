@@ -41,15 +41,15 @@ func AesDecrypt(crypted, key []byte) []byte {
 }
 
 func AesEncrypt(src, key string) []byte {
-	block, err := aes.NewCipher([]byte (key))
+	block, err := aes.NewCipher([]byte(key))
 	if err != nil {
-		fmt.Println("key error1", err)
+		fmt.Println("key error : ", err)
 	}
 	if src == "" {
 		fmt.Println("plain content empty")
 	}
 	ecb := NewECBEncrypter(block)
-	content := []byte (src)
+	content := []byte(src)
 	content = PKCS5Padding(content, block.BlockSize())
 	crypted := make([]byte, len(content))
 	ecb.CryptBlocks(crypted, content)
@@ -91,7 +91,7 @@ type ecbEncrypter ecb
 // NewECBEncrypter returns a BlockMode which encrypts in electronic code book
 // mode, using the given Block.
 func NewECBEncrypter(b cipher.Block) cipher.BlockMode {
-	return (* ecbEncrypter)(newECB(b))
+	return (*ecbEncrypter)(newECB(b))
 }
 func (x *ecbEncrypter) BlockSize() int { return x.blockSize }
 func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
@@ -113,7 +113,7 @@ type ecbDecrypter ecb
 // NewECBDecrypter returns a BlockMode which decrypts in electronic code book
 // mode, using the given Block.
 func NewECBDecrypter(b cipher.Block) cipher.BlockMode {
-	return (* ecbDecrypter)(newECB(b))
+	return (*ecbDecrypter)(newECB(b))
 }
 func (x *ecbDecrypter) BlockSize() int { return x.blockSize }
 func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
@@ -129,4 +129,3 @@ func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
 		dst = dst[x.blockSize:]
 	}
 }
-

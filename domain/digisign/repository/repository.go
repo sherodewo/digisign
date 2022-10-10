@@ -44,7 +44,7 @@ func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data e
 	 INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	 INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	 INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -7, GETDATE())
+	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -15, GETDATE())
 	 ORDER BY cp.created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
 		return
 	}
@@ -68,8 +68,17 @@ func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.
 	INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -17, GETDATE())
+	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -25, GETDATE())
 	ORDER BY cp.created_at DESC`, documentID)).Scan(&data).Error; err != nil {
+		return
+	}
+
+	return
+}
+
+func (r repoHandler) GetAgreementNo(prospectID string) (data entity.TrxDetail, err error) {
+
+	if err = r.db.Raw(fmt.Sprintf("SELECT info FROM trx_details WITH (nolock) WHERE ProspectID = '%s' AND source_decision = 'SND' AND decision = 'PAS'", prospectID)).Scan(&data).Error; err != nil {
 		return
 	}
 
@@ -130,7 +139,7 @@ func (r repoHandler) UpdateStatusDigisignActivation(email, nik, prospectID strin
 
 }
 
-func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail) error {
+func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail, doc entity.TteDocPk) error {
 
 	var details entity.TrxDetail
 
@@ -152,6 +161,10 @@ func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail) error {
 			if err := tx.Table("trx_status").Where("ProspectID = ? AND source_decision = ?", data.ProspectID, "SID").Updates(&entity.TrxStatus{
 				Activity: data.Activity, Decision: data.Decision, RuleCode: data.RuleCode, NextStep: nil,
 			}).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Create(&doc).Error; err != nil {
 				return err
 			}
 

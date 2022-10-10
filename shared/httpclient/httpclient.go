@@ -9,7 +9,6 @@ import (
 
 	"los-int-digisign/model/request"
 	"los-int-digisign/model/response"
-	"los-int-digisign/shared/config"
 	"los-int-digisign/shared/constant"
 	"los-int-digisign/shared/utils"
 	"os"
@@ -25,8 +24,6 @@ func NewHttpClient() HttpClient {
 }
 
 type HttpClient interface {
-	MediaAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
-	EngineAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error)
 	ActivationAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error)
 	RegisterAPI(url string, param map[string]string, header map[string]string, method string, timeOut int, dataFile request.DataFile, ProspectID string) (resp *resty.Response, err error)
 	MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, retry bool, countRetry interface{}, customerID string) (resp *resty.Response, err error)
@@ -34,35 +31,6 @@ type HttpClient interface {
 	SignDocAPI(url, method string, param map[string]string, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error)
 	DigiAPI(url, method string, param map[string]string, file string, header map[string]string, timeOut int, customerID string) (resp *resty.Response, err error)
 	DocumentAPI(url, method string, param interface{}, header map[string]string, timeOut int, prospectID string) (resp *resty.Response, err error)
-}
-
-func (h httpClient) MediaAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error) {
-
-	client := resty.New()
-	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(false)
-	}
-	if retry {
-		client.SetRetryCount(countRetry.(int))
-		client.AddRetryCondition(
-			func(r *resty.Response, err error) bool {
-				return r.StatusCode() >= 500
-			})
-	}
-
-	client.SetTimeout(time.Second * time.Duration(timeOut))
-
-	switch method {
-	case constant.METHOD_POST:
-		resp, err = client.R().SetHeaders(header).SetBody(param).Post(url)
-	}
-
-	if err != nil {
-		err = errors.New(constant.CONNECTION_ERROR)
-		return
-	}
-
-	return
 }
 
 func (h httpClient) MediaClient(url, method string, param map[string]string, file string, header map[string]string, timeOut int, retry bool, countRetry interface{}, customerID string) (resp *resty.Response, err error) {
@@ -91,7 +59,7 @@ func (h httpClient) MediaClient(url, method string, param map[string]string, fil
 	}
 
 	if err != nil {
-		err = errors.New(constant.CONNECTION_ERROR)
+		err = fmt.Errorf(constant.CONNECTION_ERROR)
 		return
 	}
 
@@ -146,60 +114,8 @@ func (h httpClient) RegisterAPI(url string, param map[string]string, header map[
 	var registerResponse response.RegisterResponse
 	json.Unmarshal(resp.Body(), &registerResponse)
 
-	isError := false
-
-	if resp.StatusCode() != 200 {
-		isError = true
-	}
-
-	logs := map[string]interface{}{
-		"ID":            ProspectID,
-		"response":      registerResponse,
-		"response_code": resp.StatusCode(),
-		"url":           url,
-		"response_time": fmt.Sprintf("%dms", resp.Time().Milliseconds()),
-	}
-
-	go config.SetCustomLog("API_DIGISIGN", isError, logs, "REGISTER-API")
-
 	if err != nil {
-		err = errors.New(constant.CONNECTION_ERROR)
-		return
-	}
-
-	return
-
-}
-
-func (h httpClient) EngineAPI(url string, param interface{}, header map[string]string, method string, timeOut int, retry bool, countRetry interface{}) (resp *resty.Response, err error) {
-
-	header["Content-Type"] = "application/json"
-
-	client := resty.New()
-	if os.Getenv("APP_ENV") != "production" {
-		client.SetDebug(false)
-	}
-	if retry {
-		client.SetRetryCount(countRetry.(int))
-		client.AddRetryCondition(
-			func(r *resty.Response, err error) bool {
-				return r.StatusCode() >= 500
-			})
-	}
-
-	client.SetTimeout(time.Second * time.Duration(timeOut))
-
-	switch method {
-
-	case constant.METHOD_POST:
-		resp, err = client.R().SetHeaders(header).SetBody(param).Post(url)
-	case constant.METHOD_GET:
-		resp, err = client.R().SetHeaders(header).SetBody(param).Get(url)
-
-	}
-
-	if err != nil {
-		err = errors.New(constant.CONNECTION_ERROR)
+		err = fmt.Errorf(constant.CONNECTION_ERROR)
 		return
 	}
 
@@ -224,12 +140,12 @@ func (h httpClient) SendDocAPI(url, method string, param map[string]string, head
 				SetFormData(param).SetFileReader("file", "file_"+dataFile.DocumentID+".pdf", bytes.NewReader(dataFile.DocumentPK)).
 				Post(url)
 		} else {
-			return nil, fmt.Errorf("connection error")
+			return nil, fmt.Errorf(constant.CONNECTION_ERROR)
 		}
 	}
 
 	if err != nil {
-		err = errors.New("connection error")
+		err = fmt.Errorf(constant.CONNECTION_ERROR)
 		return
 	}
 

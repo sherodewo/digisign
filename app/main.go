@@ -55,11 +55,6 @@ func main() {
 
 	e.Debug = config.IsDevelopment
 
-	// digisign, err := database.OpenDigisign()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	los, err := database.OpenLos()
 	if err != nil {
 		log.Fatal(err)
@@ -69,6 +64,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	config.CreateCustomLogFile("API_DIGISIGN")
 	//Set Middleware
 	// e.Use(middleware.BodyDumpWithConfig(bodydump.NewBodyDumpMiddleware(logs).BodyDumpConfig()))
 	e.Use(middleware.Recover())
