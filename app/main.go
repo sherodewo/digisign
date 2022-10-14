@@ -97,7 +97,7 @@ func main() {
 	var cache *bigcache.BigCache
 	isCacheActive, _ := strconv.ParseBool(config.Env("CACHE_ACTIVE"))
 	if isCacheActive {
-		cache, _ = bigcache.NewBigCache(bigcache.Config{CleanWindow: 1 * time.Minute, LifeWindow: 5 * time.Minute})
+		cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(time.Duration(5) * time.Minute))
 	}
 
 	utils.NewCache(cache, los, config.IsDevelopment)
