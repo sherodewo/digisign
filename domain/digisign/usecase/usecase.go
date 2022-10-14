@@ -1547,46 +1547,39 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 
 		}
 
-		// var download string
+		var download string
 
-		// download, err = u.usecase.DownloadDoc(data.ProspectID, request.DownloadRequest{
-		// 	DocumentID: signCallback.DocumentID,
-		// 	UserID:     os.Getenv("DIGISIGN_USER_ID"),
-		// })
-
-		// if err != nil {
-		// 	return
-		// }
-
-		// upload, err = u.usecase.UploadDoc(data.ProspectID, download)
-
-		// if err != nil {
-		// 	return
-		// }
-
-		// details, _ := u.repository.GetAgreementNo(data.ProspectID)
-
-		// var info response.SendDocInfo
-
-		// if details.Info != nil {
-		// 	json.Unmarshal([]byte(details.Info.(string)), &info)
-		// }
-
-		// doc := entity.TteDocPk{
-		// 	ID:          uuid.New().String(),
-		// 	ProspectID:  data.ProspectID,
-		// 	NoAgreement: info.AgreementNo,
-		// 	DocPKUrl:    upload.Data.MediaURL,
-		// 	Tipe:        "DIGISIGN",
-		// 	FilePath:    os.Getenv("SIGNED_PATH") + info.DocumentID + ".pdf",
-		// }
-
-		var doc entity.TteDocPk
-
-		upload, doc, err = u.usecase.DownloadAndUpload(data.ProspectID, request.DownloadRequest{
+		download, err = u.usecase.DownloadDoc(data.ProspectID, request.DownloadRequest{
 			DocumentID: signCallback.DocumentID,
 			UserID:     os.Getenv("DIGISIGN_USER_ID"),
 		})
+
+		if err != nil {
+			return
+		}
+
+		upload, err = u.usecase.UploadDoc(data.ProspectID, download)
+
+		if err != nil {
+			return
+		}
+
+		details, _ := u.repository.GetAgreementNo(data.ProspectID)
+
+		var info response.SendDocInfo
+
+		if details.Info != nil {
+			json.Unmarshal([]byte(details.Info.(string)), &info)
+		}
+
+		doc := entity.TteDocPk{
+			ID:          uuid.New().String(),
+			ProspectID:  data.ProspectID,
+			NoAgreement: info.AgreementNo,
+			DocPKUrl:    upload.Data.MediaURL,
+			Tipe:        "DIGISIGN",
+			FilePath:    os.Getenv("SIGNED_PATH") + info.DocumentID + ".pdf",
+		}
 
 		_ = u.repository.UpdateStatusDigisignSignDoc(entity.TrxDetail{
 			ProspectID: data.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "APR", RuleCode: "4404",
@@ -1790,114 +1783,6 @@ func (u usecase) UploadDoc(prospectID string, fileName string) (uploadResp respo
 	go config.SetCustomLog("API_DIGISIGN", false, logs, "UPLOAD-API")
 
 	return
-}
-
-func (u usecase) DownloadAndUpload(prospectID string, req request.DownloadRequest) (uploadResp response.MediaServiceResponse, doc entity.TteDocPk, err error) {
-
-	var pdfBase64 string
-
-	timeOut, _ := strconv.Atoi(os.Getenv("DEFAULT_TIMEOUT_30S"))
-
-	jsonFile, _ := json.Marshal(map[string]interface{}{
-		"JSONFile": req,
-	})
-
-	param := map[string]string{
-		"jsonfield": string(jsonFile),
-	}
-
-	header := map[string]string{
-		"Content-Type":  "multipart/form-data",
-		"Authorization": "Bearer " + os.Getenv("DIGISIGN_TOKEN"),
-	}
-
-	restyResp, err := u.httpclient.DigiAPI(os.Getenv("DOWNLOAD_URL"), constant.METHOD_POST, param, "", header, timeOut, prospectID)
-	var respDownload response.DownloadResponse
-	if restyResp != nil && http.StatusOK == restyResp.StatusCode() {
-		if err := json.Unmarshal(restyResp.Body(), &respDownload); err != nil {
-			return uploadResp, doc, err
-		}
-	}
-
-	logs := map[string]interface{}{
-		"ID":            prospectID,
-		"response_code": restyResp.StatusCode(),
-		"url":           os.Getenv("DOWNLOAD_URL"),
-		"response_time": fmt.Sprintf("%dms", restyResp.Time().Milliseconds()),
-		"document_id":   req.DocumentID,
-	}
-
-	go config.SetCustomLog("API_DIGISIGN", false, logs, "DOWNLOAD-API")
-
-	dec, err := base64.StdEncoding.DecodeString(respDownload.JsonFile.File)
-	if err != nil {
-		panic(err)
-	}
-
-	os.Remove(os.Getenv("SIGNED_PATH") + req.DocumentID + ".pdf")
-
-	pdfBase64 = os.Getenv("SIGNED_PATH") + req.DocumentID + ".pdf"
-
-	f, err := os.Create(pdfBase64)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	if _, err := f.Write(dec); err != nil {
-		panic(err)
-	}
-	if err := f.Sync(); err != nil {
-		panic(err)
-	}
-
-	paramUpload := map[string]string{
-		"type":         "perjanjian",
-		"reference_no": prospectID,
-	}
-	headerUpload := map[string]string{
-		"Content-Type":  "multipart/form-data",
-		"Authorization": os.Getenv("MEDIA_KEY"),
-	}
-
-	upload, err := u.httpclient.MediaClient(os.Getenv("UPLOAD_PLATFORM_URL"), http.MethodPost, paramUpload, pdfBase64, headerUpload, timeOut, true, 3, prospectID)
-	if upload != nil && http.StatusOK == upload.StatusCode() {
-		if err := json.Unmarshal(restyResp.Body(), &uploadResp); err != nil {
-			return uploadResp, doc, err
-		}
-	}
-
-	logs = map[string]interface{}{
-		"ID":            prospectID,
-		"response":      uploadResp,
-		"response_code": restyResp.StatusCode(),
-		"url":           os.Getenv("UPLOAD_PLATFORM_URL"),
-		"response_time": fmt.Sprintf("%dms", restyResp.Time().Milliseconds()),
-	}
-
-	go config.SetCustomLog("API_DIGISIGN", false, logs, "UPLOAD-API")
-
-	details, _ := u.repository.GetAgreementNo(prospectID)
-
-	var info response.SendDocInfo
-
-	if details.Info != nil {
-		json.Unmarshal([]byte(details.Info.(string)), &info)
-	}
-
-	doc = entity.TteDocPk{
-		ID:          uuid.New().String(),
-		ProspectID:  prospectID,
-		NoAgreement: info.AgreementNo,
-		DocPKUrl:    uploadResp.Data.MediaURL,
-		Tipe:        "DIGISIGN",
-		FilePath:    os.Getenv("SIGNED_PATH") + info.DocumentID + ".pdf",
-	}
-
-	_ = u.repository.SaveDocPKTte(doc)
-
-	return
-
 }
 
 func DecodeNonMedia(url string) (base64Image string, err error) {
