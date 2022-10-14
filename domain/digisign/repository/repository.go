@@ -164,9 +164,9 @@ func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail, doc enti
 				return err
 			}
 
-			if err := tx.Create(&doc).Error; err != nil {
-				return err
-			}
+			// if err := tx.Create(&doc).Error; err != nil {
+			// 	return err
+			// }
 
 			return nil
 		})
@@ -291,6 +291,29 @@ func (r repoHandler) GetLinkTrxDegisign(prospectID, action string) (data entity.
 
 	if err = r.db.Raw(fmt.Sprintf("SELECT TOP 1 link FROM trx_digisign WITH (nolock) WHERE ProspectID = '%s' AND activity = '%s' ORDER BY created_at DESC", prospectID, action)).Scan(&data).Error; err != nil {
 		return
+	}
+
+	return
+}
+
+func (r repoHandler) SaveDocPKTte(data entity.TteDocPk) (err error) {
+
+	var docPk entity.TteDocPk
+
+	result := r.db.Raw("SELECT * FROM tte_doc_pk WITH (nolock) WHERE prospect_id = '%s'", data.ProspectID).Scan(docPk)
+
+	if result.RowsAffected == 0 {
+		err = r.db.Create(&data).Error
+		return
+	} else {
+		if data.DocPKUrl != "" {
+			err = r.db.Where("prospect_id = ?", data.ProspectID).Updates(entity.TteDocPk{
+				NoAgreement: data.NoAgreement,
+				DocPKUrl:    data.DocPKUrl,
+			}).Error
+
+			return
+		}
 	}
 
 	return
