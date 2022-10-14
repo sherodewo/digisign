@@ -745,7 +745,7 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 				Decision:       constant.DECISION_REJECT,
 				Link:           dataCustomer.RedirectFailedUrl,
 			}
-			err = nil
+			err = fmt.Errorf(constant.EXPIRED)
 			return
 		}
 
@@ -769,6 +769,8 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 				Decision:       constant.DECISION_REJECT,
 				Link:           dataCustomer.RedirectFailedUrl,
 			}
+
+			err = fmt.Errorf(constant.EXPIRED)
 
 			return
 		}
@@ -1519,12 +1521,14 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			redirectUrl = data.RedirectSuccessUrl
 			return
 		} else {
+
 			if err != nil {
 				upload = response.MediaServiceResponse{
 					Message: "LOS Digisign",
 					Code:    constant.CODE_EXPIRED_SIGN_DOC,
 				}
-				err = nil
+
+				err = fmt.Errorf(constant.EXPIRED)
 
 				return
 			}

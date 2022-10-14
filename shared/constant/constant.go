@@ -131,4 +131,5 @@ const (
 	DIGISIGN_VERIFICATION_FAILED                   = "DIGISIGN VERIFICATION FAILED"
 	CATEGORY_FRONT_APP                             = "FRONT_APPS"
 	ACTION_CALLBACK                                = "CALLBACK_FINAL_DECISION"
+	EXPIRED                                        = "EXPIRED"
 )

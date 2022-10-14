@@ -5,6 +5,7 @@ import (
 	"los-int-digisign/domain/digisign/interfaces"
 	"los-int-digisign/model/request"
 	"los-int-digisign/shared/common"
+	"los-int-digisign/shared/constant"
 	"os"
 
 	"github.com/labstack/echo/v4"
@@ -135,12 +136,16 @@ func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
 
 	data, err := h.multiUsecase.ActivationRedirect(msg)
 
-	if err != nil {
+	if err != nil && err.Error() != constant.EXPIRED {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
 	}
 
 	if data.Link == "" {
 		return h.Json.Ok(ctx, "LOS Digisign", data)
+	}
+
+	if err != nil {
+		return h.Json.Ok(ctx, "LOS Digisign - Activation Callback", "OK")
 	}
 
 	return ctx.Redirect(301, data.Link)
@@ -195,8 +200,12 @@ func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 
 	_, redirect, err := h.multiUsecase.SignCallback(msg)
 
-	if err != nil {
+	if err != nil && err.Error() != constant.EXPIRED {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
+	}
+
+	if err != nil {
+		return h.Json.Ok(ctx, "LOS Digisign - Sign Callback", "OK")
 	}
 
 	return ctx.Redirect(301, redirect)
@@ -256,4 +265,9 @@ func (h *digisignHandler) DownloadDoc(ctx echo.Context) (err error) {
 	}
 
 	return h.Json.Ok(ctx, "LOS - Download Document", "download document success")
+}
+
+func (h *digisignHandler) TestRedirect(ctx echo.Context) (err error) {
+
+	return ctx.Redirect(200, "http://www.google.com")
 }
