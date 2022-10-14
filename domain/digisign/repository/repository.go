@@ -307,7 +307,7 @@ func (r repoHandler) SaveDocPKTte(data entity.TteDocPk) (err error) {
 		return
 	} else {
 		if data.DocPKUrl != "" {
-			err = r.db.Where("prospect_id = ?", data.ProspectID).Updates(entity.TteDocPk{
+			err = r.db.Model(&entity.TteDocPk{}).Where("prospect_id = ?", data.ProspectID).Updates(entity.TteDocPk{
 				NoAgreement: data.NoAgreement,
 				DocPKUrl:    data.DocPKUrl,
 			}).Error
