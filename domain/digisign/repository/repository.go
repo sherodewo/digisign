@@ -68,7 +68,7 @@ func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.
 	INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -17, GETDATE())
+	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -20, GETDATE())
 	ORDER BY cp.created_at DESC`, documentID)).Scan(&data).Error; err != nil {
 		return
 	}
