@@ -246,7 +246,7 @@ func (h *digisignHandler) DownloadDoc(ctx echo.Context) (err error) {
 		return h.Json.BadRequestErrorValidation(ctx, "LOS - Download Document", err)
 	}
 
-	_, _, err = h.usecase.DownloadAndUpload(req.ProspectID, request.DownloadRequest{
+	_, err = h.usecase.DownloadDoc(req.ProspectID, request.DownloadRequest{
 		UserID:     os.Getenv("DIGISIGN_USER_ID"),
 		DocumentID: req.DocumentID,
 	})

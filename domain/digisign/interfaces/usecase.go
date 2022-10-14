@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"los-int-digisign/model/entity"
 	"los-int-digisign/model/request"
 	"los-int-digisign/model/response"
 )
@@ -17,7 +16,6 @@ type Usecase interface {
 	CallbackDigisignSignDoc(data response.DataSignDocResponse, prospectID string) (err error)
 	CallbackDigisignSignDocSuccess(prospectID string, url string) (err error)
 	DigisignCheck(email, prospectID string) (data response.DataDigisignCheck, err error)
-	DownloadAndUpload(prospectID string, req request.DownloadRequest) (uploadResp response.MediaServiceResponse, doc entity.TteDocPk, err error)
 }
 
 type MultiUsecase interface {
