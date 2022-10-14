@@ -300,7 +300,7 @@ func (r repoHandler) SaveDocPKTte(data entity.TteDocPk) (err error) {
 
 	var docPk entity.TteDocPk
 
-	result := r.db.Raw("SELECT * FROM tte_doc_pk WITH (nolock) WHERE prospect_id = '%s'", data.ProspectID).Scan(docPk)
+	result := r.db.Raw(fmt.Sprintf("SELECT * FROM tte_doc_pk WITH (nolock) WHERE prospect_id = '%s'", data.ProspectID)).Scan(docPk)
 
 	if result.RowsAffected == 0 {
 		err = r.db.Create(&data).Error
