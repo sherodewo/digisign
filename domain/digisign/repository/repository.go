@@ -44,7 +44,7 @@ func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data e
 	 INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	 INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	 INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -15, GETDATE())
+	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -10, GETDATE())
 	 ORDER BY cp.created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
 		return
 	}
@@ -68,7 +68,7 @@ func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.
 	INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -25, GETDATE())
+	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -17, GETDATE())
 	ORDER BY cp.created_at DESC`, documentID)).Scan(&data).Error; err != nil {
 		return
 	}
@@ -164,9 +164,9 @@ func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail, doc enti
 				return err
 			}
 
-			if err := tx.Create(&doc).Error; err != nil {
-				return err
-			}
+			// if err := tx.Create(&doc).Error; err != nil {
+			// 	return err
+			// }
 
 			return nil
 		})
@@ -291,6 +291,29 @@ func (r repoHandler) GetLinkTrxDegisign(prospectID, action string) (data entity.
 
 	if err = r.db.Raw(fmt.Sprintf("SELECT TOP 1 link FROM trx_digisign WITH (nolock) WHERE ProspectID = '%s' AND activity = '%s' ORDER BY created_at DESC", prospectID, action)).Scan(&data).Error; err != nil {
 		return
+	}
+
+	return
+}
+
+func (r repoHandler) SaveDocPKTte(data entity.TteDocPk) (err error) {
+
+	var docPk entity.TteDocPk
+
+	result := r.db.Raw("SELECT * FROM tte_doc_pk WITH (nolock) WHERE prospect_id = '%s'", data.ProspectID).Scan(docPk)
+
+	if result.RowsAffected == 0 {
+		err = r.db.Create(&data).Error
+		return
+	} else {
+		if data.DocPKUrl != "" {
+			err = r.db.Where("prospect_id = ?", data.ProspectID).Updates(entity.TteDocPk{
+				NoAgreement: data.NoAgreement,
+				DocPKUrl:    data.DocPKUrl,
+			}).Error
+
+			return
+		}
 	}
 
 	return

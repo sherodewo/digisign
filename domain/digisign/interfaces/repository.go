@@ -19,4 +19,5 @@ type Repository interface {
 	CheckWorker1209(prospectID string) (resultWorker int)
 	CheckSND(prospectID string) (resultWorker int)
 	GetAgreementNo(prospectID string) (data entity.TrxDetail, err error)
+	SaveDocPKTte(data entity.TteDocPk) (err error)
 }
