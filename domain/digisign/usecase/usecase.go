@@ -1992,6 +1992,10 @@ func (u usecase) DigisignCheck(email, prospectID string) (data response.DataDigi
 			decision = "REJECTED"
 		}
 
+		if getStatus.Decision == "CAN" {
+			decision = "CANCELED"
+		}
+
 		switch getStatus.SourceDecision {
 		case "ACT":
 			step = "ACTIVATION"

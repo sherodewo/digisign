@@ -44,7 +44,7 @@ func (r repoHandler) GetCustomerPersonalByEmailAndNik(email, nik string) (data e
 	 INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	 INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	 INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -15, GETDATE())
+	 WHERE IDNumber = '%s' AND Email = '%s' AND td.source_decision = 'ACT' AND td.created_at >= DATEADD(minute, -10, GETDATE())
 	 ORDER BY cp.created_at DESC`, nik, email)).Scan(&data).Error; err != nil {
 		return
 	}
@@ -68,7 +68,7 @@ func (r repoHandler) GetCustomerPersonalByEmail(documentID string) (data entity.
 	INNER JOIN trx_details td WITH (nolock) ON cp.ProspectID = td.ProspectID
 	INNER JOIN trx_metadata tm WITH (nolock) ON cp.ProspectID = tm.ProspectID
 	INNER JOIN trx_status ts WITH (nolock) ON cp.ProspectID = ts.ProspectID 
-	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -25, GETDATE())
+	WHERE CAST(info AS VARCHAR(30)) = '%s.pdf' AND td.source_decision = 'SID' AND td.created_at >= DATEADD(minute, -17, GETDATE())
 	ORDER BY cp.created_at DESC`, documentID)).Scan(&data).Error; err != nil {
 		return
 	}
