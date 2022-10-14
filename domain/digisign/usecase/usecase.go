@@ -783,16 +783,16 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 
 		go config.SetCustomLog("API_DIGISIGN", false, logs, "ACTIVATION-CALLBACK-API")
 
-		cache := utils.GetCache()
+		// cache := utils.GetCache()
 
-		keyCache := dataCustomer.ProspectID + "ACT-Redirect"
+		// keyCache := dataCustomer.ProspectID + "ACT-Redirect"
 
-		value, _ := cache.Get(keyCache)
+		// value, _ := cache.Get(keyCache)
 
-		if value != nil {
-			jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(value, &data)
-			return
-		}
+		// if value != nil {
+		// 	jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal(value, &data)
+		// 	return
+		// }
 
 		var details []entity.TrxDetail
 
@@ -845,9 +845,9 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 				Link:           dataCustomer.RedirectFailedUrl,
 			}
 
-			cacheData, _ := json.Marshal(data)
+			// cacheData, _ := json.Marshal(data)
 
-			cache.Set(keyCache, cacheData)
+			// cache.Set(keyCache, cacheData)
 
 			err = u.repository.SaveTrx(details)
 
@@ -888,9 +888,9 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 				Link:           dataCustomer.RedirectFailedUrl,
 			}
 
-			cacheData, _ := json.Marshal(data)
+			// cacheData, _ := json.Marshal(data)
 
-			cache.Set(keyCache, cacheData)
+			// cache.Set(keyCache, cacheData)
 
 			err = u.repository.SaveTrx(details)
 
@@ -903,9 +903,9 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			RuleCode: signDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
 		})
 
-		cacheData, _ := json.Marshal(data)
+		// cacheData, _ := json.Marshal(data)
 
-		cache.Set(keyCache, cacheData)
+		// cache.Set(keyCache, cacheData)
 
 		err = u.repository.SaveTrx(details)
 		if err != nil {
