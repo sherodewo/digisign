@@ -13,4 +13,5 @@ type JSON interface {
 	ServerSideError(ctx echo.Context, message string, err error) error
 	Unauthorized(ctx echo.Context, message string, err error) error
 	NotFound(ctx echo.Context, message string) error
+	InternalErrorWithMessage(ctx echo.Context, message string, err error) error
 }

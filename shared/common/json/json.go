@@ -33,6 +33,15 @@ func (c *response) Ok(ctx echo.Context, message string, data interface{}) error 
 	})
 }
 
+func (c *response) InternalErrorWithMessage(ctx echo.Context, message string, err error) error {
+	return ctx.JSON(http.StatusInternalServerError, resp.Api{
+		Message:    message,
+		Errors:     err.Error(),
+		Data:       nil,
+		ServerTime: utils.GenerateTimeNow(),
+	})
+}
+
 func (c *response) OkCreated(ctx echo.Context, message string, data interface{}) error {
 	return ctx.JSON(http.StatusCreated, resp.Api{
 		Message:    message,

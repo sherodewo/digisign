@@ -1547,7 +1547,6 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 					Message: "LOS Digisign",
 					Code:    constant.CODE_EXPIRED_SIGN_DOC,
 				}
-
 				return
 			}
 

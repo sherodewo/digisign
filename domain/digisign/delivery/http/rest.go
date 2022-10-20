@@ -140,16 +140,15 @@ func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
 	}
 
-	data.Link = "www.google.com"
 	if data.Link == "" {
-		return h.Json.Ok(ctx, "LOS Digisign", data)
+		return h.Json.Ok(ctx, "ACTIVATION CALLBACK", data)
 	}
 
-	if err != nil {
-		return h.Json.Ok(ctx, "LOS Digisign - Activation Callback", "OK")
+	if err == nil {
+		return h.Json.InternalErrorWithMessage(ctx, "LOS Digisign - Activation Callback", err)
 	}
 
-	return h.Json.Ok(ctx, "CALLBACK ACTIVATION" ,data)
+	return h.Json.Ok(ctx, "ACTIVATION CALLBACK" ,data)
 }
 
 // Digisign godoc
@@ -200,16 +199,14 @@ func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 	msg := ctx.QueryParam("msg")
 
 	_, redirect, err := h.multiUsecase.SignCallback(msg)
-
-	if err != nil && err.Error() != constant.EXPIRED {
-		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
-	}
-
 	if err != nil {
-		return h.Json.Ok(ctx, "LOS Digisign - Sign Callback", "OK")
+		if err.Error() != constant.EXPIRED {
+			return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Sign Callback Error"))
+		}
+		return h.Json.Ok(ctx, "SIGN CALLBACK" , echo.Map{"redirect_url":redirect})
 	}
 
-	return h.Json.Ok(ctx, "CALLBACK ACTIVATION" , echo.Map{"redirect_url":redirect})
+	return h.Json.Ok(ctx, "SIGN CALLBACK" , echo.Map{"redirect_url":redirect})
 }
 
 // Digisign godoc
