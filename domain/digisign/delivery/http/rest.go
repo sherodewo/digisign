@@ -140,6 +140,7 @@ func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
 		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
 	}
 
+	data.Link = "www.google.com"
 	if data.Link == "" {
 		return h.Json.Ok(ctx, "LOS Digisign", data)
 	}
@@ -148,7 +149,7 @@ func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
 		return h.Json.Ok(ctx, "LOS Digisign - Activation Callback", "OK")
 	}
 
-	return ctx.Redirect(301, data.Link)
+	return h.Json.Ok(ctx, "CALLBACK ACTIVATION" ,data)
 }
 
 // Digisign godoc
@@ -193,7 +194,7 @@ func (h *digisignHandler) SignDoc(ctx echo.Context) (err error) {
 // @Success 200 {object} response.Api{}
 // @Failure 400 {object} response.Api{error=response.ErrorValidation}
 // @Failure 500 {object} response.Api{}
-// @Router /digisign/sign-document/callback [post]
+// @Router /digisign/sign-document/callback [get]
 func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 
 	msg := ctx.QueryParam("msg")
@@ -208,7 +209,7 @@ func (h *digisignHandler) SignCallback(ctx echo.Context) (err error) {
 		return h.Json.Ok(ctx, "LOS Digisign - Sign Callback", "OK")
 	}
 
-	return ctx.Redirect(301, redirect)
+	return h.Json.Ok(ctx, "CALLBACK ACTIVATION" , echo.Map{"redirect_url":redirect})
 }
 
 // Digisign godoc
