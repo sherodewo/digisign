@@ -137,15 +137,11 @@ func (h *digisignHandler) ActivationCallback(ctx echo.Context) (err error) {
 	data, err := h.multiUsecase.ActivationRedirect(msg)
 
 	if err != nil && err.Error() != constant.EXPIRED {
-		return h.Json.ServerSideError(ctx, "LOS Digisign", fmt.Errorf("upstream_service_error - Activation Redirect Error"))
+		return h.Json.InternalErrorWithMessage(ctx, "LOS Digisign - Activation Callback", err)
 	}
 
 	if data.Link == "" {
 		return h.Json.Ok(ctx, "ACTIVATION CALLBACK", data)
-	}
-
-	if err == nil {
-		return h.Json.InternalErrorWithMessage(ctx, "LOS Digisign - Activation Callback", err)
 	}
 
 	return h.Json.Ok(ctx, "ACTIVATION CALLBACK" ,data)
