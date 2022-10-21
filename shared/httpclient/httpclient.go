@@ -66,6 +66,7 @@ func (h httpClient) MediaClient(url, method string, param map[string]string, fil
 	var mediaResponse response.MediaServiceResponse
 
 	json.Unmarshal(resp.Body(), &mediaResponse)
+	fmt.Println("RESP MEDIA CLIENT : ", resp.Body())
 
 	return
 

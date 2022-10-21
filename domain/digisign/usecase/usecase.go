@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"los-int-digisign/domain/digisign/interfaces"
 
@@ -1563,12 +1564,16 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			UserID:     os.Getenv("DIGISIGN_USER_ID"),
 		})
 
+		fmt.Println("DOWNLOAD DOC : " )
+
 		if err != nil {
 			return
 		}
 
 		upload, err = u.usecase.UploadDoc(data.ProspectID, download)
-
+		fmt.Println("DOC PK : ", upload.Data)
+		log.Print(" UPLOAD : ", upload.Data)
+		log.Print(" Error Upload : ", upload.Errors)
 		if err != nil {
 			return
 		}
@@ -1590,6 +1595,8 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 			FilePath:    os.Getenv("SIGNED_PATH") + info.DocumentID + ".pdf",
 		}
 
+		fmt.Println("DOC PK : ", doc)
+		log.Print(" DOC PK : ", doc)
 		_ = u.repository.UpdateStatusDigisignSignDoc(entity.TrxDetail{
 			ProspectID: data.ProspectID, StatusProcess: "FIN", Activity: "STOP", Decision: "APR", RuleCode: "4404",
 			SourceDecision: "SID", CreatedBy: "SYSTEM", Info: signCallback.DocumentID + ".pdf",
