@@ -179,30 +179,35 @@ func (r repoHandler) UpdateStatusDigisignSignDoc(data entity.TrxDetail, doc enti
 
 func (r repoHandler) SaveTrx(data []entity.TrxDetail) (err error) {
 
-	latestDetails := data[len(data)-1]
+	if len(data) > 0 {
 
-	return r.db.Transaction(func(tx *gorm.DB) error {
+		latestDetails := data[len(data)-1]
 
-		for _, details := range data {
-			if err := tx.Create(&details).Error; err != nil {
+		return r.db.Transaction(func(tx *gorm.DB) error {
+
+			for _, details := range data {
+				if err := tx.Create(&details).Error; err != nil {
+					return err
+				}
+			}
+
+			if err := tx.Table("trx_status").Where("ProspectID = ?", latestDetails.ProspectID).Update(&entity.TrxStatus{
+				ProspectID:     latestDetails.ProspectID,
+				StatusProcess:  latestDetails.StatusProcess,
+				Activity:       latestDetails.Activity,
+				Decision:       latestDetails.Decision,
+				RuleCode:       latestDetails.RuleCode,
+				SourceDecision: latestDetails.SourceDecision,
+				NextStep:       latestDetails.NextStep,
+			}).Error; err != nil {
 				return err
 			}
-		}
 
-		if err := tx.Table("trx_status").Where("ProspectID = ?", latestDetails.ProspectID).Update(&entity.TrxStatus{
-			ProspectID:     latestDetails.ProspectID,
-			StatusProcess:  latestDetails.StatusProcess,
-			Activity:       latestDetails.Activity,
-			Decision:       latestDetails.Decision,
-			RuleCode:       latestDetails.RuleCode,
-			SourceDecision: latestDetails.SourceDecision,
-			NextStep:       latestDetails.NextStep,
-		}).Error; err != nil {
-			return err
-		}
+			return nil
+		})
+	}
+	return nil
 
-		return nil
-	})
 }
 
 func (r repoHandler) GetDigisignDummy(email string, action string) (data entity.DigisignDummy, err error) {
