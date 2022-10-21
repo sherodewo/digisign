@@ -897,11 +897,17 @@ func (u multiUsecase) ActivationRedirect(msg string) (data response.DataSignDocR
 			return
 
 		}
+		// check if SND exist
+		sndExist := u.repository.CheckSND(dataCustomer.ProspectID)
+		if sndExist <= 0 {
+			details = append(details, entity.TrxDetail{
+				ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "UNPR", Decision: "CPR",
+				RuleCode: signDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
+			})
+		}else {
+			details = []entity.TrxDetail{}
+		}
 
-		details = append(details, entity.TrxDetail{
-			ProspectID: dataCustomer.ProspectID, StatusProcess: "ONP", Activity: "UNPR", Decision: "CPR",
-			RuleCode: signDoc.Code, SourceDecision: "SID", NextStep: nil, CreatedBy: "SYSTEM", Info: sendDoc.DocumentID + ".pdf",
-		})
 
 		cacheData, _ := json.Marshal(data)
 
