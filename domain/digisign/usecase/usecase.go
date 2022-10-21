@@ -1485,9 +1485,7 @@ func SignDocumentMappingResponse(data response.SignDocResponse, prospectID strin
 }
 
 func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResponse, redirectUrl string, err error) {
-	//err = nil
-	//redirectUrl = "www.google.com"
-	//return
+
 	decodeValue, _ := base64.StdEncoding.DecodeString(msg)
 
 	byteDecrypt := utils.AesDecrypt(decodeValue, []byte(os.Getenv("DIGISIGN_AES_KEY")))
@@ -1602,9 +1600,6 @@ func (u multiUsecase) SignCallback(msg string) (upload response.MediaServiceResp
 		go u.usecase.CallbackDigisignSignDocSuccess(data.ProspectID, upload.Data.MediaURL)
 
 	}
-
-	err = nil
-	redirectUrl = "www.google.com"
 	return
 }
 
